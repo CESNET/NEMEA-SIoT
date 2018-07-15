@@ -1,0 +1,17 @@
+This test can't be recorded because actual time is required.
+Steps:
+1. Connect Z-Wave usb dongle and Z-Wave sensor
+2. Pair sensor with BeeeOn gateway
+   nc localhost 6000
+    >  command listen 30
+    0x7FC888002070 PENDING 0/7 
+    > wait-queue
+    0x7FC888002070 DONE 7/7 SSSSFSS
+    > command device-accept 0xa80000d7dc7d9e02
+    0x7FC888004C40 PENDING 0/1 
+    > wait-queue
+    0x7FC888004C40 DONE 1/1 S
+3. Periodicaly send onExport messages (push the plug button)
+4. Stop sending and wait for periodic check alert
+5. Start seding data again and no new alert will be appeared
+ 
