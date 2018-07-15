@@ -1,4 +1,3 @@
-# NEMEA-SIoT
 Nemea Secured IoT 
 ===============
 
