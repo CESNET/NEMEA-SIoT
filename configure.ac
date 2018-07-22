@@ -36,10 +36,12 @@ AC_CONFIG_FILES([Makefile
                  wsn-anomaly/detector/Makefile
                  ble-pairing/Makefile
                  lora-airtime/Makefile
-                 lora-replay/Makefile])
+                 lora-replay/Makefile
+                 lora-distance/Makefile])
 AC_CONFIG_SUBDIRS([hci-collector
 ble-pairing
 wsn-anomaly/detector
 lora-airtime
-lora-replay])
+lora-replay
+lora-distance])
 AC_OUTPUT

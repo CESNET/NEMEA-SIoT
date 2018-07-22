@@ -10,3 +10,5 @@ cd ../../lora-airtime
 autoreconf -i
 cd ../lora-replay
 autoreconf -i
+cd ../lora-distance
+autoreconf -i
