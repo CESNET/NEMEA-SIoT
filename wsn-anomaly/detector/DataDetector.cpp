@@ -163,6 +163,11 @@ int initExportInterfaces(map<string, map<uint64_t, map<string, vector<string> > 
         cerr << "ERROR: Data export interface initialization failed" << endl;
         return 3;
     }
+    
+    if (trap_ctx_get_last_error(ctx_export) != TRAP_E_OK){
+        cerr << "ERROR in TRAP initialization: " << trap_ctx_get_last_error_msg(ctx_export) << endl;
+        return 3;
+    }
 
     // Interface control setting & create unirec template
     for (int i = 0; i < number_of_keys; i++ ){
@@ -223,6 +228,7 @@ int main (int argc, char** argv){
     cp.parseFile();
     auto series_meta_data = cp.getSeries();
     if (series_meta_data.empty()){
+        cerr << "ERROR configuration file is empty" << endl;
         return 1;
     }
 
@@ -277,41 +283,47 @@ int main (int argc, char** argv){
 
     if (ctx == NULL) {
         cerr << "ERROR in TRAP initialization: " << trap_last_error_msg << endl;
-        exit_value=1;
+        exit_value = 1;
         goto cleanup;
     }
+
+    if (trap_ctx_get_last_error(ctx) != TRAP_E_OK){
+      cerr << "ERROR in TRAP initialization: " << trap_ctx_get_last_error_msg(ctx) << endl;
+      exit_value = 1;
+      goto cleanup;
+   }
 
     // Input interface control settings
     if (trap_ctx_ifcctl(ctx, TRAPIFC_INPUT, 0, TRAPCTL_SETTIMEOUT, TRAP_WAIT) != TRAP_E_OK) {
         cerr << "ERROR in input interface initialization" << endl;
-        exit_value=2;
+        exit_value = 2;
         goto cleanup;
     }
     // Output interface control settings
     if (trap_ctx_ifcctl(ctx, TRAPIFC_OUTPUT,0,TRAPCTL_SETTIMEOUT, TRAP_WAIT) != TRAP_E_OK){
         cerr << "ERROR in alert output interface initialization" << endl;
-        exit_value=2;
+        exit_value = 2;
         goto cleanup;
     }
     // Create empty input template
     in_template = ur_ctx_create_input_template(ctx, 0, NULL, NULL);
     if (in_template == NULL) {
         cerr <<  "ERROR: unirec input template create fail" << endl;
-        exit_value=2;
+        exit_value = 2;
         goto cleanup;
     }
     // Create alert template
     alert_template = ur_ctx_create_output_template(ctx, 0, "ID,TIME,ur_key,alert_desc,profile_key,err_value,profile_value", NULL);
     if (alert_template == NULL) {
         cerr <<  "ERROR: unirec alert template create fail" << endl;
-        exit_value=2;
+        exit_value = 2;
         goto cleanup;
     }
     
     // Initialize export output interfaces
     ret = initExportInterfaces(series_meta_data, &export_template, &ctx_export, &data_export, ur_export_fields,verbose);
     if (ret > 1){
-        exit_value=2;
+        exit_value = 2;
         goto cleanup;
     }
 
@@ -319,7 +331,7 @@ int main (int argc, char** argv){
     data_alert = ur_create_record(alert_template, UR_MAX_SIZE);
         if ( data_alert == NULL ) { 
             cout << "ERROR: Data are not prepared for alert template" << endl;
-            exit_value=3;
+            exit_value = 3;
             goto cleanup;
         }
 
