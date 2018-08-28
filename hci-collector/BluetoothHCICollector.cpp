@@ -12,7 +12,6 @@
 #include <getopt.h>
 #include <unistd.h>
 #include <errno.h>
-#include <error.h>
 #include <sys/poll.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
@@ -48,7 +47,7 @@ int openHCISocket(uint16_t dev)
 
 	fd = socket(AF_BLUETOOTH, SOCK_RAW | SOCK_CLOEXEC, BTPROTO_HCI);
 	if (fd < 0) {
-		perror("Error: failed to open HCI socket.");
+		std::cerr << "Error: failed to open HCI socket. (" << errno << ")" << std::endl;
 		return -1;
 	}
 
@@ -57,19 +56,19 @@ int openHCISocket(uint16_t dev)
 	hci_filter_all_events(&flt);
 
 	if (setsockopt(fd, SOL_HCI, HCI_FILTER, &flt, sizeof(flt)) < 0) {
-		perror("Error: failed to set HCI filter.");
+		std::cerr << "Error: failed to set HCI filter." << " (" << errno << ")" << std::endl;
 		close(fd);
 		return -1;
 	}
 
 	if (setsockopt(fd, SOL_HCI, HCI_DATA_DIR, &opt, sizeof(opt)) < 0) {
-		perror("Error: failed to enable HCI data direction info.");
+		std::cerr << "Error: failed to enable HCI data direction info." << " (" << errno << ")" << std::endl;
 		close(fd);
 		return -1;
 	}
 
 	if (setsockopt(fd, SOL_HCI, HCI_TIME_STAMP, &opt, sizeof(opt)) < 0) {
-		perror("Error: failed to enable HCI time stamps.");
+		std::cerr << "Error: failed to enable HCI time stamps." << " (" << errno << ")" << std::endl;
 		close(fd);
 		return -1;
 	}
@@ -80,7 +79,7 @@ int openHCISocket(uint16_t dev)
 	addr.hci_channel = HCI_CHANNEL_RAW;
 
 	if (bind(fd, (struct sockaddr *) &addr, sizeof(addr)) < 0) {
-		perror("Error: failed to bind HCI socket.");
+		std::cerr << "Error: failed to bind HCI socket." << " (" << errno << ")" << std::endl;
 		close(fd);
 		return -1;
 	}
@@ -121,7 +120,7 @@ int exportPackets(int fd, const mac_addr_t &hci_dev_mac, ur_template_t *out_temp
 			if (errno == EAGAIN)
 				continue;
 
-			perror("receive failed");
+			std::cerr << "receive failed" << " (" << errno << ")" << std::endl;
 			return -1;
 		}
 
