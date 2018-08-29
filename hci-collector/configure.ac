@@ -15,7 +15,7 @@ AC_PROG_CC
  AC_CONFIG_MACRO_DIR([../m4])
 
 # Checks for libraries.
-AC_CHECK_LIB([bluetooth], [hci_devid])
+AC_CHECK_LIB([bluetooth], [hci_devid], [], [AC_MSG_ERROR([libbluetooth not found, install bluez-libs or its equivalent.])])
 
 # Checks for header files.
 AC_CHECK_HEADERS([sys/ioctl.h sys/socket.h unistd.h])
