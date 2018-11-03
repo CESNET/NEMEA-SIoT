@@ -51,8 +51,7 @@
 /** Define structure for BlackList */
 struct dl_device {
     uint64_t DEV_ADDR;
-    uint16_t LAST_FCNT;
-    uint8_t RESTART;
+    double BASE_RSSI;
     struct dl_device *next;
 };
 
@@ -61,22 +60,18 @@ struct dl_device *current = NULL;
 
 /** 
  * DeviceList
- * Information is retrieved from incoming physical payload (PHYPayload) 
- * by parsing and revers octets. Each row in DeviceList contains device 
- * has a counter (FCnt) of received message and information about 
- * restart the device (RESTART). If the device is restarted, RESTART 
- * value is set to 1. The device address (DevAddr) is used as the row 
- * index.
+ * Information is retrieved from incoming physical payload (PHYPayload) by 
+ * parsing and revers octets. Device address DEV_ADDR and base received 
+ * signal strength Indicator BASE_RSSI.
  */
 
-void dl_insert_device(uint64_t dev_addr, uint64_t act_fcnt) {
+void dl_insert_device(uint64_t dev_addr, double base_rssi) {
 
     struct dl_device *add = (struct dl_device*) malloc(sizeof (struct dl_device));
 
     add->DEV_ADDR = dev_addr;
+    add->BASE_RSSI = base_rssi;
     add->next = head;
-    add->RESTART = 0;
-    add->LAST_FCNT = act_fcnt;
     head = add;
 }
 
