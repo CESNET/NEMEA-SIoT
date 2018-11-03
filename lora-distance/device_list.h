@@ -55,7 +55,7 @@
 extern "C" {
 #endif
 
-    void dl_insert_device(uint64_t dev_addr, uint64_t act_fcnt);
+    void dl_insert_device(uint64_t dev_addr, double base_rssi);
     struct dl_device* dl_get_device(uint64_t dev_addr);
     uint8_t dl_is_empty();
 
