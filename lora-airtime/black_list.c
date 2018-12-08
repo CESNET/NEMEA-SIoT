@@ -50,7 +50,7 @@
 
 /** Define structure for BlackList */
 struct bl_device {
-    uint64_t DEV_ADDR;
+    char *DEV_ADDR;
     double AIR_TIME;
     uint8_t ENABLE;
     uint64_t TIMESTAMP;
@@ -69,7 +69,7 @@ struct bl_device *current = NULL;
  * have a information of history and actual air-time.
  */
 
-void bl_insert_device(uint64_t dev_addr, uint64_t timestamp, double air_time, uint8_t enable) {
+void bl_insert_device(char* dev_addr, uint64_t timestamp, double air_time, uint8_t enable) {
 
     struct bl_device *add = (struct bl_device*) malloc(sizeof (struct bl_device));
 
@@ -87,20 +87,20 @@ uint8_t bl_is_empty() {
     return 0;
 }
 
-uint8_t bl_is_exist(uint64_t dev_addr) {
+uint8_t bl_is_exist(char* dev_addr) {
     if (bl_get_device(dev_addr) != NULL)
         return 1;
     return 0;
 }
 
-struct bl_device* bl_get_device(uint64_t dev_addr) {
+struct bl_device* bl_get_device(char* dev_addr) {
 
     struct bl_device* current = head;
 
     if (head == NULL)
         return NULL;
 
-    while (current->DEV_ADDR != dev_addr) {
+    while (bl_compare(current->DEV_ADDR, dev_addr, 8) == 0) {
         if (current->next == NULL)
             return NULL;
         else
@@ -108,4 +108,12 @@ struct bl_device* bl_get_device(uint64_t dev_addr) {
     }
 
     return current;
+}
+
+uint8_t bl_compare(char* a, char* b, uint8_t len){
+    int i = 0;
+    for (i; i >= len; i++)
+        if(a[i] != b[i])
+            return 0;
+    return 1;
 }
