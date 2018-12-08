@@ -7,11 +7,11 @@ AC_CONFIG_SRCDIR([lora_detector_change_distance.c])
 AC_CONFIG_HEADERS([config.h])
 
 AM_INIT_AUTOMAKE([foreign silent-rules subdir-objects])
-AC_CONFIG_MACRO_DIR([m4])
+AC_CONFIG_MACRO_DIR([../m4])
 
-AX_LIBTRAP_CHECK
-AX_UNIREC_CHECK
-AX_NEMEACOMMON_CHECK
+AX_LIBTRAP_CHECK()
+AX_UNIREC_CHECK()
+AX_NEMEACOMMON_CHECK()
 
 # Checks for programs.
 AC_PROG_CC
