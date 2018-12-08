@@ -61,7 +61,7 @@
 
 /** Define structure for BlackList */
 struct bl_device {
-    uint64_t DEV_ADDR;
+    char DEV_ADDR[8];
     double AIR_TIME;
     uint8_t ENABLE;
     uint64_t TIMESTAMP;
@@ -86,9 +86,9 @@ UR_FIELDS(
         string DEV_ADDR,
         string PHY_PAYLOAD,
         uint64 AIR_TIME,
-        uint8 ENABLE,
         string NWK_SKEY,
         string APP_SKEY
+//        uint8 ENABLE,
 //        string GW_ID,
 //        string NODE_MAC,
 //        uint32 US_COUNT,
@@ -245,7 +245,7 @@ int main(int argc, char **argv) {
     }
 
     /** Create Output UniRec templates */
-    ur_template_t *out_tmplt = ur_create_output_template(0, "DEV_ADDR,TIMESTAMP,AIR_TIME,ENABLE,PHY_PAYLOAD", NULL);
+    ur_template_t *out_tmplt = ur_create_output_template(0, "DEV_ADDR,TIMESTAMP,AIR_TIME,PHY_PAYLOAD", NULL);
     if (out_tmplt == NULL) {
         ur_free_template(in_tmplt);
         ur_free_template(out_tmplt);
@@ -285,11 +285,13 @@ int main(int argc, char **argv) {
 
         ur_set_string(out_tmplt, out_rec, F_PHY_PAYLOAD, PHYPayload);
 
-        if ((ur_get_len(in_tmplt, in_rec, F_NWK_SKEY) == 32) && (ur_get_len(in_tmplt, in_rec, F_APP_SKEY) == 32)) {
-            ur_set_string(out_tmplt, out_rec, F_PHY_PAYLOAD, lr_uint8_to_string(lr_decode(
-                    lr_arr_to_uint8(ur_get_var_as_str(in_tmplt, in_rec, F_NWK_SKEY)),
-                    lr_arr_to_uint8(ur_get_var_as_str(in_tmplt, in_rec, F_APP_SKEY)))));
-        }
+        /** Example code for decode LoRaWAN packet.
+         *  if ((ur_get_len(in_tmplt, in_rec, F_NWK_SKEY) == 32) && (ur_get_len(in_tmplt, in_rec, F_APP_SKEY) == 32)) {
+         *      ur_set_string(out_tmplt, out_rec, F_PHY_PAYLOAD, lr_uint8_to_string(lr_decode(
+         *      lr_arr_to_uint8(ur_get_var_as_str(in_tmplt, in_rec, F_NWK_SKEY)),
+         *      lr_arr_to_uint8(ur_get_var_as_str(in_tmplt, in_rec, F_APP_SKEY)))));
+         *  }
+         */
 
         /** Identity message type */
         if (lr_is_join_accept_message()) {
@@ -312,7 +314,7 @@ int main(int argc, char **argv) {
          */
         double airtime = lr_airtime_calculate(ur_get(in_tmplt, in_rec, F_SIZE), hd, dr, ur_get(in_tmplt, in_rec, F_SF)
                 , ur_get(in_tmplt, in_rec, F_CODE_RATE), ps, ur_get(in_tmplt, in_rec, F_BAD_WIDTH), dt);
-        int timestamp = ur_get(in_tmplt, in_rec, F_TIMESTAMP);
+        uint64_t timestamp = ur_get(in_tmplt, in_rec, F_TIMESTAMP);
 
         /** 
          * BlackList
@@ -320,7 +322,7 @@ int main(int argc, char **argv) {
          * list that allow block messages from LoRaWAN infrastructure that 
          * have a information of history and actual air-time.
          */
-        struct bl_device *pre = bl_get_device(lr_uint8_to_uint64(lr_arr_to_uint8(DevAddr)));
+        struct bl_device *pre = bl_get_device(DevAddr);
 
         if (pre != NULL) {
             /** 
@@ -328,25 +330,25 @@ int main(int argc, char **argv) {
              */
             if ((pre->TIMESTAMP + pre->AIR_TIME) <= timestamp)
                 pre->ENABLE = 0;
-            else
+            else {
                 pre->ENABLE = 1;
 
-            pre->AIR_TIME = airtime;
-            pre->TIMESTAMP = timestamp;
+                pre->AIR_TIME = airtime;
+                pre->TIMESTAMP = timestamp;
 
-            if (((uint32_t) ur_get(in_tmplt, in_rec, F_SIZE) == ur_get_len(in_tmplt, in_rec, F_PHY_PAYLOAD)) && (ur_get_len(out_tmplt, out_rec, F_PHY_PAYLOAD) > 8)) {
-                ur_set(out_tmplt, out_rec, F_ENABLE, pre->ENABLE);
-                ur_set(out_tmplt, out_rec, F_AIR_TIME, pre->AIR_TIME);
-                ur_set(out_tmplt, out_rec, F_TIMESTAMP, pre->TIMESTAMP);
+                if ((module_info->num_ifc_out == 1) && (timestamp != 0)) {
+                    ur_set(out_tmplt, out_rec, F_AIR_TIME, pre->AIR_TIME);
+                    ur_set(out_tmplt, out_rec, F_TIMESTAMP, pre->TIMESTAMP);
 
-                ret = trap_send(0, out_rec, MAX_MSG_SIZE);
-                TRAP_DEFAULT_SEND_ERROR_HANDLING(ret, continue, break);
+                    ret = trap_send(0, out_rec, MAX_MSG_SIZE);
+                    TRAP_DEFAULT_SEND_ERROR_HANDLING(ret, continue, break);
+                }
             }
         } else {
             /** 
              * Insert new device to BlackList
              */
-            bl_insert_device(lr_uint8_to_uint64(lr_arr_to_uint8(DevAddr)), timestamp, airtime, 1);
+            bl_insert_device(DevAddr, timestamp, airtime, 1);
         }
 
         /** 
