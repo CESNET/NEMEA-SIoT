@@ -8,7 +8,7 @@ This repository contains [Nemea system](https://github.com/CESNET/Nemea) modules
  * [lora-distance](lora-distance) -- detect unexpected sensor location change
  * [wsn-anomaly](wsn-anomaly) -- universal anomaly detector for wireless sensor networks
 
-Also, there are [datasets](iot-datasets) of IoT devices communication.
+Also, there are [datasets](#iot-datasets) of IoT devices communication.
 
 # Installation
 
