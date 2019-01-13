@@ -9,7 +9,7 @@ This repository contains [Nemea system](https://github.com/CESNET/Nemea) modules
  * [lora-distance](lora-distance) -- detect unexpected sensor location change
  * [wsn-anomaly](wsn-anomaly) -- universal anomaly detector for wireless sensor networks
 
-Also, there are datasets of IoT devices communication.
+Also, there are [datasets](iot-datasets) of IoT devices communication.
 
 Installation
 ============
@@ -25,6 +25,6 @@ sudo make install
 
 Also, you can install every module separatedly by running the above commands inside the appropriate directory.
 
-IoT Datasets
+# IoT Datasets
 =============
 This folder includes IoT datasets for treat detection and ML trainig purposes. Extended flow data was created by [Joy tool](https://github.com/cisco/joy). Used initial parameters you can see in bash scripts inside [datasets](datasets) folder.
