@@ -6,7 +6,7 @@ import json
 
 arguments = len(sys.argv)
 src_directory = "."
-dst_directory = "/home/start/joy-analysis/anotated-data-sets/ikea-homekit/"
+dst_directory = "/home/start/joy-analysis/annotated-data-sets/ikea-homekit/"
 
 
 # read all files in subdirectories
