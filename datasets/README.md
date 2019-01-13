@@ -35,4 +35,5 @@ For this category Google Mini assistant was used. After powering on, Google Mini
 - android.googleapis.com
 - www.google.com
 - clients4.google.com
+
 For mtalk.google.com is used destination port 5228 and for time.google.com (NTP) is used port 123. For the rest services is used TLS port 443 or HTTP port 80 for connectivity check. From local point of view there are just a few types of flows like multicast membership report group, MDNS and ICMP port unreachable messages. If Google Mini is in stand by mode when it waits for Hey Google command no external communication is sent.
