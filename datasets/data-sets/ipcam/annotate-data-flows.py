@@ -61,7 +61,7 @@ for root, dirs, files in os.walk(src_directory):
                         fields["flow_type"] = "HTTP (Test Connection To google.com)"
                         json.dump(fields,dst_file)
                         print(file=dst_file)
-                    elif fields["sp"] == None and fields["dp"] == None:
+                    elif fields["sp"] == None and fields["dp"] == None and fields["da"].startswith("2"):
                         fields["flow_type"] = "Membership Report Group"
                         json.dump(fields,dst_file)
                         print(file=dst_file)
