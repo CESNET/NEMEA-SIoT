@@ -6,7 +6,7 @@ import json
 
 arguments = len(sys.argv)
 src_directory = "."
-dst_directory = "/home/start/joy-analysis/annotated-data-sets/ipcam/"
+dst_directory = "../../annotated-data-sets/ipcam/"
 
 
 # read all files in subdirectories
@@ -26,19 +26,19 @@ for root, dirs, files in os.walk(src_directory):
                         json.dump(fields,dst_file)
                         print(file=dst_file)
                     elif fields["dp"] == 445:
-                        fields["flow_type"] = "SMB - Local NAS Connection"
+                        fields["flow_type"] = "SMB (Local NAS Connection)"
                         json.dump(fields,dst_file)
                         print(file=dst_file)
-                    elif fields["dp"] == 1900 and fields["dp"] != 1900:
+                    elif fields["dp"] == 1900 and fields["sp"] != 1900:
                         fields["flow_type"] = "SSDP (m-search)"
                         json.dump(fields,dst_file)
                         print(file=dst_file)
-                    elif fields["dp"] == 1900 and fields["dp"] == 1900:
+                    elif fields["dp"] == 1900 and fields["sp"] == 1900:
                         fields["flow_type"] = "SSDP (notify)"
                         json.dump(fields,dst_file)
                         print(file=dst_file)
                     elif fields["dp"] == 55443:
-                        fields["flow_type"] = "TLS myedimax.com"
+                        fields["flow_type"] = "TLS (myedimax.com)"
                         json.dump(fields,dst_file)
                         print(file=dst_file)
                     elif fields["dp"] == 8760:
@@ -53,12 +53,12 @@ for root, dirs, files in os.walk(src_directory):
                         fields["flow_type"] = "UDP Heartbeat myedimax.com"
                         json.dump(fields,dst_file)
                         print(file=dst_file)
-                    elif fields["dp"] == fields["sp"]:
+                    elif fields["dp"] == fields["sp"] and fields["da"] == "255.255.255.255":
                         fields["flow_type"] = "Local Init Broadcast"
                         json.dump(fields,dst_file)
                         print(file=dst_file)
                     elif fields["dp"] == 80:
-                        fields["flow_type"] = "Test HTTP Connection To google.com"
+                        fields["flow_type"] = "HTTP (Test Connection To google.com)"
                         json.dump(fields,dst_file)
                         print(file=dst_file)
                     elif fields["sp"] == None and fields["dp"] == None:

@@ -6,7 +6,7 @@ import json
 
 arguments = len(sys.argv)
 src_directory = "."
-dst_directory = "/home/start/joy-analysis/annotated-data-sets/ikea-app/"
+dst_directory = "../../annotated-data-sets/ikea-app/"
 
 
 # read all files in subdirectories
@@ -21,7 +21,7 @@ for root, dirs, files in os.walk(src_directory):
                 # anotate specific flows
                 fields = json.loads(flow)
                 try:
-                    if fields["sp"] == None and fields["dp"] == None and fields["da"] == "224.0.0.251":
+                    if fields["sp"] == None and fields["dp"] == None and fields["da"].startswith("2"):
                         fields["flow_type"] = "Membership Report Group"
                         json.dump(fields,dst_file)
                         print(file=dst_file)
@@ -34,8 +34,8 @@ for root, dirs, files in os.walk(src_directory):
                         fields["flow_type"] = "Ikea Port Test"
                         json.dump(fields,dst_file)
                         print(file=dst_file)
-                    elif fields["sp"] == None and fields["dp"] == None:
-                        fields["flow_type"] = "ICMP Port Unreachable"
+                    elif fields["sp"] == None and fields["dp"] == None and not fields["da"].startswith("2"):
+                        fields["flow_type"] = "ICMP (Port Unreachable)"
                         json.dump(fields,dst_file)
                         print(file=dst_file)
                     elif fields["sp"] == 5353 and fields["dp"] == 5353:
@@ -47,11 +47,11 @@ for root, dirs, files in os.walk(src_directory):
                         json.dump(fields,dst_file)
                         print(file=dst_file)
                     elif fields["sp"] == 53 and fields["dp"] == 30003 or fields["dp"] == 30004:
-                        fields["flow_type"] = "DNS"
+                        fields["flow_type"] = "DNS (GW Init)"
                         json.dump(fields,dst_file)
                         print(file=dst_file)
                     elif fields["ip"]["out"]["ttl"] == 128 and fields["dp"] == 443:
-                        fields["flow_type"] = "TLS Webhook"
+                        fields["flow_type"] = "TLS (Webhook Ikea Cloud)"
                         json.dump(fields,dst_file)
                         print(file=dst_file)
                     elif fields["ip"]["out"]["ttl"] == 128 and fields["dp"] == 80:
@@ -60,12 +60,12 @@ for root, dirs, files in os.walk(src_directory):
                         print(file=dst_file)
                     # Anomaly in ikea app traffic
                     elif fields["dp"] == 80 and fields["ip"]["in"]["ttl"] == 128:
-                        fields["flow_type"] = "Homekit"
+                        fields["flow_type"] = "Homekit Data"
                         json.dump(fields,dst_file)
                         print(file=dst_file)
                     # Anomaly in ikea app traffic
                     elif fields["sp"] == 80 and fields["ip"]["out"]["ttl"] == 128:
-                        fields["flow_type"] = "Homekit"
+                        fields["flow_type"] = "Homekit Data"
                         json.dump(fields,dst_file)
                         print(file=dst_file)
                     else:
