@@ -12,14 +12,7 @@ AM_INIT_AUTOMAKE([foreign])
 AC_CONFIG_MACRO_DIR([../m4])
 
 # Checks for libraries.
-python3 -c  'import scapy' 2>/dev/null
-if test $? -eq 0
-then
-  AC_MSG_RESULT(Checking for scapy module...yes)
-else
-  AC_MSG_RESULT(Checking for scapy module...no)
-  AC_MSG_WARN(["Scapy module missing."])
-fi
+AX_PYTHON_MODULE(scapy,scapy,python3)
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT

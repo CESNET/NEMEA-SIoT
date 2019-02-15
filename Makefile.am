@@ -5,7 +5,7 @@ hci-collector \
 wsn-anomaly/detector \
 lora-airtime \
 lora-replay \
-lora-distance
+lora-distance 
 
 if HAVE_PYTHON
  SUBDIRS+=ble-adv-scanner
