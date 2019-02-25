@@ -1,0 +1,1 @@
+dist_bin_SCRIPTS=ble_adv_scanner.py PyBT_tools.py

@@ -12,6 +12,14 @@ AC_PROG_CXX
 AC_PROG_CC
 AC_PROG_CPP
 
+AC_CHECK_PROG(HAVE_PYTHON, python3, python3, [""])
+AM_CONDITIONAL([HAVE_PYTHON], [test x$have_python = xyes])
+if test x$have_python = xyes; then
+  AC_DEFINE([HAVE_PYTHON], [1], [Define to 1 if the python3 is available])
+else
+  AC_DEFINE([HAVE_PYTHON], [0], [Define to 0 if the python3 is not available])
+fi
+
 # Checks for libraries.
 AX_LIBTRAP_CHECK()
 AX_UNIREC_CHECK()
@@ -37,5 +45,6 @@ ble-pairing
 wsn-anomaly/detector
 lora-airtime
 lora-replay
-lora-distance])
+lora-distance
+ble-adv-scanner])
 AC_OUTPUT
