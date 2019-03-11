@@ -59,7 +59,8 @@ trap_module_info_t *module_info = NULL;
 
 #define MODULE_BASIC_INFO(BASIC) \
   BASIC("data-series-detector", "This module detect anomalies in data series", 1, 1)
-#define MODULE_PARAMS(PARAM)
+#define MODULE_PARAMS(PARAM) \
+  PARAM('c', "config", "Configuration files with detection rules", required_argument, "string")
 
 /* 
 * Print configured data from configuration file 
@@ -221,16 +222,7 @@ int main (int argc, char** argv){
     uint64_t *ur_id = 0;                                      // Tmp store variable
     double *ur_time = 0;                                      // Tmp store variable
     double *ur_data = 0;                                      // Tmp store variable
-
-
-    // Parse created configuration file
-    ConfigParser cp("config.txt");
-    cp.parseFile();
-    auto series_meta_data = cp.getSeries();
-    if (series_meta_data.empty()){
-        cerr << "ERROR configuration file is empty" << endl;
-        return 1;
-    }
+    string config_file = "";                                  // Configuration file
 
     /*
     ** interface initialization **
@@ -253,11 +245,24 @@ int main (int argc, char** argv){
     signed char opt;
     while ((opt = TRAP_GETOPT(argc, argv, module_getopt_string, long_options)) != -1) {
         switch (opt) {
+        // Configuration file
+        case 'c':
+            config_file = optarg;
+            break;
         default:
             cerr << "Error: Invalid arguments." << endl;
             FREE_MODULE_INFO_STRUCT(MODULE_BASIC_INFO, MODULE_PARAMS)
             return 1;
         }   
+    }
+
+    // Parse created configuration file
+    ConfigParser cp(config_file);
+    cp.parseFile();
+    auto series_meta_data = cp.getSeries();
+    if (series_meta_data.empty()){
+        cerr << "ERROR configuration file is empty" << endl;
+        return 1;
     }
     
     verbose = trap_get_verbose_level();

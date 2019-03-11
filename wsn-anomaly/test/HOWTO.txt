@@ -36,7 +36,7 @@ HOW TO RUN A TEST
     3. Optionaly you can run more logger instances for periodic export feature
 
     4. Run detector (you can remove or increase the vebose mode)
-        ./prg -i "u:zwave,u:alert" -v
+        ./wsn-anomaly -i "u:zwave,u:alert" -c config.txt -v
 
     5. Run logreplay for recorded traffic
         * logreplay -i "u:zwave" -f z-wave-connection.log -n
