@@ -10,8 +10,9 @@ COMPILATION
 RUN
     * First interface is for input UniRec data
     * Second interface is for detected alerts
+    * -c specifies configuration file
     * -v specifies verbose mode (you can use three levels)
-    ./prg -i "u:zwave,u:alert" -v
+    ./wsn-anomaly -i "u:zwave,u:alert" -c ../test/config.txt -v
 
 CONFIGURATION FILE STRUCTURE
     <> ... item explenation
