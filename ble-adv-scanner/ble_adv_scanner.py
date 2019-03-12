@@ -52,6 +52,7 @@ from scapy.layers.bluetooth import *
 
 
 unirecSpec = "macaddr BDADDR, time TIME, int8 RSSI, uint8 ATYPE"
+WSNUnirecSpec = "uint64 ID, time TIME, int8 RSSI, uint8 ATYPE"
 
 Terminator = False
 
@@ -59,12 +60,15 @@ def terminate(signum, frame):
     global Terminator
     Terminator = True
 
-def trap_init(argv):
+def trap_init(argv, wsn_compatible=False):
     """ Sets up trap interface for output with UniRec """
     trap = pytrap.TrapCtx()
     trap.init(argv, 0, 1)
     trap.ifcctl(0, False, pytrap.CTL_BUFFERSWITCH, 0) # Disable output buffering
-    trap.setDataFmt(0, pytrap.FMT_UNIREC, unirecSpec)
+    if wsn_compatible:
+        trap.setDataFmt(0, pytrap.FMT_UNIREC, WSNUnirecSpec)
+    else:
+        trap.setDataFmt(0, pytrap.FMT_UNIREC, unirecSpec)
     return trap
 
 class ADV_Scanner(object):
@@ -157,13 +161,18 @@ def main(argv):
     and reports every device which appears on advertising channels. """)
     parser.add_argument('-i', metavar='IFC_SPEC',
         required=True, help='TRAP interface specifier.',)
+    parser.add_argument('--wsn-compatible', action='store_true', dest='wsn',
+        help='Sends data in UniRec compatible with WSN Anomaly Detector')
     parser.formatter_class = argparse.RawTextHelpFormatter
     args = parser.parse_args()
     
     # Set up SIGINT handler for graceful halting
     signal.signal(signal.SIGINT, terminate)
 
-    trap = trap_init(argv)
+    if args.wsn:
+        trap = trap_init(argv, wsn_compatible=True)
+    else:
+        trap = trap_init(argv)
 
     scanner = ADV_Scanner()
     scanner.setPassiveMode()
@@ -171,11 +180,22 @@ def main(argv):
 
     for pkt in scanner.getDeviceReports():
         report = pkt[HCI_LE_Meta_Advertising_Report]
-        
-        rec = pytrap.UnirecTemplate(unirecSpec)
+       
+        if args.wsn:
+            rec = pytrap.UnirecTemplate(WSNUnirecSpec)
+        else:
+            rec = pytrap.UnirecTemplate(unirecSpec)
+
         rec.createMessage()
         
-        rec.BDADDR = pytrap.UnirecMACAddr(report.addr)
+        if args.wsn:
+            uint_addr = 0
+            for byte in report.addr.split(':'):
+                uint_addr = (uint_addr << 8) | int(byte, 16)
+            rec.ID = uint_addr
+        else:
+            rec.BDADDR = pytrap.UnirecMACAddr(report.addr)
+
         rec.TIME   = pytrap.UnirecTime(pkt.time)
         rec.RSSI   = report.rssi
         rec.ATYPE  = report.atype
