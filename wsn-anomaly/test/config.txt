@@ -4,19 +4,19 @@
 #********************************** TEST1: DoS *****************************************
 #***************************************************************************************
 
-#SOAFCount: 10;12;11;delta;-;-;-;profile(moving_average,moving_variance,moving_median,average,);moving_average(-,-,-,-,-,5,0.2,0,0,);moving_variance(-,-,-,-,-,5,0.2,0,0,);average(-,-,-,-,-,5,0.2,0,0,);moving_median(-,-,-,-,-,5,0.2,0,0,);export(-,);
+SOAFCount: 10;12;11;delta;-;-;-;profile(moving_average,moving_variance,moving_median,average,);moving_average(-,-,-,-,-,5,0.2,0,0,);moving_variance(-,-,-,-,-,5,0.2,0,0,);average(-,-,-,-,-,5,0.2,0,0,);moving_median(-,-,-,-,-,5,0.2,0,0,);export(-,);
 
 #***************************************************************************************
 #********************************** TEST2: DoS **************************************
 #***************************************************************************************
 
-#receivedCount;2: 10;12;5;delta;-;-;-;profile(moving_average,moving_variance,moving_median,average,);moving_average(-,-,-,-,-,5,0.2,0,0,);moving_variance(-,-,-,-,-,5,0.2,0,0,);average(-,-,-,-,-,5,0.2,0,0,);moving_median(-,-,-,-,-,5,0.2,0,0,);export(-,);
+receivedCount;2: 10;12;5;delta;-;-;-;profile(moving_average,moving_variance,moving_median,average,);moving_average(-,-,-,-,-,5,0.2,0,0,);moving_variance(-,-,-,-,-,5,0.2,0,0,);average(-,-,-,-,-,5,0.2,0,0,);moving_median(-,-,-,-,-,5,0.2,0,0,);export(-,);
 
 #***************************************************************************************
 #********************************** TEST3: DoS **************************************
 #***************************************************************************************
 
-#rxBytes: 5;8;0;delta;-;-;-;profile(moving_average,moving_variance,moving_median,average,);moving_average(-,-,-,-,-,2,0.5,0,0,);moving_variance(-,-,-,-,-,2,0.5,0,0,);average(-,-,-,-,-,2,0.5,0,0,);moving_median(-,-,-,-,-,2,0.5,0,0,);export(-,);
+rxBytes;11-12-13-14-15-16: 5;8;0;delta;-;-;-;profile(moving_average,moving_variance,moving_median,average,);moving_average(-,-,-,-,-,2,0.5,0,0,);moving_variance(-,-,-,-,-,2,0.5,0,0,);average(-,-,-,-,-,2,0.5,0,0,);moving_median(-,-,-,-,-,2,0.5,0,0,);export(-,);
 
 #=======================================================================================
 

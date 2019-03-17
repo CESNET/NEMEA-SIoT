@@ -22,6 +22,9 @@ CONFIGURATION FILE STRUCTURE
     ##### Header #####
     ##################
     <UniRec field name>[,<Value ID>]:
+    # Both UniRec field name and Value ID must corespond to a used collector
+    # Value ID identifies a specific sensor for the same UniRec field name. Supported format is an integer number or mac addres with '-' as delimiter. See example.
+    
 
     ################
     ##### Body #####
@@ -50,5 +53,7 @@ CONFIGURATION FILE STRUCTURE
     
 CONFIGURATION EXAMPLE    
     SOAFCount: 10;12;11;delta;10;5;60;profile(moving_average,moving_variance,moving_median,average,);moving_average(-,-,-,-,-,5,0.2,0,0,);moving_variance(-,-,-,-,-,5,0.2,0,0,);average(-,-,-,-,-,5,0.2,0,0,);moving_median(2,4,1,10,5,5,0.2,0,0,);export(average,moving_variance,);
+    SOAFCount;123: 10;12;11;delta;10;5;60;profile(moving_average,moving_variance,moving_median,average,);moving_average(-,-,-,-,-,5,0.2,0,0,);moving_variance(-,-,-,-,-,5,0.2,0,0,);average(-,-,-,-,-,5,0.2,0,0,);moving_median(2,4,1,10,5,5,0.2,0,0,);export(average,moving_variance,);
+    SOAFCount;11-22-33-44-55-66: 10;12;11;delta;10;5;60;profile(moving_average,moving_variance,moving_median,average,);moving_average(-,-,-,-,-,5,0.2,0,0,);moving_variance(-,-,-,-,-,5,0.2,0,0,);average(-,-,-,-,-,5,0.2,0,0,);moving_median(2,4,1,10,5,5,0.2,0,0,);export(average,moving_variance,);
    
  
