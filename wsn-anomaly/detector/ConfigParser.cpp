@@ -52,6 +52,7 @@ void ConfigParser::parseFile(){
         string key;          // Name of config record (unirec field+id)
         string main_key;     // Name of unirec field
         uint64_t main_id;    // Name of record ID
+        string tmp_main_id;  // Tmp variable for the record ID
         string value;        // Config params for one key 
         string multi_key;    // Name of composite value  
         string multi_value;  // Config params for one composite key
@@ -70,8 +71,17 @@ void ConfigParser::parseFile(){
             // Ur_field with id has been found
             if (multi_item != string::npos){
                 main_key = key.substr(0, multi_item);
-                istringstream iss(key.substr(multi_item+1,delimiter));
-                iss >> main_id; 
+                tmp_main_id = key.substr(multi_item+1,delimiter);
+                // Check if sensor ID is in mac addr form
+                if (tmp_main_id.find("-") != string::npos){
+                    // Conver mac addr to hex int
+                    tmp_main_id.erase(remove(tmp_main_id.begin(), tmp_main_id.end(), '-'), tmp_main_id.end());
+                    istringstream iss(tmp_main_id);
+                    iss >> hex >> main_id; 
+                } else {
+                    istringstream iss(tmp_main_id);
+                    iss >> main_id; 
+                }
             // Key with no ID -> use default ID value
             } else {
                 main_key = key;
