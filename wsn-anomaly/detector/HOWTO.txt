@@ -5,7 +5,9 @@
 ********************************************************
 
 COMPILATION
-    ./compile.sh
+    ./bootstrap.sh
+    ./configure
+    make
 
 RUN
     * First interface is for input UniRec data
