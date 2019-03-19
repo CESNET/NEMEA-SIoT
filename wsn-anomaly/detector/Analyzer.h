@@ -97,8 +97,8 @@ public:
 
 
 private:
-/* 
-* Member variables 
+/*
+* Member variables
 */
     trap_ctx_t *alert_ifc;          // Alert trap interface
     ur_template_t *alert_template;  // Unirec template for alert interface
@@ -121,7 +121,7 @@ private:
     map<string, map<uint64_t, vector<double> > > x2; // Buffer for square values
 
 /*
-* Internal methods. Used during processing time series.  
+* Internal methods. Used during processing time series.
 */
     /**
     * Initialize data series structures
@@ -143,9 +143,9 @@ private:
     */
     map<string,vector<string> > analyzeData(string ur_field, uint64_t *ur_id, double *ur_data, double *ur_time);
 
-    /** 
+    /**
     * Set reference profile values. Wrapper for all available profile methods.
-    * \param[in] ur_field Name of unirec field 
+    * \param[in] ur_field Name of unirec field
     * \param[in] ur_id ID value in unirec record
     * \param[in] meta_it Iterator pointing to specific data in series_meta_data structure
     * \param[in] sensor_it Iterator pointing to specific data in control structure
@@ -166,15 +166,15 @@ private:
 
     /**
     * Get unirec field index for profile name
-    * \param[in] name Name of profile 
+    * \param[in] name Name of profile
     * \returs Unirec field index
     */
     int getIndex(string name);
 
     /**
-    * Return meta ID number from configuration file 
+    * Return meta ID number from configuration file
     * \param[in] meta_it Iterator pointing to specific data in series_meta_data structure
-    * \param[in] ur_id ID value in unirec record 
+    * \param[in] ur_id ID value in unirec record
     * \returs meta ID value
     */
     uint64_t getMetaID(map<string, map<uint64_t, map<string, vector<string> > > >::iterator &meta_it, uint64_t *ur_id);
