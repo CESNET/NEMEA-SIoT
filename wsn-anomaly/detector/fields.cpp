@@ -51,7 +51,7 @@ char *ur_field_names_static[] = {
    (char *) "scoPackets",
    (char *) "sentCount",
    (char *) "sentFailed",
-   (char *) "SOAFCount",
+   (char *) "SOFCount",
    (char *) "TIME",
    (char *) "txAcls",
    (char *) "txBytes",
@@ -113,7 +113,7 @@ short ur_field_sizes_static[] = {
    8, /* scoPackets */
    8, /* sentCount */
    8, /* sentFailed */
-   8, /* SOAFCount */
+   8, /* SOFCount */
    8, /* TIME */
    8, /* txAcls */
    8, /* txBytes */
@@ -175,7 +175,7 @@ ur_field_type_t ur_field_types_static[] = {
    UR_TYPE_DOUBLE, /* scoPackets */
    UR_TYPE_DOUBLE, /* sentCount */
    UR_TYPE_DOUBLE, /* sentFailed */
-   UR_TYPE_DOUBLE, /* SOAFCount */
+   UR_TYPE_DOUBLE, /* SOFCount */
    UR_TYPE_DOUBLE, /* TIME */
    UR_TYPE_DOUBLE, /* txAcls */
    UR_TYPE_DOUBLE, /* txBytes */

@@ -100,8 +100,8 @@
 #define F_sentCount_T   double
 #define F_sentFailed   47
 #define F_sentFailed_T   double
-#define F_SOAFCount   48
-#define F_SOAFCount_T   double
+#define F_SOFCount   48
+#define F_SOFCount_T   double
 #define F_TIME   49
 #define F_TIME_T   double
 #define F_txAcls   50
