@@ -53,8 +53,8 @@ void ConfigParser::parseFile(){
         string main_key;     // Name of unirec field
         uint64_t main_id;    // Name of record ID
         string tmp_main_id;  // Tmp variable for the record ID
-        string value;        // Config params for one key 
-        string multi_key;    // Name of composite value  
+        string value;        // Config params for one key
+        string multi_key;    // Name of composite value
         string multi_value;  // Config params for one composite key
         string simple_value; // One item of multi value record
         size_t multi_item;   // Tmp local value for storing position in config line
@@ -77,10 +77,10 @@ void ConfigParser::parseFile(){
                     // Conver mac addr to hex int
                     tmp_main_id.erase(remove(tmp_main_id.begin(), tmp_main_id.end(), '-'), tmp_main_id.end());
                     istringstream iss(tmp_main_id);
-                    iss >> hex >> main_id; 
+                    iss >> hex >> main_id;
                 } else {
                     istringstream iss(tmp_main_id);
-                    iss >> main_id; 
+                    iss >> main_id;
                 }
             // Key with no ID -> use default ID value
             } else {
@@ -102,7 +102,7 @@ void ConfigParser::parseFile(){
                     multi_key = value.substr(0, multi_item);
                     value.erase(0,multi_item+1);
                     multi_item = value.find(")");
-                    value = value.substr(0, multi_item); 
+                    value = value.substr(0, multi_item);
                     // Parse values for composite key
                     size_t multi_value = value.find(",");
                     // Multi key (more than one item) -> value parsing needed
@@ -117,7 +117,7 @@ void ConfigParser::parseFile(){
                     } else {
                         series[main_key][main_id][multi_key].push_back(value);
                         value.erase(0,multi_item+1);
-                    }   
+                    }
                     line.erase(0,delimiter+1);
                 // General key has been found -> just value without brackets
                 } else {
@@ -136,7 +136,7 @@ void ConfigParser::parseFile(){
         cerr << "NOTE: Create configuration file config.txt in detector root directory" << endl;
     }
     config.close();
-} 
+}
 
 // Destructor
 ConfigParser::~ConfigParser() = default;

@@ -51,11 +51,11 @@ using namespace std;
 // Number of values in meta structure
 #define DYNAMIC 15
 
-/* 
- The following enums are used for accessing the created structures after parsing the configuraiton file.  
+/*
+ The following enums are used for accessing the created structures after parsing the configuraiton file.
 */
 
-// Parameters and fields for each value in profile. 
+// Parameters and fields for each value in profile.
 enum localValues {SOFT_MIN, SOFT_MAX, HARD_MIN, HARD_MAX, SOFT_PERIOD, GROW_UP, GROW_DOWN, S_MIN_LIMIT, S_MAX_LIMIT};
 
 // Parameters for every analyzed unirec field.
@@ -70,7 +70,7 @@ enum meta {MOV_AVERAGE, MOV_VARIANCE, MOV_MEDIAN, AVERAGE, SX, SX2, PREV_VALUE, 
 class ConfigParser{
     public:
         /*
-        * Constructor 
+        * Constructor
         * /param[in] configFile Name of configuration file
         */
         ConfigParser(string configFile);

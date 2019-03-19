@@ -62,8 +62,8 @@ trap_module_info_t *module_info = NULL;
 #define MODULE_PARAMS(PARAM) \
   PARAM('c', "config", "Configuration files with detection rules", required_argument, "string")
 
-/* 
-* Print configured data from configuration file 
+/*
+* Print configured data from configuration file
 * \param[in] series_meta_data Stucture with configured data
 *
 * NOTE: Auto specifier in function parameter is available from c++14 -> author used C++11
@@ -79,8 +79,8 @@ void printSeries( map<string,map<uint64_t, map<string, vector<string> > > >& ser
                 cout << "  values: " << endl;
                 for (auto elem: element.second){
                     cout << "   " << elem << endl;
-                }   
-            }         
+                }
+            }
         }
     }
 }
@@ -117,7 +117,7 @@ int initExportInterfaces(map<string, map<uint64_t, map<string, vector<string> > 
                         if(elem == "-"){
                             break;
                         }
-                        // Update tmp variables 
+                        // Update tmp variables
                         field_name.push_back(elem);
                         // First item found -> create export interface record
                         if(flag == 0){
@@ -125,10 +125,10 @@ int initExportInterfaces(map<string, map<uint64_t, map<string, vector<string> > 
                             number_of_keys++;
                             flag = 1;
                             if (verbose >= 0 ){
-                                cout << "VERBOSE: Creating export interface: u:export-" << main_key.first+to_string(ids.first) << endl; 
+                                cout << "VERBOSE: Creating export interface: u:export-" << main_key.first+to_string(ids.first) << endl;
                             }
                         }
-                    }   
+                    }
                     // Insert tmp variables to the map structure
                     if (flag == 1){
                         ur_export_fields.insert(pair<int, vector<string> >(number_of_keys-1, field_name));
@@ -157,14 +157,14 @@ int initExportInterfaces(map<string, map<uint64_t, map<string, vector<string> > 
         cerr << "ERROR: Export output data record allocation error" << endl;
         return 2;
     }
-    
+
     // Interface initialization
     *ctx_export = trap_ctx_init3("data-periodic-export", "Export data profile periodicaly",0,number_of_keys,interface_spec.c_str(),NULL);
     if (*ctx_export == NULL){
         cerr << "ERROR: Data export interface initialization failed" << endl;
         return 3;
     }
-    
+
     if (trap_ctx_get_last_error(ctx_export) != TRAP_E_OK){
         cerr << "ERROR in TRAP initialization: " << trap_ctx_get_last_error_msg(ctx_export) << endl;
         return 3;
@@ -191,10 +191,10 @@ int initExportInterfaces(map<string, map<uint64_t, map<string, vector<string> > 
             cerr << "ERROR: Unable to define unirec fields" << endl;
             return 5;
         }
-        
+
         // Create record with no variable lenght memory
         (*data_export)[i] = ur_create_record((*export_template)[i], 0);
-        if ( (*data_export)[i] == NULL ) { 
+        if ( (*data_export)[i] == NULL ) {
             cerr << "Error: Data are not prepared for the export template" << endl;
             return 6;
         }
@@ -206,13 +206,13 @@ int initExportInterfaces(map<string, map<uint64_t, map<string, vector<string> > 
 * Main function
 */
 int main (int argc, char** argv){
-    
+
     int exit_value = 0;                                       // Detector return value
     ur_template_t * in_template = NULL;                       // Unirec input template
     ur_template_t * alert_template = NULL;                    // Unirec output alert template
     ur_template_t **export_template = NULL;                   // Unirec output export template
     trap_ctx_t *ctx = NULL;                                   // Trap interfaces for incoming and lert data
-    trap_ctx_t *ctx_export = NULL;                            // Trap interfaces for periodic export 
+    trap_ctx_t *ctx_export = NULL;                            // Trap interfaces for periodic export
     int verbose = 0;                                          // Verbose level
     void *data_alert = NULL;                                  // Unirec output alert record
     void **data_export = NULL;                                // Unirec output export record
@@ -236,10 +236,10 @@ int main (int argc, char** argv){
         if (ret == TRAP_E_HELP) { // "-h" was found
             trap_print_help(module_info);
             return 0;
-        }   
+        }
         cerr << "ERROR in parsing of parameters for TRAP: " << trap_last_error_msg << endl;
         return 1;
-    }   
+    }
 
     // Parse remaining parameters and get the configuration -> No additional param needed
     signed char opt;
@@ -253,7 +253,7 @@ int main (int argc, char** argv){
             cerr << "Error: Invalid arguments." << endl;
             FREE_MODULE_INFO_STRUCT(MODULE_BASIC_INFO, MODULE_PARAMS)
             return 1;
-        }   
+        }
     }
 
     // Parse created configuration file
@@ -264,7 +264,7 @@ int main (int argc, char** argv){
         cerr << "ERROR configuration file is empty" << endl;
         return 1;
     }
-    
+
     verbose = trap_get_verbose_level();
     if (verbose >= 0) {
         cout << "Verbosity level: " <<  trap_get_verbose_level() << endl;;
@@ -324,7 +324,7 @@ int main (int argc, char** argv){
         exit_value = 2;
         goto cleanup;
     }
-    
+
     // Initialize export output interfaces
     ret = initExportInterfaces(series_meta_data, &export_template, &ctx_export, &data_export, ur_export_fields,verbose);
     if (ret > 1){
@@ -334,7 +334,7 @@ int main (int argc, char** argv){
 
     // Create alert record with maximum size of variable memory length
     data_alert = ur_create_record(alert_template, UR_MAX_SIZE);
-        if ( data_alert == NULL ) { 
+        if ( data_alert == NULL ) {
             cout << "ERROR: Data are not prepared for alert template" << endl;
             exit_value = 3;
             goto cleanup;
@@ -350,7 +350,7 @@ int main (int argc, char** argv){
 
     // Main loop for processing incoming data
     while (true){
-        
+
         uint16_t memory_received = 0;
         const void *data_nemea_input = NULL;
 
