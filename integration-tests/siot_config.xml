@@ -1,0 +1,213 @@
+<?xml version="1.0"?>
+<nemea-supervisor>
+    <modules>
+        <name>z-wave</name>
+        <enabled>true</enabled>
+
+        <module>
+            <name>nemea-beeeOn-merger</name>
+            <enabled>true</enabled>
+            <path>merger</path>
+            <module-restarts>0</module-restarts>
+            <params>-n 4</params>
+
+            <trapinterfaces>
+                <interface>
+                    <type>UNIXSOCKET</type>
+                    <direction>IN</direction>
+                    <params>beeeOnEvent-export</params>
+                </interface>
+
+                <interface>
+                    <type>UNIXSOCKET</type>
+                    <direction>IN</direction>
+                    <params>beeeOnEvent-HCIStats</params>
+                </interface>
+
+                <interface>
+                    <type>UNIXSOCKET</type>
+                    <direction>IN</direction>
+                    <params>beeeOnEvent-driverStats</params>
+                </interface>
+
+                <interface>
+                    <type>UNIXSOCKET</type>
+                    <direction>IN</direction>
+                    <params>beeeOnEvent-nodeStats</params>
+                </interface>
+
+                <interface>
+                    <type>UNIXSOCKET</type>
+                    <direction>OUT</direction>
+                    <params>siot-beeeOn-merger-output</params>
+                </interface>
+            </trapinterfaces>
+        </module>
+
+        <module>
+            <name>siot-wsn-anomaly</name>
+            <enabled>true</enabled>
+            <path>wsn_anomaly</path>
+            <module-restarts>0</module-restarts>
+            <params>-c nemea-siot/wsn-anomaly/test/config.txt</params>
+
+            <trapinterfaces>
+                <interface>
+                    <type>UNIXSOCKET</type>
+                    <direction>IN</direction>
+                    <params>siot-beeeOn-merger-output</params>
+                </interface>
+
+                <interface>
+                    <type>UNIXSOCKET</type>
+                    <direction>OUT</direction>
+                    <params>siot-alert</params>
+                </interface>
+            </trapinterfaces>
+        </module>
+    </modules>
+
+    <modules>
+        <name>BLE</name>
+        <enabled>true</enabled>
+
+        <module>
+            <name>siot-hci-collector</name>
+            <enabled>true</enabled>
+            <path>ble_hci_collector</path>
+            <module-restarts>0</module-restarts>
+
+            <trapinterfaces>
+                <interface>
+                    <type>UNIXSOCKET</type>
+                    <direction>OUT</direction>
+                    <params>siot-bleStats</params>
+                </interface>
+            </trapinterfaces>
+        </module>
+
+        <module>
+            <name>siot-ble-pairing</name>
+            <enabled>true</enabled>
+            <path>ble_pairing</path>
+            <module-restarts>0</module-restarts>
+
+            <trapinterfaces>
+                <interface>
+                    <type>UNIXSOCKET</type>
+                    <direction>IN</direction>
+                    <params>siot-bleStats</params>
+                </interface>
+
+                <interface>
+                    <type>UNIXSOCKET</type>
+                    <direction>OUT</direction>
+                    <params>siot-alert</params>
+                </interface>
+            </trapinterfaces>
+        </module>
+    </modules>
+
+    <modules>
+        <name>LoRa</name>
+        <enabled>false</enabled>
+
+        <module>
+            <name>siot-lora-replay</name>
+            <enabled>true</enabled>
+            <path>lora_replay_abp</path>
+            <module-restarts>0</module-restarts>
+
+            <trapinterfaces>
+                <interface>
+                    <type>TCP</type>
+                    <direction>IN</direction>
+                    <params>192.168.1.206:12345</params>
+                </interface>
+
+                <interface>
+                    <type>UNIXSOCKET</type>
+                    <direction>OUT</direction>
+                    <params>alert</params>
+                </interface>
+            </trapinterfaces>
+        </module>
+
+        <module>
+            <name>siot-lora-airtime</name>
+            <enabled>true</enabled>
+            <path>lora_airtime</path>
+            <module-restarts>0</module-restarts>
+
+            <trapinterfaces>
+                <interface>
+                    <type>TCP</type>
+                    <direction>IN</direction>
+                    <params>192.168.1.206:12345</params>
+                </interface>
+
+                <interface>
+                    <type>UNIXSOCKET</type>
+                    <direction>OUT</direction>
+                    <params>alert</params>
+                </interface>
+            </trapinterfaces>
+        </module>
+
+        <module>
+            <name>siot-lora-distance</name>
+            <enabled>true</enabled>
+            <path>lora_change_distance</path>
+            <module-restarts>0</module-restarts>
+            <params>-vv</params>
+            <trapinterfaces>
+                <interface>
+                    <type>TCP</type>
+                    <direction>IN</direction>
+                    <params>192.168.1.206:12345</params>
+                </interface>
+
+                <interface>
+                    <type>UNIXSOCKET</type>
+                    <direction>OUT</direction>
+                    <params>alert</params>
+                </interface>
+            </trapinterfaces>
+        </module>
+    </modules>
+
+    <modules>
+        <name>Loggers</name>8
+        <enabled>true</enabled>
+
+        <module>
+            <name>siot-nemea-logger</name>
+            <enabled>true</enabled>
+            <path>logger</path>
+            <module-restarts>0</module-restarts>
+
+            <trapinterfaces>
+                <interface>
+                    <type>UNIXSOCKET</type>
+                    <direction>IN</direction>
+                    <params>alert</params>
+                </interface>
+            </trapinterfaces>
+        </module>
+
+        <module>
+            <name>siot-nemea-logger-lora</name>
+            <enabled>false</enabled>
+            <path>logger</path>
+            <module-restarts>0</module-restarts>
+
+            <trapinterfaces>
+                <interface>
+                    <type>TCP</type>
+                    <direction>IN</direction>
+                    <params>192.168.1.206:12345</params>
+                </interface>
+            </trapinterfaces>
+        </module>
+    </modules>
+</nemea-supervisor>
