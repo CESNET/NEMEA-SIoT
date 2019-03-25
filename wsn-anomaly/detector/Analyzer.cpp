@@ -266,7 +266,7 @@ int Analyzer::initSeries(string &ur_field, uint64_t *ur_id, double *ur_data, dou
 
         // Test if meta information with the proper ID exist
         localID = getMetaID(meta_it,ur_id);
-        if (meta_it->second.find(localID) == meta_it->second.end() && localID != 0){
+        if (meta_it->second.find(localID) == meta_it->second.end()){
             if (verbose >= 1){
                 cout << "VERBOSE: Ignore field with id: " << localID << endl;
             }
