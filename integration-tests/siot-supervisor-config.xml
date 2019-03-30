@@ -49,7 +49,7 @@
             <enabled>true</enabled>
             <path>wsn_anomaly</path>
             <module-restarts>0</module-restarts>
-            <params>-c nemea-siot/wsn-anomaly/test/config.txt</params>
+            <params>-c siot-wsn-config.txt</params>
 
             <trapinterfaces>
                 <interface>
@@ -128,7 +128,7 @@
                 <interface>
                     <type>UNIXSOCKET</type>
                     <direction>OUT</direction>
-                    <params>alert</params>
+                    <params>siot-alert</params>
                 </interface>
             </trapinterfaces>
         </module>
@@ -149,7 +149,7 @@
                 <interface>
                     <type>UNIXSOCKET</type>
                     <direction>OUT</direction>
-                    <params>alert</params>
+                    <params>siot-alert</params>
                 </interface>
             </trapinterfaces>
         </module>
@@ -170,7 +170,7 @@
                 <interface>
                     <type>UNIXSOCKET</type>
                     <direction>OUT</direction>
-                    <params>alert</params>
+                    <params>siot-alert</params>
                 </interface>
             </trapinterfaces>
         </module>
@@ -190,7 +190,24 @@
                 <interface>
                     <type>UNIXSOCKET</type>
                     <direction>IN</direction>
-                    <params>alert</params>
+                    <params>siot-alert</params>
+                </interface>
+            </trapinterfaces>
+        </module>
+
+        <module>
+            <name>siot-file-logger</name>
+            <enabled>true</enabled>
+            <path>logger</path>
+            <module-restarts>0</module-restarts>
+
+            <params>-w testing.out</params>
+
+            <trapinterfaces>
+                <interface>
+                    <type>UNIXSOCKET</type>
+                    <direction>IN</direction>
+                    <params>siot-alert</params>
                 </interface>
             </trapinterfaces>
         </module>

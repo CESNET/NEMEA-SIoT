@@ -1,0 +1,5 @@
+This test can't be recorded because actual time is required.
+Steps:
+1. Connect BLE interface 
+2. Periodicaly send onHCIStats event with no change
+3. When you see alerts, start gathering data from sensors and they won't show up again
