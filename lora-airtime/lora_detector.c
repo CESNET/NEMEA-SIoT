@@ -56,9 +56,6 @@
 #include <string.h>
 #include "black_list.h"
 
-/** Maximum message size */
-#define MAX_MSG_SIZE 10000
-
 /** Define structure for BlackList */
 struct bl_device {
     char DEV_ADDR[8];
@@ -254,7 +251,7 @@ int main(int argc, char **argv) {
     }
 
     /** Allocate memory for output record */
-    void *out_rec = ur_create_record(out_tmplt, MAX_MSG_SIZE);
+    void *out_rec = ur_create_record(out_tmplt, 0);
     if (out_rec == NULL) {
         ur_free_template(in_tmplt);
         ur_free_template(out_tmplt);
@@ -340,7 +337,7 @@ int main(int argc, char **argv) {
                     ur_set(out_tmplt, out_rec, F_AIR_TIME, pre->AIR_TIME);
                     ur_set(out_tmplt, out_rec, F_TIMESTAMP, pre->TIMESTAMP);
 
-                    ret = trap_send(0, out_rec, MAX_MSG_SIZE);
+                    ret = trap_send(0, out_rec, ur_rec_size(out_tmplt, out_rec));
                     TRAP_DEFAULT_SEND_ERROR_HANDLING(ret, continue, break);
                 }
             }
