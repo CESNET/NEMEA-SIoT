@@ -56,9 +56,6 @@
 #include <string.h>
 #include "device_list.h"
 
-/** Maximum message size */
-#define MAX_MSG_SIZE 10000
-
 /** Define structure for BlackList */
 struct dl_device {
     uint64_t DEV_ADDR;
@@ -209,7 +206,7 @@ int main(int argc, char **argv) {
     }
 
     /** Allocate memory for output record */
-    void *out_rec = ur_create_record(out_tmplt, MAX_MSG_SIZE);
+    void *out_rec = ur_create_record(out_tmplt, 0);
     if (out_rec == NULL) {
         ur_free_template(in_tmplt);
         ur_free_template(out_tmplt);
@@ -278,7 +275,7 @@ int main(int argc, char **argv) {
              */
             if ((pre->RESTART == 1) && (pre->LAST_FCNT == counter) && (counter != 0)) {
                 ur_set(out_tmplt, out_rec, F_TIMESTAMP, ur_get(in_tmplt, in_rec, F_TIMESTAMP));
-                ret = trap_send(0, out_rec, MAX_MSG_SIZE);
+                ret = trap_send(0, out_rec, ur_rec_size(out_tmplt, out_rec));
                 TRAP_DEFAULT_SEND_ERROR_HANDLING(ret, continue, break);
 
                 pre->RESTART = 0;
