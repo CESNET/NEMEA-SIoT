@@ -47,6 +47,7 @@
 #include <sys/poll.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
+#include <sys/time.h>
 
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/hci.h>
@@ -125,7 +126,6 @@ int exportPackets(int fd, const mac_addr_t &hci_dev_mac, ur_template_t *out_temp
 	vector<unsigned char> control(64);
 	struct pollfd pollFd;
 	int dir;
-	struct timeval tv;
 
 	pollFd.fd = fd;
 	pollFd.events = POLLIN;
@@ -164,12 +164,11 @@ int exportPackets(int fd, const mac_addr_t &hci_dev_mac, ur_template_t *out_temp
 			case HCI_CMSG_DIR:
 				memcpy(&dir, CMSG_DATA(cmsg), sizeof(dir));
 				break;
-			case HCI_CMSG_TSTAMP:
-				memcpy(&tv, CMSG_DATA(cmsg), sizeof(tv));
-				break;
 			}
 		}
 
+		struct timeval tv;
+		gettimeofday(&tv, NULL);
 		ur_time_t timestamp = ur_time_from_sec_msec(tv.tv_sec, tv.tv_usec / 1000);
 
 		ur_set(out_template, out_record, F_HCI_DEV_MAC, hci_dev_mac);
