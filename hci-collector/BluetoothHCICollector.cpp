@@ -180,6 +180,8 @@ int exportPackets(int fd, const mac_addr_t &hci_dev_mac, ur_template_t *out_temp
 
 		trap_send(0, out_record, ur_rec_size(out_template, out_record));
 	}
+
+	return 0;
 }
 
 int main(int argc, char *argv[])
