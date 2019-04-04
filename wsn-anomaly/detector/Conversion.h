@@ -39,9 +39,6 @@
 
 #include <string>
 #include <sstream>
-#include <iostream>
-
-using namespace std;
 
 template <class T>
 string to_string(T data){
