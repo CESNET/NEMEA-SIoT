@@ -45,6 +45,10 @@
 #include <fstream>
 #include <algorithm>
 #include <sstream>
+#ifndef CONVERSION
+#define CONVERSION
+    #include "Conversion.h"
+#endif
 
 using namespace std;
 

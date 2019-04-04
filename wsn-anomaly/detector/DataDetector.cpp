@@ -365,7 +365,7 @@ int main (int argc, char** argv){
         ur_field_id_t id = UR_ITER_BEGIN;
         while ((id = ur_iter_fields(in_template, id)) != UR_ITER_END) {
             // Skip id -> not analyzed just used for alert identification
-            if ( strcmp("ID",(ur_get_name(id))) == 0 ){
+            if ( strcmp("ID",(ur_get_name(id))) == 0 && *ur_time == 0 ){
                 continue;
             }
 

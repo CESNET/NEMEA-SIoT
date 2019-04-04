@@ -55,6 +55,7 @@
 #include <unirec/unirec.h>
 
 #include "fields.h"
+#include "Conversion.h"
 
 using namespace std;
 

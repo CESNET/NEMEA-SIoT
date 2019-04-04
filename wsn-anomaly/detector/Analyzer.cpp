@@ -44,7 +44,7 @@
 Analyzer::Analyzer() = default;
 
 // Param constructor
-Analyzer::Analyzer(map<string, map<uint64_t, map<string, vector<string> > > > meta_data,int verbose): series_meta_data(meta_data), verbose(verbose) {}
+Analyzer::Analyzer(map<string, map<uint64_t, map<string, vector<string> > > > meta_data,int verbose): series_meta_data(meta_data), verbose(verbose) {this->default_interface = 0;}
 
 // Default destructor
 Analyzer::~Analyzer() = default;
@@ -266,7 +266,7 @@ int Analyzer::initSeries(string &ur_field, uint64_t *ur_id, double *ur_data, dou
 
         // Test if meta information with the proper ID exist
         localID = getMetaID(meta_it,ur_id);
-        if (meta_it->second.find(localID) == meta_it->second.end()){
+        if (meta_it->second.find(localID) == meta_it->second.end() /*&& localID != 0*/){
             if (verbose >= 1){
                 cout << "VERBOSE: Ignore field with id: " << localID << endl;
             }
@@ -456,7 +456,8 @@ int Analyzer::getIndex(string name){
 uint64_t Analyzer::getMetaID(map<string, map<uint64_t, map<string, vector<string> > > >::iterator &meta_it,  uint64_t *ur_id){
     if (meta_it->second.size() == 1){
         // If the only key is 0 return true -> default key
-        if (meta_it->second.find(0) != meta_it->second.end()){
+        if (meta_it->second.find(0) != meta_it->second.end() && (this->default_interface == 0 || this->default_interface == *ur_id)){
+            this->default_interface = *ur_id;
             return 0;
         }
     }
