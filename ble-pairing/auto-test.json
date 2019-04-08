@@ -1,0 +1,5 @@
+{
+	"pre-shell"  : ["mkdir paired/"],
+	"run-args"   : ["-d", "paired/"],
+	"post-shell" : ["rm -r paired/"]
+}
