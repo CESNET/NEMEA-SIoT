@@ -446,7 +446,6 @@ void BLEPairingDetector::generatePairingAlert(
 	if (!isRepeated && success)
 		persistPairing(hciDevMacStr, deviceMacStr);
 
-	cout << m_verbose << endl;
 	if (m_verbose > 0) {
 		cout << "pairing of device: " << deviceMacStr
 			 << " on hci dev: " << hciDevMacStr
