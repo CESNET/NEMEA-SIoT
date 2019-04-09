@@ -1,5 +1,5 @@
 /**
- * \file lora_detector.c
+ * \file lora-airtime.c
  * \brief LoRaWAN Detector of NEMEA module.
  * \author Erik Gresak <erik.gresak@vsb.cz>
  * \date 2018
