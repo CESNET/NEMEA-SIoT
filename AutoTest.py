@@ -185,7 +185,7 @@ class AutoTest(Namespace):
                     x.execute_array(post_shell)
                     return
 
-                b = subprocess.Popen(['logger', '-i', 'u:test-out', '-w',
+                b = subprocess.Popen(['/usr/bin/nemea/logger', '-i', 'u:test-out', '-w',
                                       './{}/tests/{}.realout'.format(m, i)])
 
                 c = subprocess.Popen(['logreplay', '-i', 'u:test-in', '-f',
