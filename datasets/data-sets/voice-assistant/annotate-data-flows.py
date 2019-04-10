@@ -6,7 +6,7 @@ import json
 
 arguments = len(sys.argv)
 src_directory = "."
-dst_directory = "../../annotated-data-sets/voice-assistant/"
+dst_directory = "/home/start/joy-analysis/annotated-data-sets/voice-assistant/"
 
 
 # read all files in subdirectories
