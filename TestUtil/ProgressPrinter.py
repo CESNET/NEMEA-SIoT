@@ -28,7 +28,7 @@ class ProgressPrinter:
     def __print_in_progress__(self, finished_event: threading.Event):
         i = 0
         while not finished_event.is_set():
-            sys.stdout.write('\r{}{} {}{}'.format(Colors.CYAN, self.animation[i % len(self.animation)], self.__message, Colors.RESET))
+            sys.stdout.write('\r{}{}{}{}'.format(Colors.CYAN, self.animation[i % len(self.animation)], self.__message, Colors.RESET))
             sys.stdout.flush()
             i += 1
             time.sleep(0.2)
