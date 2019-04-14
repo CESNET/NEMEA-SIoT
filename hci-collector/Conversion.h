@@ -37,9 +37,10 @@
  *
 */
 
+#ifndef CONVERSION
+#define CONVERSION
 #include <string>
 #include <sstream>
-#include <iostream>
 
 using namespace std;
 
@@ -51,3 +52,4 @@ string to_string(T data){
     return s;
 
 }
+#endif

@@ -37,8 +37,12 @@
  *
 */
 
+#ifndef CONVERSION
+#define CONVERSION
 #include <string>
 #include <sstream>
+
+using namespace std;
 
 template <class T>
 string to_string(T data){
@@ -48,3 +52,4 @@ string to_string(T data){
     return s;
 
 }
+#endif

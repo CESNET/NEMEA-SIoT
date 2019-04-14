@@ -49,11 +49,7 @@
 #include <thread>
 #include <unistd.h>
 #include <ctime>
-#ifndef CONVERSION
-#define CONVERSION
-    #include "Conversion.h"
-#endif
-
+#include "Conversion.h"
 
 using namespace std;
 
