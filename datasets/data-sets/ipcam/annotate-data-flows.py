@@ -6,7 +6,7 @@ import json
 
 arguments = len(sys.argv)
 src_directory = "."
-dst_directory = "../../annotated-data-sets/ipcam/"
+dst_directory = "/home/start/joy-analysis/annotated-data-sets/ipcam/"
 
 
 # read all files in subdirectories

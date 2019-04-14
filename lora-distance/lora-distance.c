@@ -1,5 +1,5 @@
 /**
- * \file lora_detector_replay_attack_abp.c
+ * \file lora-distance.c
  * \brief LoRaWAN Detector of NEMEA module.
  * \author Erik Gresak <erik.gresak@vsb.cz>
  * \date 2018
@@ -56,53 +56,54 @@
 #include <string.h>
 #include "device_list.h"
 
-/** Define structure for BlackList */
+/** Define structure for DeviceList */
 struct dl_device {
     uint64_t DEV_ADDR;
-    uint16_t LAST_FCNT;
-    uint8_t RESTART;
+    double BASE_RSSI;
     struct dl_device *next;
 };
 
 /** 
- * Statically defined fields contain time stamp record TIMESTAMP, device address 
- * DEV_ADDR, message counter FCNT and payload from message PHY_PAYLOAD. This values 
- * are captured from LoRaWAN packet.
+ * Statically defined fields contain time stamp record TIMESTAMP, device address  
+ * DEV_ADDR, received signal strength Indicator RSSI, base received signal strength 
+ * Indicator BASE_RSSI, variance for base (RSSI) VARIANCE and payload from message 
+ * PHY_PAYLOAD. This values are captured from LoRaWAN packet.
  */
 UR_FIELDS(
         uint64 TIMESTAMP,
         string DEV_ADDR,
-        string FCNT,
         string PHY_PAYLOAD,
-//        string GW_ID,
-//        string NODE_MAC,
-//        uint32 US_COUNT,
-//        uint32 FRQ,
-//        uint32 RF_CHAIN,
-//        uint32 RX_CHAIN,
-//        string STATUS,
-//        uint32 SIZE,
-//        string MOD,
-//        uint32 BAD_WIDTH,
-//        uint32 SF,
-//        uint32 CODE_RATE,
-//        double RSSI,
-//        double SNR,
-//        string APP_EUI,
-//        string APP_NONCE,
-//        string DEV_EUI,
-//        string DEV_NONCE,
-//        string FCTRL,
-//        string FHDR,
-//        string F_OPTS,
-//        string F_PORT,
-//        string FRM_PAYLOAD,
-//        string LORA_PACKET,
-//        string MAC_PAYLOAD,
-//        string MHDR,
-//        string MIC,
-//        string NET_ID,
-//        uint64 AIR_TIME
+        double RSSI,
+        double BASE_RSSI,
+        double VARIANCE
+        //        string GW_ID,
+        //        string NODE_MAC,
+        //        uint32 US_COUNT,
+        //        uint32 FRQ,
+        //        uint32 RF_CHAIN,
+        //        uint32 RX_CHAIN,
+        //        string STATUS,
+        //        uint32 SIZE,
+        //        string MOD,
+        //        uint32 BAD_WIDTH,
+        //        uint32 SF,
+        //        uint32 CODE_RATE,
+        //        double SNR,
+        //        string APP_EUI,
+        //        string APP_NONCE,
+        //        string DEV_EUI,
+        //        string DEV_NONCE,
+        //        string FCTRL,
+        //        string FHDR,
+        //        string F_OPTS,
+        //        string F_PORT,
+        //        string FRM_PAYLOAD,
+        //        string LORA_PACKET,
+        //        string MAC_PAYLOAD,
+        //        string MHDR,
+        //        string MIC,
+        //        string NET_ID,
+        //        uint64 AIR_TIME
         )
 
 trap_module_info_t *module_info = NULL;
@@ -112,20 +113,11 @@ trap_module_info_t *module_info = NULL;
  * Definition of basic module information - module name, module description, number of input and output interfaces
  */
 #define MODULE_BASIC_INFO(BASIC) \
-  BASIC("LoRaWAN Detection - Replay attack ABP", \
-        "This detector serves for detection replay attack in LoRaWAN infrastructure of ABP authentication method." \
-        "The attacker is detected based on its behavior. The attack process begins with data storage of each device " \
-        "captured within range. If an attacker captures a restart message for the device (Fcnt = 0), sends the last stored " \
-        "message to the gateway from captured data where is device with the highest counter value. The attack " \
-        "replicates the last message and sends it over the gateway to the server.Server assumes that it receives a " \
-        "higher message than the attacker has sent and awaits this message. Sensor reboot and sending messages until " \
-        "it reaches the counter of the attacking message. Sensor is dosing for this time. This attack can be harmful " \
-        "for ABP activated end devices.\n" \
-        "Attack detection is performed by saving data to the list (DeviceList). Information is retrieved from incoming " \
-        "physical payload (PHYPayload) by parsing and revers octets. Each row in DeviceList contains device has a counter (FCnt) " \
-        "of received message and information about restart the device (RESTART). If the device is restarted, RESTART " \
-        "value is set to 1. The device address (DevAddr) is used as the row index. An attacker is recognized if his last message " \
-        "is the same as the message after restarting the device. Identification of the attacker is based on same couture (FCnt).", 1, 1)
+  BASIC("LoRaWAN Detection - Change distance", \
+        "This detector serves for detection changing distance between device and gateway. Detection is for " \
+        "fixed-position devices, if the attacker transfers the device, the RSSI (Received Signal Strength Indication) changes. " \
+        "This may vary depending on the environment, such as weather. Therefore, it is possible to set the deviation for RSSI. " \
+        "Base RSSI value is defined by the first received message from device to detector.", 1, 1)
 
 /**
  * Definition of module parameters - every parameter has short_opt, long_opt, description,
@@ -133,8 +125,8 @@ trap_module_info_t *module_info = NULL;
  * in case the parameter does not need argument.
  * Module parameter argument types: int8, int16, int32, int64, uint8, uint16, uint32, uint64, float, string
  */
-#define MODULE_PARAMS(PARAM)
-
+#define MODULE_PARAMS(PARAM) \
+    PARAM('a', "variance", "Defines explicit variance, default value 10% (0.1).", required_argument, "double")
 /**
  * To define positional parameter ("param" instead of "-m param" or "--mult param"), use the following definition:
  * PARAM('-', "", "Parameter description", required_argument, "string")
@@ -149,17 +141,29 @@ static int stop = 0;
  */
 TRAP_DEFAULT_SIGNAL_HANDLER(stop = 1)
 
+/**
+ * Function trap finalization and print error.
+ */
+void trap_fin(char *arg) {
+    fprintf(stderr, "%s\n", arg);
+    TRAP_DEFAULT_FINALIZATION();
+}
 
 /** ---- MAIN ----- */
 int main(int argc, char **argv) {
     int ret;
     signed char opt;
 
+    /** 
+     * Default fields for calculate variance
+     */
+    double va = 0.1;
+
     /* **** TRAP initialization **** */
 
     /*
      * Macro allocates and initializes module_info structure according to MODULE_BASIC_INFO and MODULE_PARAMS
-     * definitions on the lines 88 and 110 of this file. It also creates a string with short_opt letters for getopt
+     * definitions on the lines 118 and 131 of this file. It also creates a string with short_opt letters for getopt
      * function called "module_getopt_string" and long_options field for getopt_long function in variable "long_options"
      */
     INIT_MODULE_INFO_STRUCT(MODULE_BASIC_INFO, MODULE_PARAMS)
@@ -180,16 +184,22 @@ int main(int argc, char **argv) {
      */
     while ((opt = TRAP_GETOPT(argc, argv, module_getopt_string, long_options)) != -1) {
         switch (opt) {
-            default:
-                fprintf(stderr, "Invalid arguments.\n");
+            case 'a':
+                sscanf(optarg, "%lf", &va);
+                if ((va >= 0) && (va <= 1))
+                    break;
+                trap_fin("Invalid arguments variance 0.0 - 1.0\n");
                 FREE_MODULE_INFO_STRUCT(MODULE_BASIC_INFO, MODULE_PARAMS);
-                TRAP_DEFAULT_FINALIZATION();
+                return -1;
+            default:
+                trap_fin("Invalid arguments.\n");
+                FREE_MODULE_INFO_STRUCT(MODULE_BASIC_INFO, MODULE_PARAMS);
                 return -1;
         }
     }
 
     /** Create Input UniRec templates */
-    ur_template_t *in_tmplt = ur_create_input_template(0, "TIMESTAMP,PHY_PAYLOAD", NULL);
+    ur_template_t *in_tmplt = ur_create_input_template(0, "TIMESTAMP,RSSI,PHY_PAYLOAD", NULL);
     if (in_tmplt == NULL) {
         ur_free_template(in_tmplt);
         fprintf(stderr, "Error: Input template could not be created.\n");
@@ -197,7 +207,7 @@ int main(int argc, char **argv) {
     }
 
     /** Create Output UniRec templates */
-    ur_template_t *out_tmplt = ur_create_output_template(0, "DEV_ADDR,TIMESTAMP,FCNT", NULL);
+    ur_template_t *out_tmplt = ur_create_output_template(0, "DEV_ADDR,TIMESTAMP,BASE_RSSI,RSSI,VARIANCE", NULL);
     if (out_tmplt == NULL) {
         ur_free_template(in_tmplt);
         ur_free_template(out_tmplt);
@@ -240,62 +250,46 @@ int main(int argc, char **argv) {
             ur_set_string(out_tmplt, out_rec, F_DEV_ADDR, DevAddr);
         } else if (lr_is_data_message()) {
             ur_set_string(out_tmplt, out_rec, F_DEV_ADDR, DevAddr);
-            ur_set_string(out_tmplt, out_rec, F_FCNT, FCnt);
         }
 
         /** 
          * DeviceList
-         * Information is retrieved from incoming physical payload (PHYPayload) 
-         * by parsing and revers octets. Each row in DeviceList contains device 
-         * has a counter (FCnt) of received message and information about 
-         * restart the device (RESTART). If the device is restarted, RESTART 
-         * value is set to 1. The device address (DevAddr) is used as the row 
-         * index.
+         * Information is retrieved from incoming physical payload (PHYPayload) by parsing 
+         * and revers octets. Each row in DeviceList contains device a BASE_RSSI of 
+         * received message. The device address (DevAddr) is used as the index.
          */
 
         /** 
          * Load last data from Device
          */
         struct dl_device *pre = dl_get_device(lr_uint8_to_uint64(lr_arr_to_uint8(DevAddr)));
-        uint16_t counter = lr_arr_to_uint16(FCnt);
 
         if (pre != NULL) {
             /**
-             * Detection attack ABP
-             * Attack detection is performed by saving data to the list (DeviceList). 
-             * Information is retrieved from incoming physical payload (PHYPayload) 
-             * by parsing and revers octets. Each row in DeviceList contains device 
-             * has a counter (FCnt) of received message and information about restart 
-             * the device (RESTART). If the device is restarted, RESTART value is 
-             * set to 1. The device address (DevAddr) is used as the row index. An 
-             * attacker is recognized if his last message is the same as the 
-             * message after restarting the device. Identification of the attacker 
-             * is based on same couture (FCnt).
-             * 
+             * Detection change distance
+             * The example shows the attacker's identification where the detector is set 
+             * to 10% variance. This means that for -119 dBm is variance -11.9 dBm. 
+             * The minimum value is -130.9 dBm and maximum -107.1 dBm. An attacker is 
+             * therefore detected because it does not fall within the range.
              */
-            if ((pre->RESTART == 1) && (pre->LAST_FCNT == counter) && (counter != 0)) {
+
+            double variance = pre->BASE_RSSI * va;
+            
+            if (!(((pre->BASE_RSSI + variance) <= ur_get(in_tmplt, in_rec, F_RSSI)) && (ur_get(in_tmplt, in_rec, F_RSSI) <= (pre->BASE_RSSI - variance)))) {
                 ur_set(out_tmplt, out_rec, F_TIMESTAMP, ur_get(in_tmplt, in_rec, F_TIMESTAMP));
+                ur_set(out_tmplt, out_rec, F_RSSI, ur_get(in_tmplt, in_rec, F_RSSI));
+                ur_set(out_tmplt, out_rec, F_BASE_RSSI, pre->BASE_RSSI);
+                ur_set(out_tmplt, out_rec, F_VARIANCE, va);
                 ret = trap_send(0, out_rec, ur_rec_size(out_tmplt, out_rec));
+
                 TRAP_DEFAULT_SEND_ERROR_HANDLING(ret, continue, break);
-
-                pre->RESTART = 0;
-            } else {
-                pre->RESTART = 0;
-            }
-
-            if (counter > 0) {
-                pre->LAST_FCNT = counter;
-            }
-
-            if (counter == 0) {
-                pre->RESTART = 1;
             }
 
         } else {
             /** 
              * Insert new device to DeviceList
              */
-            dl_insert_device(lr_uint8_to_uint64(lr_arr_to_uint8(DevAddr)), counter);
+            dl_insert_device(lr_uint8_to_uint64(lr_arr_to_uint8(DevAddr)), ur_get(in_tmplt, in_rec, F_RSSI));
         }
 
         /** 

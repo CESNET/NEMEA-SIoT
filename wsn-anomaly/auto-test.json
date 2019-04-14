@@ -1,0 +1,5 @@
+{
+  "pre-shell": [],
+  "run-args": ["-c", "config.txt"],
+  "post-shell": []
+}
