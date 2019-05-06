@@ -17,7 +17,7 @@ class FolderInfo:
         info = next(os.walk(path))
         self.name = info[0]
         self.dirs = info[1]
-        self.files = info[2]
+        self.files = sorted(info[2])
 
 
 class RepoScanner:
@@ -164,7 +164,7 @@ class AutoTest(Namespace):
             tests = self.__get_test_pairs__(files.files)
 
             for i in tests:
-                p = ProgressPrinter('test {}: {}'.format(tests.index(i), i))
+                p = ProgressPrinter('test {}: {}'.format(tests.index(i) + 1, i))
 
                 x = Shell(directory=m)
                 x.execute_array(pre_shell)
@@ -200,7 +200,7 @@ class AutoTest(Namespace):
                         out, err = a.communicate()
                         Colors.print_error_output(err.decode())
                     else:
-                        Colors.print_error_output('Logreplay timeout passed, yet the module did not crash. This should not happen!')
+                        Colors.print_error_output('Logreplay timeout passed, yet the module did not crash. This should not happen! Dataset that is being replayed now is probably really huge.')
 
                     a.kill()
                     b.kill()
@@ -209,7 +209,7 @@ class AutoTest(Namespace):
                     x.execute_array(post_shell)
                     continue
 
-                time.sleep(3)
+                time.sleep(10)
 
                 if a.poll() is not None:
                     p.failed()
