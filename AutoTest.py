@@ -1,8 +1,8 @@
 import argparse
+import json
 import os
 import re
 import subprocess
-import json
 import time
 from argparse import Namespace
 from shutil import which
@@ -31,7 +31,8 @@ class RepoScanner:
             if 'bootstrap.sh' in d_info.files:
                 self.modules['c'][d_info.name] = {}
                 self.modules['c'][d_info.name]['tests'] = 'tests' in d_info.dirs
-                self.modules['c'][d_info.name]['test-config'] = 'auto-test.json' in d_info.files
+                self.modules['c'][d_info.name][
+                    'test-config'] = 'auto-test.json' in d_info.files
 
         p.succeed()
 
@@ -156,8 +157,11 @@ class AutoTest(Namespace):
             run_args = data['run-args']
 
         if self.__repo.is_c_module(m):
-            if which('./{}/{}'.format(m, self.__get_expected_executable__(m))) is None:
-                Colors.print_warning('executable file "{}" not found in the "{}" directory'.format(self.__get_expected_executable__(m), m))
+            if which('./{}/{}'.format(m, self.__get_expected_executable__(
+                    m))) is None:
+                Colors.print_warning(
+                    'executable file "{}" not found in the "{}" directory'.format(
+                        self.__get_expected_executable__(m), m))
                 return
 
             files = FolderInfo('./{}/tests/'.format(m))
@@ -178,15 +182,17 @@ class AutoTest(Namespace):
 
                 if a.poll() is not None:
                     p.failed()
-                    Colors.print_error_output('module crashed after its launch, its last words:')
+                    Colors.print_error_output(
+                        'module crashed after its launch, its last words:')
                     out, err = a.communicate()
                     Colors.print_error_output(err.decode())
                     x = Shell(directory=m)
                     x.execute_array(post_shell)
                     return
 
-                b = subprocess.Popen(['/usr/bin/nemea/logger', '-i', 'u:test-out', '-w',
-                                      './{}/tests/{}.realout'.format(m, i)])
+                b = subprocess.Popen(
+                    ['/usr/bin/nemea/logger', '-i', 'u:test-out', '-w',
+                     './{}/tests/{}.realout'.format(m, i)])
 
                 c = subprocess.Popen(['logreplay', '-i', 'u:test-in', '-f',
                                       './{}/tests/{}.csv'.format(m, i)])
@@ -196,11 +202,13 @@ class AutoTest(Namespace):
                 except subprocess.TimeoutExpired:
                     if a.poll() is not None:
                         p.failed()
-                        Colors.print_error_output('module crashed after its logreplay, its last words:')
+                        Colors.print_error_output(
+                            'module crashed after its logreplay, its last words:')
                         out, err = a.communicate()
                         Colors.print_error_output(err.decode())
                     else:
-                        Colors.print_error_output('Logreplay timeout passed, yet the module did not crash. This should not happen! Dataset that is being replayed now is probably really huge.')
+                        Colors.print_error_output(
+                            'Logreplay timeout passed, yet the module did not crash. This should not happen! Dataset that is being replayed now is probably really huge.')
 
                     a.kill()
                     b.kill()
@@ -213,7 +221,8 @@ class AutoTest(Namespace):
 
                 if a.poll() is not None:
                     p.failed()
-                    Colors.print_error_output('module crashed after injecting data via logreplay, its last words:')
+                    Colors.print_error_output(
+                        'module crashed after injecting data via logreplay, its last words:')
                     out, err = a.communicate()
                     Colors.print_error_output(err.decode())
                     b.kill()
@@ -234,7 +243,9 @@ class AutoTest(Namespace):
                 if d.returncode != 0:
                     p.failed()
                     Colors.print_error_output('unexpected module output')
-                    Colors.print_error_output('files ./{0}/tests/{1}.out ./{0}/tests/{1}.realout are different'.format(m, i))
+                    Colors.print_error_output(
+                        'files ./{0}/tests/{1}.out ./{0}/tests/{1}.realout are different'.format(
+                            m, i))
                 else:
                     p.succeed()
 
