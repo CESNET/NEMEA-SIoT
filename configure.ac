@@ -42,7 +42,7 @@ AC_CHECK_FUNCS([memset socket])
 AC_CONFIG_FILES([Makefile])
 AC_CONFIG_SUBDIRS([hci-collector
 ble-pairing
-wsn-anomaly/detector
+wsn-anomaly
 lora-airtime
 lora-replay
 lora-distance
