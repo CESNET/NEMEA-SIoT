@@ -251,7 +251,7 @@ int main(int argc, char **argv) {
     }
 
     /** Allocate memory for output record */
-    void *out_rec = ur_create_record(out_tmplt, 0);
+    void *out_rec = ur_create_record(out_tmplt, 512);
     if (out_rec == NULL) {
         ur_free_template(in_tmplt);
         ur_free_template(out_tmplt);
@@ -277,6 +277,11 @@ int main(int argc, char **argv) {
         /** Handle possible errors */
         TRAP_DEFAULT_RECV_ERROR_HANDLING(ret, continue, break);
 
+        /** Check size payload min/max */
+        uint32_t size = ur_get(in_tmplt, in_rec, F_SIZE);
+        if(size < 14 || size > 512)
+            continue;
+        
         /** Initialization physical payload for parsing and reversing octet fields. */
         lr_initialization(ur_get_ptr(in_tmplt, in_rec, F_PHY_PAYLOAD));
 
