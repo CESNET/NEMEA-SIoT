@@ -88,7 +88,10 @@ char *lr_slice(char *arr, size_t start, size_t size) {
 
     int i;
     for (i = start; i < size + start; i++) {
-        _arr[i - start] = arr[i];
+        if(i > strlen(arr))
+            _arr[i - start] = '0';
+        else
+            _arr[i - start] = arr[i];
     }
 
     _arr[size] = '\0';
