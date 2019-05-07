@@ -30,3 +30,8 @@
 *.exe
 # *.out # removed for the auto-test purposes
 *.app
+
+# invisible files for JetBrains products
+
+**/.idea
+
