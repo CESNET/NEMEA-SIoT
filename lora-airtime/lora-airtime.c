@@ -266,7 +266,14 @@ int main(int argc, char **argv) {
      */
     while (!stop) {
         const void *in_rec;
+        const void *rec;
         uint16_t in_rec_size;
+        uint16_t rec_size;
+
+        /** Indicates EOF */
+        trap_recv(0, &rec, &rec_size);
+        if (rec_size == 1)
+            break;
 
         /** 
          * Receive data from input interface 0.
