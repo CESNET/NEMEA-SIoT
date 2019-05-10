@@ -142,7 +142,7 @@ class AutoTest(Namespace):
                     [self.L, '-i', 'u:test-out', '-w',
                      output_file_path])
 
-                c = subprocess.Popen([self.R, '-i', 'u:test-in', '-f',
+                c = subprocess.Popen([self.R, '-n', '-i', 'u:test-in', '-f',
                                       './{}/tests/{}.csv'.format(m, i)])
 
                 try:
