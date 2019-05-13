@@ -119,7 +119,7 @@ private:
     */
     map<string, map<uint64_t, vector<double> > > x;  // Buffer for normal values
     map<string, map<uint64_t, vector<double> > > x2; // Buffer for square values
-    int default_interface; // ID of default UniRec field for timeseries
+    uint64_t default_interface; // ID of default UniRec field for timeseries
 
 /*
 * Internal methods. Used during processing time series.
