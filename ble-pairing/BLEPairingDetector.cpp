@@ -131,6 +131,13 @@ int main(int argc, char *argv[])
 			int ret = TRAP_RECEIVE(0, in_record, in_record_size, in_template);
 			TRAP_DEFAULT_RECV_ERROR_HANDLING(ret, continue, break);
 
+            // EOF close this module 
+            if ( in_record_size <= 1 ){
+                goto cleanup;
+            }
+            
+
+
 			detector.processPacket(
 				ur_get_ptr(in_template, in_record, F_HCI_DEV_MAC),
 				ur_get_ptr(in_template, in_record, F_TIMESTAMP),
