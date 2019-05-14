@@ -1,5 +1,5 @@
 {
   "pre-shell": [],
-  "run-args": ["-a", "0.05"],
+  "run-args": [],
   "post-shell": []
 }
