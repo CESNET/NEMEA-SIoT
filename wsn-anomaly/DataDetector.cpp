@@ -369,7 +369,7 @@ int main (int argc, char** argv){
                 continue;
             }
             // EOF close this module 
-            if ( strcmp("ID",(ur_get_name(id))) == 0 && *ur_time == 0 ){
+            if ( memory_received <= 1 ){
                 goto cleanup;
             }
 
