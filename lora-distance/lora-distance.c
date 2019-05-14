@@ -54,6 +54,7 @@
 #include "fields.h"
 #include "lora_packet.h"
 #include <string.h>
+#include <unistd.h>
 #include "device_list.h"
 
 /** Define structure for DeviceList */
@@ -216,7 +217,7 @@ int main(int argc, char **argv) {
     }
 
     /** Allocate memory for output record */
-    void *out_rec = ur_create_record(out_tmplt, 0);
+    void *out_rec = ur_create_record(out_tmplt, 512);
     if (out_rec == NULL) {
         ur_free_template(in_tmplt);
         ur_free_template(out_tmplt);
@@ -231,14 +232,7 @@ int main(int argc, char **argv) {
      */
     while (!stop) {
         const void *in_rec;
-        const void *rec;
         uint16_t in_rec_size;
-        uint16_t rec_size;
-
-        /** Indicates EOF */
-        trap_recv(0, &rec, &rec_size);
-        if (rec_size == 1)
-            break;
 
         /** 
          * Receive data from input interface 0.
@@ -249,9 +243,21 @@ int main(int argc, char **argv) {
         /** Handle possible errors */
         TRAP_DEFAULT_RECV_ERROR_HANDLING(ret, continue, break);
 
+        /** Indicates EOF */
+        if (in_rec_size == 1)
+            break;
+        
+        /** Check size payload min/max */
+        uint32_t size = ur_get_len(in_tmplt, in_rec, F_PHY_PAYLOAD);
+        if(size < 14 || size > 512)
+            continue;
+        
         /** Initialization physical payload for parsing and reversing octet fields. */
         lr_initialization(ur_get_ptr(in_tmplt, in_rec, F_PHY_PAYLOAD));
 
+        if (DevAddr == NULL)
+            continue;
+        
         /** Identity message type */
         if (lr_is_join_accept_message()) {
             ur_set_string(out_tmplt, out_rec, F_DEV_ADDR, DevAddr);
@@ -269,7 +275,9 @@ int main(int argc, char **argv) {
         /** 
          * Load last data from Device
          */
-        struct dl_device *pre = dl_get_device(lr_uint8_to_uint64(lr_arr_to_uint8(DevAddr)));
+        uint64_t dev_addr = lr_uint8_to_uint64(lr_arr_to_uint8(DevAddr));
+        
+        struct dl_device *pre = dl_get_device(dev_addr);
 
         if (pre != NULL) {
             /**
@@ -296,7 +304,7 @@ int main(int argc, char **argv) {
             /** 
              * Insert new device to DeviceList
              */
-            dl_insert_device(lr_uint8_to_uint64(lr_arr_to_uint8(DevAddr)), ur_get(in_tmplt, in_rec, F_RSSI));
+            dl_insert_device(dev_addr, ur_get(in_tmplt, in_rec, F_RSSI));
         }
 
         /** 
