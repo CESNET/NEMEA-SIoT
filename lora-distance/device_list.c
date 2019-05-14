@@ -90,7 +90,7 @@ struct dl_device* dl_get_device(uint64_t dev_addr) {
 
     struct dl_device* current = head;
 
-    if (head == NULL)
+    if (head == NULL || dev_addr == 0)
         return NULL;
 
     while (current->DEV_ADDR != dev_addr) {
