@@ -54,6 +54,7 @@
 #include "fields.h"
 #include "lora_packet.h"
 #include <string.h>
+#include <unistd.h>
 #include "device_list.h"
 
 /** Define structure for BlackList */
@@ -74,35 +75,35 @@ UR_FIELDS(
         string DEV_ADDR,
         string FCNT,
         string PHY_PAYLOAD,
-//        string GW_ID,
-//        string NODE_MAC,
-//        uint32 US_COUNT,
-//        uint32 FRQ,
-//        uint32 RF_CHAIN,
-//        uint32 RX_CHAIN,
-//        string STATUS,
-//        uint32 SIZE,
-//        string MOD,
-//        uint32 BAD_WIDTH,
-//        uint32 SF,
-//        uint32 CODE_RATE,
-//        double RSSI,
-//        double SNR,
-//        string APP_EUI,
-//        string APP_NONCE,
-//        string DEV_EUI,
-//        string DEV_NONCE,
-//        string FCTRL,
-//        string FHDR,
-//        string F_OPTS,
-//        string F_PORT,
-//        string FRM_PAYLOAD,
-//        string LORA_PACKET,
-//        string MAC_PAYLOAD,
-//        string MHDR,
-//        string MIC,
-//        string NET_ID,
-//        uint64 AIR_TIME
+        //        string GW_ID,
+        //        string NODE_MAC,
+        //        uint32 US_COUNT,
+        //        uint32 FRQ,
+        //        uint32 RF_CHAIN,
+        //        uint32 RX_CHAIN,
+        //        string STATUS,
+        //        uint32 SIZE,
+        //        string MOD,
+        //        uint32 BAD_WIDTH,
+        //        uint32 SF,
+        //        uint32 CODE_RATE,
+        //        double RSSI,
+        //        double SNR,
+        //        string APP_EUI,
+        //        string APP_NONCE,
+        //        string DEV_EUI,
+        //        string DEV_NONCE,
+        //        string FCTRL,
+        //        string FHDR,
+        //        string F_OPTS,
+        //        string F_PORT,
+        //        string FRM_PAYLOAD,
+        //        string LORA_PACKET,
+        //        string MAC_PAYLOAD,
+        //        string MHDR,
+        //        string MIC,
+        //        string NET_ID,
+        //        uint64 AIR_TIME
         )
 
 trap_module_info_t *module_info = NULL;
@@ -206,7 +207,7 @@ int main(int argc, char **argv) {
     }
 
     /** Allocate memory for output record */
-    void *out_rec = ur_create_record(out_tmplt, 0);
+    void *out_rec = ur_create_record(out_tmplt, 512);
     if (out_rec == NULL) {
         ur_free_template(in_tmplt);
         ur_free_template(out_tmplt);
@@ -221,14 +222,7 @@ int main(int argc, char **argv) {
      */
     while (!stop) {
         const void *in_rec;
-        const void *rec;
         uint16_t in_rec_size;
-        uint16_t rec_size;
-
-        /** Indicates EOF */
-        trap_recv(0, &rec, &rec_size);
-        if (rec_size == 1)
-            break;
 
         /** 
          * Receive data from input interface 0.
@@ -239,16 +233,17 @@ int main(int argc, char **argv) {
         /** Handle possible errors */
         TRAP_DEFAULT_RECV_ERROR_HANDLING(ret, continue, break);
 
+        /** Indicates EOF */
+        if (in_rec_size == 1)
+            break;
+
+        /** Check size payload min/max */
+        uint32_t size = ur_get_var_len(in_tmplt, in_rec, F_PHY_PAYLOAD);
+        if (size < 14 || size > 512)
+            continue;
+
         /** Initialization physical payload for parsing and reversing octet fields. */
         lr_initialization(ur_get_ptr(in_tmplt, in_rec, F_PHY_PAYLOAD));
-
-        /** Identity message type */
-        if (lr_is_join_accept_message()) {
-            ur_set_string(out_tmplt, out_rec, F_DEV_ADDR, DevAddr);
-        } else if (lr_is_data_message()) {
-            ur_set_string(out_tmplt, out_rec, F_DEV_ADDR, DevAddr);
-            ur_set_string(out_tmplt, out_rec, F_FCNT, FCnt);
-        }
 
         /** 
          * DeviceList
@@ -260,51 +255,62 @@ int main(int argc, char **argv) {
          * index.
          */
 
-        /** 
-         * Load last data from Device
-         */
-        struct dl_device *pre = dl_get_device(lr_uint8_to_uint64(lr_arr_to_uint8(DevAddr)));
-        uint16_t counter = lr_arr_to_uint16(FCnt);
+        if (DevAddr == NULL || FCnt == NULL)
+            continue;
+        
+        /** Identity message type */
+        if (lr_is_data_message()) {
+            ur_set_string(out_tmplt, out_rec, F_DEV_ADDR, DevAddr);
+            ur_set_string(out_tmplt, out_rec, F_FCNT, FCnt);
 
-        if (pre != NULL) {
-            /**
-             * Detection attack ABP
-             * Attack detection is performed by saving data to the list (DeviceList). 
-             * Information is retrieved from incoming physical payload (PHYPayload) 
-             * by parsing and revers octets. Each row in DeviceList contains device 
-             * has a counter (FCnt) of received message and information about restart 
-             * the device (RESTART). If the device is restarted, RESTART value is 
-             * set to 1. The device address (DevAddr) is used as the row index. An 
-             * attacker is recognized if his last message is the same as the 
-             * message after restarting the device. Identification of the attacker 
-             * is based on same couture (FCnt).
-             * 
-             */
-            if ((pre->RESTART == 1) && (pre->LAST_FCNT == counter) && (counter != 0)) {
-                ur_set(out_tmplt, out_rec, F_TIMESTAMP, ur_get(in_tmplt, in_rec, F_TIMESTAMP));
-                ret = trap_send(0, out_rec, ur_rec_size(out_tmplt, out_rec));
-                TRAP_DEFAULT_SEND_ERROR_HANDLING(ret, continue, break);
-
-                pre->RESTART = 0;
-            } else {
-                pre->RESTART = 0;
-            }
-
-            if (counter > 0) {
-                pre->LAST_FCNT = counter;
-            }
-
-            if (counter == 0) {
-                pre->RESTART = 1;
-            }
-
-        } else {
             /** 
-             * Insert new device to DeviceList
+             * Load last data from Device
              */
-            dl_insert_device(lr_uint8_to_uint64(lr_arr_to_uint8(DevAddr)), counter);
-        }
+            uint64_t dev_addr = lr_uint8_to_uint64(lr_arr_to_uint8(DevAddr));
+            
+            struct dl_device *pre = dl_get_device(dev_addr);
+            uint16_t counter = lr_arr_to_uint16(FCnt);
 
+            if (pre != NULL) {
+                /**
+                 * Detection attack ABP
+                 * Attack detection is performed by saving data to the list (DeviceList). 
+                 * Information is retrieved from incoming physical payload (PHYPayload) 
+                 * by parsing and revers octets. Each row in DeviceList contains device 
+                 * has a counter (FCnt) of received message and information about restart 
+                 * the device (RESTART). If the device is restarted, RESTART value is 
+                 * set to 1. The device address (DevAddr) is used as the row index. An 
+                 * attacker is recognized if his last message is the same as the 
+                 * message after restarting the device. Identification of the attacker 
+                 * is based on same couture (FCnt).
+                 * 
+                 */
+                if ((pre->RESTART == 1) && (pre->LAST_FCNT == counter) && (counter != 0)) {
+                    ur_set(out_tmplt, out_rec, F_TIMESTAMP, ur_get(in_tmplt, in_rec, F_TIMESTAMP));
+                    ret = trap_send(0, out_rec, ur_rec_size(out_tmplt, out_rec));
+                    TRAP_DEFAULT_SEND_ERROR_HANDLING(ret, continue, break);
+
+                    pre->RESTART = 0;
+                } else {
+                    pre->RESTART = 0;
+                }
+
+                if (counter > 0) {
+                    pre->LAST_FCNT = counter;
+                }
+
+                if (counter == 0) {
+                    pre->RESTART = 1;
+                }
+
+            } else {
+                /** 
+                 * Insert new device to DeviceList
+                 */
+                dl_insert_device(dev_addr, counter);
+            }
+
+        }
         /** 
          * Free lora_packet and output record
          */
