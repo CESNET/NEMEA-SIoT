@@ -217,7 +217,7 @@ int main(int argc, char **argv) {
     }
 
     /** Allocate memory for output record */
-    void *out_rec = ur_create_record(out_tmplt, 512);
+    void *out_rec = ur_create_record(out_tmplt, 530);
     if (out_rec == NULL) {
         ur_free_template(in_tmplt);
         ur_free_template(out_tmplt);

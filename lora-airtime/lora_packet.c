@@ -84,11 +84,14 @@ char *lr_slice(char *arr, size_t start, size_t size) {
     if (arr == NULL)
         return NULL;
 
+    if (strlen(arr) < (start + size))
+        return NULL;
+
     char *_arr = (char*) malloc(size + 1);
 
     int i;
     for (i = start; i < size + start; i++) {
-        if(i > strlen(arr))
+        if (i > strlen(arr))
             _arr[i - start] = '0';
         else
             _arr[i - start] = arr[i];
@@ -136,7 +139,7 @@ uint8_t *lr_arr_to_uint8(char* arr) {
         return NULL;
 
     int len = strlen(arr);
-    uint8_t *_array = (uint8_t*) malloc(len);
+    uint8_t *_array = (uint8_t*) calloc(len, sizeof (uint8_t));
 
     char tk[] = {'0', '0', '\0'};
     unsigned int i, a, ple;
@@ -149,8 +152,6 @@ uint8_t *lr_arr_to_uint8(char* arr) {
             a++;
         }
     }
-
-    _array[len] = '\0';
 
     return _array;
 }
@@ -168,6 +169,10 @@ uint16_t lr_arr_to_uint16(char* arr) {
  * var - An pointer to uint8_t array
  */
 uint64_t lr_uint8_to_uint64(uint8_t* var) {
+    if (var == NULL)
+        return 0;
+    if (strlen(var) != 4)
+        return 0;
     return (((uint64_t) var[7]) << 56) |
             (((uint64_t) var[6]) << 48) |
             (((uint64_t) var[5]) << 40) |
@@ -217,6 +222,8 @@ char *lr_uint8_to_string(uint8_t* arr) {
  * arr - An pointer to char array
  */
 int lr_get_int(char *arr) {
+    if (arr == NULL)
+        return 0;
     char hexDigits[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
     char *_i = (char*) malloc(strlen(arr));
     int len = strlen(arr);
@@ -302,6 +309,7 @@ void lr_free() {
     free(AppEUI);
     free(DevEUI);
     free(DevNonce);
+    free(DevAddr);
     free(MIC);
     free(AppNonce);
     free(NetID);
@@ -318,6 +326,7 @@ void lr_free() {
     AppEUI = NULL;
     DevEUI = NULL;
     DevNonce = NULL;
+    DevAddr = NULL;
     MIC = NULL;
     AppNonce = NULL;
     NetID = NULL;
@@ -351,7 +360,6 @@ void lr_initialization(char* packet) {
 
     AppNonce = (char*) malloc(6);
     NetID = (char*) malloc(6);
-    DevAddr = (char*) malloc(8);
     CFList = (char*) malloc(0);
 
     PHYPayload = packet;
@@ -362,6 +370,8 @@ void lr_initialization(char* packet) {
         DevEUI = lr_revers_array(lr_slice(_packet, 18, 16));
         DevNonce = lr_revers_array(lr_slice(_packet, 34, 4));
         MIC = lr_slice(_packet, _strl - 8, 8);
+        DevAddr = NULL;
+        free(DevAddr);
     } else if (lr_is_join_accept_message()) {
         AppNonce = lr_revers_array(lr_slice(_packet, 2, 6));
         NetID = lr_revers_array(lr_slice(_packet, 8, 6));
@@ -407,16 +417,17 @@ void lr_initialization(char* packet) {
             }
         }
 
+    } else {
+        lr_free();
     }
 
 }
-
 
 /** 
  * LoRaWAN ABP packet decode
  * nwkSkey - An pointer to uint8_t array
  * appSkey - An pointer to uint8_t array
- */ 
+ */
 uint8_t *lr_decode(uint8_t* nwkSKey, uint8_t* appSKey) {
 
     int block = 0, len = 0;

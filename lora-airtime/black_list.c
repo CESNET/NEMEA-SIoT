@@ -97,7 +97,7 @@ struct bl_device* bl_get_device(char* dev_addr) {
 
     struct bl_device* current = head;
 
-    if (head == NULL)
+    if (head == NULL || dev_addr == 0)
         return NULL;
 
     while (bl_compare(current->DEV_ADDR, dev_addr, 8) == 0) {

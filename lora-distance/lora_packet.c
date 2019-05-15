@@ -84,7 +84,7 @@ char *lr_slice(char *arr, size_t start, size_t size) {
     if (arr == NULL)
         return NULL;
 
-    if (strlen(arr) <= (start + size))
+    if (strlen(arr) < (start + size))
         return NULL;
 
     char *_arr = (char*) malloc(size + 1);
@@ -222,6 +222,8 @@ char *lr_uint8_to_string(uint8_t* arr) {
  * arr - An pointer to char array
  */
 int lr_get_int(char *arr) {
+    if (arr == NULL)
+        return 0;
     char hexDigits[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
     char *_i = (char*) malloc(strlen(arr));
     int len = strlen(arr);

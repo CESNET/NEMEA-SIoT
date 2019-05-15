@@ -85,31 +85,31 @@ UR_FIELDS(
         uint64 AIR_TIME,
         string NWK_SKEY,
         string APP_SKEY
-//        uint8 ENABLE,
-//        string GW_ID,
-//        string NODE_MAC,
-//        uint32 US_COUNT,
-//        uint32 FRQ,
-//        uint32 RF_CHAIN,
-//        uint32 RX_CHAIN,
-//        string STATUS,
-//        string MOD,
-//        double RSSI,
-//        double SNR,
-//        string APP_EUI,
-//        string APP_NONCE,
-//        string DEV_EUI,
-//        string DEV_NONCE,
-//        string FCTRL,
-//        string FHDR,
-//        string F_OPTS,
-//        string F_PORT,
-//        string FRM_PAYLOAD,
-//        string LORA_PACKET,
-//        string MAC_PAYLOAD,
-//        string MHDR,
-//        string MIC,
-//        string NET_ID
+        //        uint8 ENABLE,
+        //        string GW_ID,
+        //        string NODE_MAC,
+        //        uint32 US_COUNT,
+        //        uint32 FRQ,
+        //        uint32 RF_CHAIN,
+        //        uint32 RX_CHAIN,
+        //        string STATUS,
+        //        string MOD,
+        //        double RSSI,
+        //        double SNR,
+        //        string APP_EUI,
+        //        string APP_NONCE,
+        //        string DEV_EUI,
+        //        string DEV_NONCE,
+        //        string FCTRL,
+        //        string FHDR,
+        //        string F_OPTS,
+        //        string F_PORT,
+        //        string FRM_PAYLOAD,
+        //        string LORA_PACKET,
+        //        string MAC_PAYLOAD,
+        //        string MHDR,
+        //        string MIC,
+        //        string NET_ID
         )
 
 trap_module_info_t *module_info = NULL;
@@ -156,7 +156,7 @@ TRAP_DEFAULT_SIGNAL_HANDLER(stop = 1)
  * Function trap finalization and print error.
  */
 void trap_fin(char *arg) {
-    fprintf(stderr, "%s\n" ,arg);
+    fprintf(stderr, "%s\n", arg);
     TRAP_DEFAULT_FINALIZATION();
 }
 
@@ -251,7 +251,7 @@ int main(int argc, char **argv) {
     }
 
     /** Allocate memory for output record */
-    void *out_rec = ur_create_record(out_tmplt, 512);
+    void *out_rec = ur_create_record(out_tmplt, 530);
     if (out_rec == NULL) {
         ur_free_template(in_tmplt);
         ur_free_template(out_tmplt);
@@ -266,14 +266,7 @@ int main(int argc, char **argv) {
      */
     while (!stop) {
         const void *in_rec;
-        const void *rec;
         uint16_t in_rec_size;
-        uint16_t rec_size;
-
-        /** Indicates EOF */
-        trap_recv(0, &rec, &rec_size);
-        if (rec_size == 1)
-            break;
 
         /** 
          * Receive data from input interface 0.
@@ -284,13 +277,20 @@ int main(int argc, char **argv) {
         /** Handle possible errors */
         TRAP_DEFAULT_RECV_ERROR_HANDLING(ret, continue, break);
 
+        /** Indicates EOF */
+        if (in_rec_size == 1)
+            break;
+
         /** Check size payload min/max */
         uint32_t size = ur_get(in_tmplt, in_rec, F_SIZE);
-        if(size < 14 || size > 512)
+        if (size < 14 || size > 512)
             continue;
-        
+
         /** Initialization physical payload for parsing and reversing octet fields. */
         lr_initialization(ur_get_ptr(in_tmplt, in_rec, F_PHY_PAYLOAD));
+
+        if (DevAddr == NULL)
+            continue;
 
         ur_set_string(out_tmplt, out_rec, F_PHY_PAYLOAD, PHYPayload);
 
