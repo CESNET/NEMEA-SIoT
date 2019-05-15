@@ -3,7 +3,6 @@ import json
 import os
 import re
 import subprocess
-import time
 
 from argparse import Namespace
 from shutil import which
@@ -119,81 +118,76 @@ class AutoTest(Namespace):
                 x = Shell(directory=m)
                 x.execute_array(pre_shell)
 
-                a = subprocess.Popen(
+                module = subprocess.Popen(
                     ['./{}'.format(self.__get_expected_executable__(m)),
                      '-i', 'u:test-in,u:test-out'] + run_args,
                     cwd=m, stderr=subprocess.PIPE)
 
-                time.sleep(1)
-
-                if a.poll() is not None:
+                if module.poll() is not None:
                     p.failed()
                     Colors.print_error_output(
                         'module crashed after its launch, its last words:')
-                    out, err = a.communicate()
+                    out, err = module.communicate()
                     Colors.print_error_output(err.decode())
                     x = Shell(directory=m)
                     x.execute_array(post_shell)
                     return
 
                 output_file_path = 'a-test-out/{}/{}.realout'.format(m, i)
+                input_file_path = './{}/tests/{}.csv'.format(m, i)
+                expected_file_path = './{}/tests/{}.out'.format(m, i)
 
-                b = subprocess.Popen(
+                logger = subprocess.Popen(
                     [self.L, '-i', 'u:test-out', '-w',
                      output_file_path])
 
-                c = subprocess.Popen([self.R, '-n', '-i', 'u:test-in', '-f',
-                                      './{}/tests/{}.csv'.format(m, i)])
+                logreplay = subprocess.Popen([self.R, '-i', 'u:test-in', '-f',
+                                              input_file_path])
 
                 try:
-                    c.communicate(timeout=10)
+                    logreplay.communicate(timeout=10)
                 except subprocess.TimeoutExpired:
-                    if a.poll() is not None:
+                    if module.poll() is not None:
                         p.failed()
                         Colors.print_error_output(
                             'module crashed after its logreplay, its last words:')
-                        out, err = a.communicate()
+                        out, err = module.communicate()
                         Colors.print_error_output(err.decode())
                     else:
                         Colors.print_error_output(
                             'Logreplay timeout passed, yet the module did not crash. This should not happen! Dataset that is being replayed now is probably really huge.')
 
-                    a.kill()
-                    b.kill()
-                    c.kill()
+                    module.kill()
+                    logger.kill()
+                    logreplay.kill()
                     x = Shell(directory=m)
                     x.execute_array(post_shell)
                     continue
 
-                time.sleep(4)
-
-                if a.poll() is not None:
-                    p.failed()
-                    Colors.print_error_output(
-                        'module crashed after injecting data via logreplay, its last words:')
-                    out, err = a.communicate()
-                    Colors.print_error_output(err.decode())
-                    b.kill()
+                try:
+                    module.communicate(timeout=20)
+                except subprocess.TimeoutExpired:
+                    Colors.print_error_output('something bad happened')
+                    module.kill()
+                    logger.kill()
                     x = Shell(directory=m)
                     x.execute_array(post_shell)
                     continue
 
-                a.kill()
-                b.kill()
+                logger.kill()
 
-                d = subprocess.Popen(
-                    ['diff', '-s', output_file_path,
-                     './{}/tests/{}.out'.format(m, i)],
+                diff = subprocess.Popen(
+                    ['diff', '-s', output_file_path, expected_file_path],
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE)
 
-                d.communicate()
-                if d.returncode != 0:
+                diff.communicate()
+                if diff.returncode != 0:
                     p.failed()
                     Colors.print_error_output('unexpected module output')
                     Colors.print_error_output(
-                        'files ./{0}/tests/{1}.out {2}'.format(
-                            m, i, output_file_path))
+                        'files {} {} differ!'.format(output_file_path,
+                                                     expected_file_path))
                 else:
                     p.succeed()
 
