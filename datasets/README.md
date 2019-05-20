@@ -4,6 +4,8 @@ This folder includes IoT datasets for treat detection and ML trainig purposes. E
 
 Datasets for each device/protocol are stored in seperate folders. You can see their description [below](#dataset-description). Folders [data-sets](data-sets) and [annotated-data-sets](annotated-data-sets) are almost the same. The only difference is that flows in [annotated-data-sets](annotated-data-sets) folder have field "flow type" that was added by script "annotate-data-flow.py". This script is part of each dataset group.
 
+Also, folder [jupyter-notebooks](jupyter-notebooks) contains prototypes of ML models for behavior anomaly detection.
+
 # Dataset Description
 ## IKEA APP
 The IKEA gateway itself doesn’t allow remote communication with clients. All control commands from IKEA mobile have to be sent from the same broadcast domain. 
