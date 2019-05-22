@@ -1,3 +1,4 @@
 ## TODO
-- [ ] Fix BUFFER error
-- [ ] Create new packages reflecting repo changes
+- [ ] Fix LoRa Distance BUS error
+- [ ] Fix WSN Anomaly BUS error
+- [ ] FIX LoRa Airtime inappropriate output

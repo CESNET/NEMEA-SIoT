@@ -1,6 +1,4 @@
 ## TODO
-- [ ] Fix non-included NemeaCollector
-- [ ] Fix missing dependencies - glib2, NEMEA Framework
 
 ## BeeeOn Gateway on TurrisOS
 
@@ -25,4 +23,4 @@ opkg install $(opkg list-installed | grep kmod | cut -f1 -d" ")
 opkg install kmod-usb-acm
 reboot
 ```
-> Probably not all kmod* packages need to be upgraded, but it is the best way to be sure it will work and what bad can it bring, right?
+> Probably not all kmod* packages need to be upgraded, but it is the best way to ensure it will work and what bad can it bring, right?
