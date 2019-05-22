@@ -1,3 +1,19 @@
+# This file was created within Martin Hošala's bachelor thesis
+#
+# THESIS INFORMATION:
+#
+# School: Brno University of Technology
+# Faculty: Faculty of Information Technology
+# Department: Department of Computer Systems
+# Topic: Secured Gateway for Wireless IoT Protocols
+# Author: Martin Hošala
+# Supervisor: Doc. Ing. Jan Kořenek Ph.D.
+# Year: 2019
+
+
+# Within this class are defined terminal colors to allow their usage in
+# a user-friendly form. Moreover, it contains few predefined printing functions,
+# which can be used for uniform printing of some alike information.
 class Colors:
     PINK = '\033[95m'
     BLUE = '\033[94m'
