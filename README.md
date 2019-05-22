@@ -1,7 +1,9 @@
 # SIoT Gateway for TurrisOS
 
 Run `./install.sh` to install all necessary packages to run SIoT Gateway.
-See README in sub-directories for where you can find a guide on how to create a functional secured gateway that consists of BeeeOn Gateway and SIoT detection modules on TurrisOS. It is tested on Turrin Omnia with clean OpenWrt omnia 15.05 system that has disabled auto-updates.
+See README in sub-directories for where you can find a guide on how to create a functional
+secured gateway that consists of BeeeOn Gateway and SIoT detection modules on TurrisOS.
+It is tested on Turrin Omnia with clean OpenWrt omnia 15.05 system that has disabled auto-updates.
 
 ## Run
 
@@ -14,6 +16,8 @@ To start NEMEA SIoT instance run:
 `cp supervirol.conf /etc/config/nemea-supervisor`
 `/etc/init.d/nemea-supervisorl start`
 
+ATTENTION! LoRa Distance and WSN Anomaly detectors are falling on a bus error.
+Therefore, by default they are disabled. This can be changed in the `supervirol.conf` file.
 
 ### Interconnection with other system parts:
 All LoRa detectors need LoRa Collector as a data source:
