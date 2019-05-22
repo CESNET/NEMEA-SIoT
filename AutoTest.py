@@ -1,3 +1,15 @@
+# This file was created within Martin Hošala's bachelor thesis
+#
+# THESIS INFORMATION:
+#
+# School: Brno University of Technology
+# Faculty: Faculty of Information Technology
+# Department: Department of Computer Systems
+# Topic: Secured Gateway for Wireless IoT Protocols
+# Author: Martin Hošala
+# Supervisor: Doc. Ing. Jan Kořenek Ph.D.
+# Year: 2019
+
 import argparse
 import json
 import os
@@ -14,6 +26,9 @@ from TestUtil.RepoScanner import RepoScanner
 from TestUtil.Shell import Shell
 
 
+# This class serves for NEMEA-SIoT modules unit testing. Its detailed
+# description can be found in the REAMDE.md file present in NEMEA-SIoT
+# repository and bachelor's thesis text.
 class AutoTest(Namespace):
     def __init__(self):
         super().__init__()
@@ -27,6 +42,11 @@ class AutoTest(Namespace):
     def __get_expected_executable__(m: str) -> str:
         return 'siot-{}'.format(m)
 
+    # Checks the presence of files necessary for auto compilation, and if they
+    # are present, compiles the module by executing following commands:
+    # ./bootstrap.sh
+    # ./configure
+    # ./make
     def __handle_compile__(self, m: str):
         if not self.__repo.got_module(m):
             Colors.print_warning('no such module: {}'.format(m))
@@ -62,11 +82,15 @@ class AutoTest(Namespace):
     @staticmethod
     def __get_test_pairs__(files):
         pairs = []
-        file_re = re.compile(r'^(.*)\.(.*)$')
+        file_re = re.compile(r'^(.*)\.(.*)$')  # matches files with an extension
 
         for f in files:
             match = file_re.match(f)
 
+            # For each file with an extension it is checked whether
+            # this extension is .out. If so, it is checked whether also
+            # a file with matching name but .csv extension exists. If it does,
+            # the filename withou extension is considered as a name of a test.
             if match:
                 (name, ext) = match.groups()
 
@@ -93,6 +117,8 @@ class AutoTest(Namespace):
         post_shell = []
         run_args = []
 
+        # if a module directory contains file named auto-tests.json, this file
+        # is parsed
         if self.__repo.got_test_config(m):
             with open('{}/auto-test.json'.format(m)) as json_file:
                 data = json.load(json_file)
@@ -101,6 +127,7 @@ class AutoTest(Namespace):
             post_shell = data['post-shell']
             run_args = data['run-args']
 
+        # testing scenario for Python modules is not determined yet
         if self.__repo.is_c_module(m):
             if which('./{}/{}'.format(m, self.__get_expected_executable__(
                     m))) is None:
@@ -118,11 +145,15 @@ class AutoTest(Namespace):
                 x = Shell(directory=m)
                 x.execute_array(pre_shell)
 
+                # starts the module with appropriate arguments for testing plus
+                # with potential arguments defined in the auto-tests.json file
                 module = subprocess.Popen(
                     ['./{}'.format(self.__get_expected_executable__(m)),
                      '-i', 'u:test-in,u:test-out'] + run_args,
                     cwd=m, stderr=subprocess.PIPE)
 
+                # checks if the module is still running - if so, the poll method
+                # returns None
                 if module.poll() is not None:
                     p.failed()
                     Colors.print_error_output(
@@ -137,13 +168,17 @@ class AutoTest(Namespace):
                 input_file_path = './{}/tests/{}.csv'.format(m, i)
                 expected_file_path = './{}/tests/{}.out'.format(m, i)
 
+                # connects NEMEA Logger to module output
                 logger = subprocess.Popen(
                     [self.L, '-i', 'u:test-out', '-w',
                      output_file_path])
 
+                # injects data to a module input IFC using NEMEA Logreplay
                 logreplay = subprocess.Popen([self.R, '-i', 'u:test-in', '-f',
                                               input_file_path])
 
+                # if the Logreplay is still running after 10 seconds the module
+                # probably failed orcurrent test data set is really huge
                 try:
                     logreplay.communicate(timeout=10)
                 except subprocess.TimeoutExpired:
@@ -164,10 +199,14 @@ class AutoTest(Namespace):
                     x.execute_array(post_shell)
                     continue
 
+                # if the module is still running 20 seconds after Logreplay
+                # injected the data set, there is probably a problem with
+                # the module
                 try:
                     module.communicate(timeout=20)
                 except subprocess.TimeoutExpired:
-                    Colors.print_error_output('something bad happened')
+                    Colors.print_error_output(
+                        'Module {} did not shut down after 20 seconds of data processing.'.format(m))
                     module.kill()
                     logger.kill()
                     x = Shell(directory=m)
@@ -176,6 +215,7 @@ class AutoTest(Namespace):
 
                 logger.kill()
 
+                # compares real module output with the expected one
                 diff = subprocess.Popen(
                     ['diff', '-s', output_file_path, expected_file_path],
                     stdout=subprocess.PIPE,
@@ -215,23 +255,23 @@ class AutoTest(Namespace):
                 Colors.print_warning('{} is no an executable file'.format(self.L))
                 return
 
-        elif which('logger') is None:
+        elif which('/usr/bin/nemea/logger') is None:
             Colors.print_warning('logger does not seem to be installed')
             return
 
         else:
-            self.L = 'logger'
+            self.L = '/usr/bin/nemea/logger'
 
         if self.R is not None:
             if which(self.R) is None:
                 Colors.print_warning('{} is no an executable file'.format(self.R))
                 return
 
-        elif which('logreplay') is None:
+        elif which('/usr/bin/nemea/logreplay') is None:
             Colors.print_warning('logreplay does not seem to be installed')
             return
         else:
-            self.R = 'logreplay'
+            self.R = '/usr/bin/nemea/logreplay'
 
         Colors.print_section('TESTING MODULES')
 
@@ -263,4 +303,7 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except Exception as e:
+        print('ERROR: {}'.format(e))

@@ -1,5 +1,17 @@
 # -*- coding: utf-8 -*-
 
+# This file was created within Martin Hošala's bachelor thesis
+#
+# THESIS INFORMATION:
+#
+# School: Brno University of Technology
+# Faculty: Faculty of Information Technology
+# Department: Department of Computer Systems
+# Topic: Secured Gateway for Wireless IoT Protocols
+# Author: Martin Hošala
+# Supervisor: Doc. Ing. Jan Kořenek Ph.D.
+# Year: 2019
+
 import threading
 import sys
 import time
@@ -7,6 +19,10 @@ import time
 from .Colors import Colors
 
 
+# This class serve to print information that a task is in progress and also
+# to inform if it succeeded. When an instance is created, the given message
+# is printed along with the animation which indicates that the task is in
+# progress.
 class ProgressPrinter:
     animation = ['[-  ]', '[ - ]', '[  -]', '[ - ]']
 
@@ -41,7 +57,6 @@ class ProgressPrinter:
             sys.stdout.flush()
             return
 
-        # color = Colors.BOLD
         color = ''
 
         if succ:
@@ -54,14 +69,26 @@ class ProgressPrinter:
         sys.stdout.write('\r{}  {}  {}{}\n'.format(color, sign, self.__message, Colors.RESET))
         sys.stdout.flush()
 
+    # This method should be called if the task succeeded. It prints out the
+    # message with along with the check sing.
     def succeed(self):
         self.__finished__()
         self.__print_result__(True)
 
+    # This method should be called if the task failed. It prints out the
+    # message with along with the X sing.
     def failed(self):
         self.__finished__()
         self.__print_result__(False)
 
+    # This method should be called if it is demanded to stop the animation,
+    # but the indication about task success is not required.
+    def stop(self):
+        self.__finished__()
+        print('\n')
+
+    # This method determines whether the task succeeded based on a given return
+    # code and sequentially calls succeed of failed method.
     def finish(self, return_code: int):
         if return_code == 0:
             self.succeed()
