@@ -66,3 +66,31 @@ The last phase of the script is testing the module data processing. The script c
  
  > Do nothing <br/>
  >`python3 AutoTest.py -n C -n T`
+ 
+ # Integration Tests
+ The script `IntegrationTest.py` serves for integration testing on Turris Omnia.
+ 
+ ### The course of testing
+ 
+ The work of the integration test script and auto test script is significantly alike. The main
+ difference is that the integration test launches all modules at once. For this purpose, the
+ NEMEA SupervisorL is used. For proper testing it is required to have the SupervisorL installed and turned off.
+ 
+ The module first create a backup of potentially present SupervisorL configuration file and replaces it with the one for testing.
+ This backup is restored when the script shuts down.
+ 
+ Modules are tested same way as by AutoTest. The testing script injects the test data to the module input IFC using `NEMEA logreplay` 
+ and captures the module output using `NEMEA logger`. The output is then compared to the expected output, and if they are identical, the test succeeded.
+  
+  ### Arguments
+  - `-m M [M...]`      Specify modules to be tested.
+  - `-L path`         Path to NEMEA Logger (if not sepcified considered as installed)
+  - `-R path`         Path to NEMEA Logreplay (if not sepcified considered as installed)
+  - `-p`              Pause the script before and after the test so that it is possible to verify wether modules are correctly running
+  
+  ##### Example usages
+  > Test all modules  <br/>
+  >`python3 IntegrationTest.py`
+ 
+  > Test _ble-pairing_ and _lora-replay_  <br/>
+  >`python3 AutoTest.py -m ble-pairing lora-replay`

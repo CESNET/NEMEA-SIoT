@@ -255,23 +255,23 @@ class AutoTest(Namespace):
                 Colors.print_warning('{} is no an executable file'.format(self.L))
                 return
 
-        elif which('logger') is None:
+        elif which('/usr/bin/nemea/logger') is None:
             Colors.print_warning('logger does not seem to be installed')
             return
 
         else:
-            self.L = 'logger'
+            self.L = '/usr/bin/nemea/logger'
 
         if self.R is not None:
             if which(self.R) is None:
                 Colors.print_warning('{} is no an executable file'.format(self.R))
                 return
 
-        elif which('logreplay') is None:
+        elif which('/usr/bin/nemea/logreplay') is None:
             Colors.print_warning('logreplay does not seem to be installed')
             return
         else:
-            self.R = 'logreplay'
+            self.R = '/usr/bin/nemea/logreplay'
 
         Colors.print_section('TESTING MODULES')
 

@@ -62,7 +62,7 @@ class IntegrationTest(Namespace):
 
         self.__t_meta['config-backup'] = Path('{}.backup'.format(self.__t_meta['config'].name))
 
-    # This method backups NEMEA SupervisorL configuration which already
+    # This method backups NEMEA SupervisorL configuration which is already
     # present at the router
     def __t_backup_sv_conf__(self):
         sv_conf = self.__t_meta['config']
