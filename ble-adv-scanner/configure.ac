@@ -12,7 +12,7 @@ AM_INIT_AUTOMAKE([foreign])
 AC_CONFIG_MACRO_DIR([../m4])
 
 # Checks for libraries.
-AX_PYTHON_MODULE(scapy,scapy,python3)
+AX_PYTHON_MODULE(scapy,[],python3)
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
