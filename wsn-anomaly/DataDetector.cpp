@@ -219,9 +219,9 @@ int main (int argc, char** argv){
     map<int, vector<string> > ur_export_fields; // Map with unirec values for each interface. The first key is number of interface and the second is name of record according to the configuration file (ur_field). In the last vector are profile items for export.
 
     int ret = 2;                                              // Tmp store variable
-    uint64_t *ur_id = 0;                                      // Tmp store variable
-    double *ur_time = 0;                                      // Tmp store variable
-    double *ur_data = 0;                                      // Tmp store variable
+    uint64_t ur_id = 0;                                      // Tmp store variable
+    double ur_time = 0;                                      // Tmp store variable
+    double ur_data = 0;                                      // Tmp store variable
     string config_file = "";                                  // Configuration file
 
     /*
@@ -358,8 +358,8 @@ int main (int argc, char** argv){
         TRAP_CTX_RECEIVE(ctx,0,data_nemea_input,memory_received,in_template);
 
         // Take ID and TIME field -> user for alert identification
-        ur_id = ur_get_ptr(in_template, data_nemea_input, F_ID);
-        ur_time = ur_get_ptr(in_template, data_nemea_input, F_TIME);
+        ur_id = *(ur_get_ptr(in_template, data_nemea_input, F_ID));
+        ur_time = *(ur_get_ptr(in_template, data_nemea_input, F_TIME));
 
         // Go through all unirec fields
         ur_field_id_t id = UR_ITER_BEGIN;
@@ -376,9 +376,9 @@ int main (int argc, char** argv){
             if (verbose >= 2){
                 cout << "VERBOSE: Received UniRec message with the record name" << ur_id << endl;
             }
-            ur_data = (double*) ur_get_ptr_by_id(in_template, data_nemea_input,id);
+            ur_data = *((double*) ur_get_ptr_by_id(in_template, data_nemea_input,id));
             // Analyze received data
-            series_a.processSeries(ur_get_name(id), ur_id, ur_time, ur_data);
+            series_a.processSeries(ur_get_name(id), &ur_id, &ur_time, &ur_data);
         }
     }
 
