@@ -370,6 +370,9 @@ int main (int argc, char** argv){
             }
             // EOF close this module 
             if ( memory_received <= 1 ){
+                char dummy[1] = {0};
+                trap_ctx_send(ctx, 0, dummy, 1);
+                trap_ctx_send_flush(ctx,0);
                 goto cleanup;
             }
 
