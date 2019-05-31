@@ -133,6 +133,9 @@ int main(int argc, char *argv[])
 
             // EOF close this module 
             if ( in_record_size <= 1 ){
+                char dummy[1] = {0};
+                trap_send(0, dummy, 1); 
+                trap_send_flush(0);
                 goto cleanup;
             }
             
