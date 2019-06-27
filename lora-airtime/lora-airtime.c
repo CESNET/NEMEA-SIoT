@@ -67,11 +67,11 @@ struct bl_device {
     struct bl_device *next;
 };
 
-/** 
- * Statically defined fields contain size payload SIZE, spreading factor SF, 
- * band width BAD_WIDTH, code rate CODE_RATE, time stamp record TIMESTAMP, 
- * device address DEV_ADDR, air-time AIR_TIME, enable device ENABLE, network 
- * session key NWK_SKEY, application session key APP_SKEY and payload from 
+/**
+ * Statically defined fields contain size payload SIZE, spreading factor SF,
+ * band width BAD_WIDTH, code rate CODE_RATE, time stamp record TIMESTAMP,
+ * device address DEV_ADDR, air-time AIR_TIME, enable device ENABLE, network
+ * session key NWK_SKEY, application session key APP_SKEY and payload from
  * message PHY_PAYLOAD. This values are captured from LoRaWAN packet.
  */
 UR_FIELDS(
@@ -165,7 +165,7 @@ int main(int argc, char **argv) {
     int ret;
     signed char opt;
 
-    /** 
+    /**
      * Default fields for calculate air-time
      */
     int hd = 1;
@@ -260,15 +260,15 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-    /**  
+    /**
      * Main processing loop
-     * Read data from input, process them and write to output  
+     * Read data from input, process them and write to output
      */
     while (!stop) {
         const void *in_rec;
         uint16_t in_rec_size;
 
-        /** 
+        /**
          * Receive data from input interface 0.
          * Block if data are not available immediately (unless a timeout is set using trap_ifcctl)
          */
@@ -278,8 +278,12 @@ int main(int argc, char **argv) {
         TRAP_DEFAULT_RECV_ERROR_HANDLING(ret, continue, break);
 
         /** Indicates EOF */
-        if (in_rec_size == 1)
+        if (in_rec_size == 1) {
+            char dummy[1] = {0};
+            trap_send(0, dummy, 1);
+            trap_send_flush(0);
             break;
+        }
 
         /** Check size payload min/max */
         uint32_t size = ur_get(in_tmplt, in_rec, F_SIZE);
@@ -309,14 +313,14 @@ int main(int argc, char **argv) {
             ur_set_string(out_tmplt, out_rec, F_DEV_ADDR, DevAddr);
         }
 
-        /** 
-         * Method for calculate time between packet subsequent starts: 
-         * [uint32_t] pay_size - Total payload size, 
+        /**
+         * Method for calculate time between packet subsequent starts:
+         * [uint32_t] pay_size - Total payload size,
          * [uint8_t]  header - Explicit header 1 / 0, true / false
          * [uint8_t]  dr - Low data rate optimization 1 / 0, enable / disable
          * [uint32_t] sf - Spreading factor SF7 - SF12
-         * [uint32_t] cd_rate - Error correction coding 4/5 - 4/8 
-         * [uint32_t] prem_sym - Preamble symbol is defined for all regions 
+         * [uint32_t] cd_rate - Error correction coding 4/5 - 4/8
+         * [uint32_t] prem_sym - Preamble symbol is defined for all regions
          *            in LoRaWAN 1.0 standard is 8, this is a default value.
          * [uint32_t] band - Typically Bandwidth is 125 KHz
          * [double]   duty_cycle - Duty Cycle for EU regulation is 0.10%
@@ -325,17 +329,17 @@ int main(int argc, char **argv) {
                 , ur_get(in_tmplt, in_rec, F_CODE_RATE), ps, ur_get(in_tmplt, in_rec, F_BAD_WIDTH), dt);
         uint64_t timestamp = ur_get(in_tmplt, in_rec, F_TIMESTAMP);
 
-        /** 
+        /**
          * BlackList
-         * Contain sensors list with identification field DevAddr. Blocking 
-         * list that allow block messages from LoRaWAN infrastructure that 
+         * Contain sensors list with identification field DevAddr. Blocking
+         * list that allow block messages from LoRaWAN infrastructure that
          * have a information of history and actual air-time.
          */
         struct bl_device *pre = bl_get_device(DevAddr);
 
         if (pre != NULL) {
-            /** 
-             * Edit fields from exists device 
+            /**
+             * Edit fields from exists device
              */
             if ((pre->TIMESTAMP + pre->AIR_TIME) <= timestamp)
                 pre->ENABLE = 0;
@@ -354,13 +358,13 @@ int main(int argc, char **argv) {
                 }
             }
         } else {
-            /** 
+            /**
              * Insert new device to BlackList
              */
             bl_insert_device(DevAddr, timestamp, airtime, 1);
         }
 
-        /** 
+        /**
          * Free lora_packet and output record
          */
         lr_free();
@@ -369,17 +373,17 @@ int main(int argc, char **argv) {
 
     /* **** Cleanup **** */
 
-    /** 
+    /**
      * Do all necessary cleanup in libtrap before exiting
      */
     TRAP_DEFAULT_FINALIZATION();
 
-    /** 
+    /**
      * Release allocated memory for module_info structure
      */
     FREE_MODULE_INFO_STRUCT(MODULE_BASIC_INFO, MODULE_PARAMS)
 
-    /** 
+    /**
      *  Free unirec templates and output record
      */
     ur_free_record(out_rec);

@@ -65,9 +65,9 @@ struct dl_device {
     struct dl_device *next;
 };
 
-/** 
- * Statically defined fields contain time stamp record TIMESTAMP, device address 
- * DEV_ADDR, message counter FCNT and payload from message PHY_PAYLOAD. This values 
+/**
+ * Statically defined fields contain time stamp record TIMESTAMP, device address
+ * DEV_ADDR, message counter FCNT and payload from message PHY_PAYLOAD. This values
  * are captured from LoRaWAN packet.
  */
 UR_FIELDS(
@@ -216,15 +216,15 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-    /**  
+    /**
      * Main processing loop
-     * Read data from input, process them and write to output  
+     * Read data from input, process them and write to output
      */
     while (!stop) {
         const void *in_rec;
         uint16_t in_rec_size;
 
-        /** 
+        /**
          * Receive data from input interface 0.
          * Block if data are not available immediately (unless a timeout is set using trap_ifcctl)
          */
@@ -234,8 +234,12 @@ int main(int argc, char **argv) {
         TRAP_DEFAULT_RECV_ERROR_HANDLING(ret, continue, break);
 
         /** Indicates EOF */
-        if (in_rec_size == 1)
+        if (in_rec_size == 1) {
+            char dummy[1] = {0};
+            trap_send(0, dummy, 1);
+            trap_send_flush(0);
             break;
+        }
 
         /** Check size payload min/max */
         uint32_t size = ur_get_var_len(in_tmplt, in_rec, F_PHY_PAYLOAD);
@@ -245,45 +249,45 @@ int main(int argc, char **argv) {
         /** Initialization physical payload for parsing and reversing octet fields. */
         lr_initialization(ur_get_ptr(in_tmplt, in_rec, F_PHY_PAYLOAD));
 
-        /** 
+        /**
          * DeviceList
-         * Information is retrieved from incoming physical payload (PHYPayload) 
-         * by parsing and revers octets. Each row in DeviceList contains device 
-         * has a counter (FCnt) of received message and information about 
-         * restart the device (RESTART). If the device is restarted, RESTART 
-         * value is set to 1. The device address (DevAddr) is used as the row 
+         * Information is retrieved from incoming physical payload (PHYPayload)
+         * by parsing and revers octets. Each row in DeviceList contains device
+         * has a counter (FCnt) of received message and information about
+         * restart the device (RESTART). If the device is restarted, RESTART
+         * value is set to 1. The device address (DevAddr) is used as the row
          * index.
          */
 
         if (DevAddr == NULL || FCnt == NULL)
             continue;
-        
+
         /** Identity message type */
         if (lr_is_data_message()) {
             ur_set_string(out_tmplt, out_rec, F_DEV_ADDR, DevAddr);
             ur_set_string(out_tmplt, out_rec, F_FCNT, FCnt);
 
-            /** 
+            /**
              * Load last data from Device
              */
             uint64_t dev_addr = lr_uint8_to_uint64(lr_arr_to_uint8(DevAddr));
-            
+
             struct dl_device *pre = dl_get_device(dev_addr);
             uint16_t counter = lr_arr_to_uint16(FCnt);
 
             if (pre != NULL) {
                 /**
                  * Detection attack ABP
-                 * Attack detection is performed by saving data to the list (DeviceList). 
-                 * Information is retrieved from incoming physical payload (PHYPayload) 
-                 * by parsing and revers octets. Each row in DeviceList contains device 
-                 * has a counter (FCnt) of received message and information about restart 
-                 * the device (RESTART). If the device is restarted, RESTART value is 
-                 * set to 1. The device address (DevAddr) is used as the row index. An 
-                 * attacker is recognized if his last message is the same as the 
-                 * message after restarting the device. Identification of the attacker 
+                 * Attack detection is performed by saving data to the list (DeviceList).
+                 * Information is retrieved from incoming physical payload (PHYPayload)
+                 * by parsing and revers octets. Each row in DeviceList contains device
+                 * has a counter (FCnt) of received message and information about restart
+                 * the device (RESTART). If the device is restarted, RESTART value is
+                 * set to 1. The device address (DevAddr) is used as the row index. An
+                 * attacker is recognized if his last message is the same as the
+                 * message after restarting the device. Identification of the attacker
                  * is based on same couture (FCnt).
-                 * 
+                 *
                  */
                 if ((pre->RESTART == 1) && (pre->LAST_FCNT == counter) && (counter != 0)) {
                     ur_set(out_tmplt, out_rec, F_TIMESTAMP, ur_get(in_tmplt, in_rec, F_TIMESTAMP));
@@ -304,14 +308,14 @@ int main(int argc, char **argv) {
                 }
 
             } else {
-                /** 
+                /**
                  * Insert new device to DeviceList
                  */
                 dl_insert_device(dev_addr, counter);
             }
 
         }
-        /** 
+        /**
          * Free lora_packet and output record
          */
         lr_free();
@@ -320,17 +324,17 @@ int main(int argc, char **argv) {
 
     /* **** Cleanup **** */
 
-    /** 
+    /**
      * Do all necessary cleanup in libtrap before exiting
      */
     TRAP_DEFAULT_FINALIZATION();
 
-    /** 
+    /**
      * Release allocated memory for module_info structure
      */
     FREE_MODULE_INFO_STRUCT(MODULE_BASIC_INFO, MODULE_PARAMS)
 
-    /** 
+    /**
      *  Free unirec templates and output record
      */
     ur_free_record(out_rec);

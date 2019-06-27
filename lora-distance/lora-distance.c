@@ -64,10 +64,10 @@ struct dl_device {
     struct dl_device *next;
 };
 
-/** 
- * Statically defined fields contain time stamp record TIMESTAMP, device address  
- * DEV_ADDR, received signal strength Indicator RSSI, base received signal strength 
- * Indicator BASE_RSSI, variance for base (RSSI) VARIANCE and payload from message 
+/**
+ * Statically defined fields contain time stamp record TIMESTAMP, device address
+ * DEV_ADDR, received signal strength Indicator RSSI, base received signal strength
+ * Indicator BASE_RSSI, variance for base (RSSI) VARIANCE and payload from message
  * PHY_PAYLOAD. This values are captured from LoRaWAN packet.
  */
 UR_FIELDS(
@@ -155,7 +155,7 @@ int main(int argc, char **argv) {
     int ret;
     signed char opt;
 
-    /** 
+    /**
      * Default fields for calculate variance
      */
     double va = 0.1;
@@ -226,15 +226,15 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-    /**  
+    /**
      * Main processing loop
-     * Read data from input, process them and write to output  
+     * Read data from input, process them and write to output
      */
     while (!stop) {
         const void *in_rec;
         uint16_t in_rec_size;
 
-        /** 
+        /**
          * Receive data from input interface 0.
          * Block if data are not available immediately (unless a timeout is set using trap_ifcctl)
          */
@@ -244,20 +244,24 @@ int main(int argc, char **argv) {
         TRAP_DEFAULT_RECV_ERROR_HANDLING(ret, continue, break);
 
         /** Indicates EOF */
-        if (in_rec_size == 1)
+        if (in_rec_size == 1) {
+            char dummy[1] = {0};
+            trap_send(0, dummy, 1);
+            trap_send_flush(0);
             break;
-        
+        }
+
         /** Check size payload min/max */
         uint32_t size = ur_get_len(in_tmplt, in_rec, F_PHY_PAYLOAD);
         if(size < 14 || size > 512)
             continue;
-        
+
         /** Initialization physical payload for parsing and reversing octet fields. */
         lr_initialization(ur_get_ptr(in_tmplt, in_rec, F_PHY_PAYLOAD));
 
         if (DevAddr == NULL)
             continue;
-        
+
         /** Identity message type */
         if (lr_is_join_accept_message()) {
             ur_set_string(out_tmplt, out_rec, F_DEV_ADDR, DevAddr);
@@ -265,31 +269,31 @@ int main(int argc, char **argv) {
             ur_set_string(out_tmplt, out_rec, F_DEV_ADDR, DevAddr);
         }
 
-        /** 
+        /**
          * DeviceList
-         * Information is retrieved from incoming physical payload (PHYPayload) by parsing 
-         * and revers octets. Each row in DeviceList contains device a BASE_RSSI of 
+         * Information is retrieved from incoming physical payload (PHYPayload) by parsing
+         * and revers octets. Each row in DeviceList contains device a BASE_RSSI of
          * received message. The device address (DevAddr) is used as the index.
          */
 
-        /** 
+        /**
          * Load last data from Device
          */
         uint64_t dev_addr = lr_uint8_to_uint64(lr_arr_to_uint8(DevAddr));
-        
+
         struct dl_device *pre = dl_get_device(dev_addr);
 
         if (pre != NULL) {
             /**
              * Detection change distance
-             * The example shows the attacker's identification where the detector is set 
-             * to 10% variance. This means that for -119 dBm is variance -11.9 dBm. 
-             * The minimum value is -130.9 dBm and maximum -107.1 dBm. An attacker is 
+             * The example shows the attacker's identification where the detector is set
+             * to 10% variance. This means that for -119 dBm is variance -11.9 dBm.
+             * The minimum value is -130.9 dBm and maximum -107.1 dBm. An attacker is
              * therefore detected because it does not fall within the range.
              */
 
             double variance = pre->BASE_RSSI * va;
-            
+
             if (!(((pre->BASE_RSSI + variance) <= ur_get(in_tmplt, in_rec, F_RSSI)) && (ur_get(in_tmplt, in_rec, F_RSSI) <= (pre->BASE_RSSI - variance)))) {
                 ur_set(out_tmplt, out_rec, F_TIMESTAMP, ur_get(in_tmplt, in_rec, F_TIMESTAMP));
                 ur_set(out_tmplt, out_rec, F_RSSI, ur_get(in_tmplt, in_rec, F_RSSI));
@@ -301,13 +305,13 @@ int main(int argc, char **argv) {
             }
 
         } else {
-            /** 
+            /**
              * Insert new device to DeviceList
              */
             dl_insert_device(dev_addr, ur_get(in_tmplt, in_rec, F_RSSI));
         }
 
-        /** 
+        /**
          * Free lora_packet and output record
          */
         lr_free();
@@ -316,17 +320,17 @@ int main(int argc, char **argv) {
 
     /* **** Cleanup **** */
 
-    /** 
+    /**
      * Do all necessary cleanup in libtrap before exiting
      */
     TRAP_DEFAULT_FINALIZATION();
 
-    /** 
+    /**
      * Release allocated memory for module_info structure
      */
     FREE_MODULE_INFO_STRUCT(MODULE_BASIC_INFO, MODULE_PARAMS)
 
-    /** 
+    /**
      *  Free unirec templates and output record
      */
     ur_free_record(out_rec);

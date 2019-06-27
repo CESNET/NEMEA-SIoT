@@ -130,13 +130,17 @@ class IntegrationTest(Namespace):
                     self.__p.failed()
                     Colors.print_error_output(
                             'Dataset that is being replayed now whether really huge or the module crashed.')
-
                     logger.kill()
                     logreplay.kill()
                     continue
 
-                time.sleep(4)
-                logger.kill()
+                try:
+                    logger.communicate(timeout=20)
+                except subprocess.TimeoutExpired:
+                    Colors.print_error_output(
+                        'Module {} did not shut down after 20 seconds of data processing.'.format(m))
+                    logger.kill()
+                    continue
 
                 # compares real module output with the expected one
                 diff = subprocess.Popen(
