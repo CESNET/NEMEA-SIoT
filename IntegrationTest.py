@@ -138,7 +138,7 @@ class IntegrationTest(Namespace):
                     logger.communicate(timeout=20)
                 except subprocess.TimeoutExpired:
                     Colors.print_error_output(
-                        'Module {} did not shut down after 20 seconds of data processing.'.format(m))
+                        'Logger {} did not shut down after 20 seconds of data processing.'.format(m))
                     logger.kill()
                     continue
 
