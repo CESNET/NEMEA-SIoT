@@ -1,3 +1,6 @@
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
+#
 # This file was created within Martin Hošala's bachelor thesis
 #
 # THESIS INFORMATION:
