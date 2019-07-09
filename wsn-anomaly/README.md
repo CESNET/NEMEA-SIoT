@@ -3,7 +3,7 @@
 ## Description
 This NEMEA modules detect anomalies in data streams using time series. 
 
-This module is optimised for IoT networks and IoT use cases. More detailed description you can see in the [description](../description) directory. Test scenarios and configuration examples are in the [test](../test) directory.
+This module is optimised for IoT networks and IoT use cases. More detailed description you can see in the [description](details/description) directory. Test scenarios, configuration examples and hints are in the [examples](details/manual-demo-tests) directory. The directory [tests](tests) is used for automatic integration tests to verify proprer functionality.
 
 ## Interfaces
  - Input: 1

@@ -1,0 +1,48 @@
+# Below configuration examples was used to measure a behavior of profile items. All configuration are the same except the size of a time series and lerning period. Based on results (number of generated alerts) of each scenario, measurements and profile behavior description was done. Evaluation results are part of master thesis (DP_Soukup_Dominik_2018.pdf) in details directory. 
+# If you want to apply a configuration for wsn-anomaly detector, uncomment specific line and run wsn-anomaly with this configuration file. 
+# With this configurating you can use these recorded traffic files: z-wave-measurement.log, z-wave-measurement-time.log
+# In the generated traffic in z-wave-measurement.log, the expected messages are sent every three seconds and expected events were sent every five seconds. The first attack was generated after three minutes and took ninety seconds. Then the traffic behavior went back to the normal limits for 210 seconds. After that the second attack started and took thirty seconds. An attack represents increase of monitored values in the traffic. 
+
+#=======================================================================================
+#***************************************************************************************
+#******************************** TEST11: Measurement **********************************
+#***************************************************************************************
+
+#SOFCount: 1;1;11;delta;-;-;-;profile(moving_average,moving_variance,moving_median,average,);moving_average(-,-,-,-,-,5,0.2,0,0,);moving_variance(-,-,-,-,-,5,0.2,0,0,);average(-,-,-,-,-,5,0.2,0,0,);moving_median(-,-,-,-,-,5,0.2,0,0,);export(-,);
+
+#***************************************************************************************
+#******************************** TEST12: Measurement **********************************
+#***************************************************************************************
+
+#SOFCount: 3;3;11;delta;-;-;-;profile(moving_average,moving_variance,moving_median,average,);moving_average(-,-,-,-,-,5,0.2,0,0,);moving_variance(-,-,-,-,-,5,0.2,0,0,);average(-,-,-,-,-,5,0.2,0,0,);moving_median(-,-,-,-,-,5,0.2,0,0,);export(-,);
+
+#***************************************************************************************
+#******************************** TEST13: Measurement **********************************
+#***************************************************************************************
+
+#SOFCount: 5;5;11;delta;-;-;-;profile(moving_average,moving_variance,moving_median,average,);moving_average(-,-,-,-,-,5,0.2,0,0,);moving_variance(-,-,-,-,-,5,0.2,0,0,);average(-,-,-,-,-,5,0.2,0,0,);moving_median(-,-,-,-,-,5,0.2,0,0,);export(-,);
+
+#***************************************************************************************
+#******************************** TEST14: Measurement **********************************
+#***************************************************************************************
+
+#SOFCount: 10;10;11;delta;-;-;-;profile(moving_average,moving_variance,moving_median,average,);moving_average(-,-,-,-,-,5,0.2,0,0,);moving_variance(-,-,-,-,-,5,0.2,0,0,);average(-,-,-,-,-,5,0.2,0,0,);moving_median(-,-,-,-,-,5,0.2,0,0,);export(-,);
+
+#***************************************************************************************
+#******************************** TEST15: Measurement **********************************
+#***************************************************************************************
+
+#SOFCount: 15;15;11;delta;-;-;-;profile(moving_average,moving_variance,moving_median,average,);moving_average(-,-,-,-,-,5,0.2,0,0,);moving_variance(-,-,-,-,-,5,0.2,0,0,);average(-,-,-,-,-,5,0.2,0,0,);moving_median(-,-,-,-,-,5,0.2,0,0,);export(-,);
+
+#***************************************************************************************
+#******************************** TEST16: Measurement **********************************
+#***************************************************************************************
+
+#SOFCount: 20;20;11;delta;-;-;-;profile(moving_average,moving_variance,moving_median,average,);moving_average(-,-,-,-,-,5,0.2,0,0,);moving_variance(-,-,-,-,-,5,0.2,0,0,);average(-,-,-,-,-,5,0.2,0,0,);moving_median(-,-,-,-,-,5,0.2,0,0,);export(-,);
+
+#***************************************************************************************
+#******************************** TEST17: Measurement **********************************
+#***************************************************************************************
+
+#SOFCount: 30;30;11;delta;-;-;-;profile(moving_average,moving_variance,moving_median,average,);moving_average(-,-,-,-,-,5,0.2,0,0,);moving_variance(-,-,-,-,-,5,0.2,0,0,);average(-,-,-,-,-,5,0.2,0,0,);moving_median(-,-,-,-,-,5,0.2,0,0,);export(-,);
+#=======================================================================================
