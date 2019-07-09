@@ -57,7 +57,8 @@ trap_module_info_t *module_info = NULL;
 	BASIC("ble-pairing-detector", \
 		"Analyze received packets from bluetooth-hci-collector and detect BLE pairing.", 1, 1)
 #define MODULE_PARAMS(PARAM) \
-	PARAM('d', "dir", "Directory to store/load paired devices.", required_argument, "string")
+	PARAM('d', "dir", "Directory to store/load paired devices.", required_argument, "string") \
+    PARAM('I', "ignore-in-eof", "Do not terminate on incomming termination message.", no_argument, "none")
 
 static int g_stop = 0;
 
@@ -72,6 +73,7 @@ int main(int argc, char *argv[])
 	int opt;
 	int verbose = 0;
 	string directory = ".";
+    int ignore_eof = 0; // Ignore EOF input parameter flag
 
 	INIT_MODULE_INFO_STRUCT(MODULE_BASIC_INFO, MODULE_PARAMS)
 	TRAP_DEFAULT_INITIALIZATION(argc, argv, *module_info);
@@ -83,6 +85,9 @@ int main(int argc, char *argv[])
 			case 'd':
 				directory = optarg;
 				break;
+            case 'I':
+                ignore_eof = 1;
+                break;
 			default:
 				cerr << "Invalid argument." << endl;
 				TRAP_DEFAULT_FINALIZATION();
@@ -136,7 +141,10 @@ int main(int argc, char *argv[])
                 char dummy[1] = {0};
                 trap_send(0, dummy, 1); 
                 trap_send_flush(0);
-                goto cleanup;
+                // if ignore_eof option is used -> forward eof message but keep this module running
+                if ( !ignore_eof ){
+                    goto cleanup;
+                } 
             }
             
 
