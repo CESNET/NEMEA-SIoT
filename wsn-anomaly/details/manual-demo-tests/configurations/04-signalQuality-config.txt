@@ -1,0 +1,29 @@
+# Below configuration example is focused on detection of change in signal quality of wireless communication channel. In case of Z-Wave notification, the suitable fields for this type of detection are lastResponseRTT and dropped values from BeeeOn collector. As each of these fields is sent by different event in BeeeOn gateway we used NEMEA Merger module to merge both events to one record.  
+# Below configuration examples are focused on detection of increasing/decreasing amount of messages.
+# If you want to apply a configuration for wsn-anomaly detector, uncomment specific line and run wsn-anomaly with this configuration file.
+# Detailed description see above each configuration.
+
+#=======================================================================================
+#***************************************************************************************
+#******************************* TEST7: Signal quality *********************************
+#***************************************************************************************
+
+# DESCRIPTION #
+# This configuration is very straightforward. Anomaly is detected if actual moving average exceeds two times or it is two times below base profile.
+# With this configuration you can use these recorded traffic files: z-wave-connection.log, z-wave-connection-time.log 
+
+# CONFIGURATION #
+#lastResponseRTT;2: 5;7;5;simple;-;-;-;profile(moving_average,);moving_average(-,-,-,-,-,2,0.5,0,0,);export(-,);
+
+
+# DESCRIPTION #
+# The aim of this configuration is to detect any increase of dropped value. To reach this, the length of time series is set to one and max hard limits equals one too. 
+# With this configuration you can use these recorded traffic files: z-wave-dos-node.log, z-wave-dos-node-time.log  
+
+# CONFIGURATION #
+#dropped;1101: 1;1;10;delta;-;-;-;profile(moving_median,);moving_median(-,-,-1,1,-,-,-,0,0,);export(-,);
+
+#=======================================================================================
+
+# NOTE: Due to merging two events into one file, the data field ID had to be used (in this case numbers 2 and 1101). For your tests you can use both config lines together or use the separately. 
+# NOTE 2: In case of signal quality in BLE you will use rxErrors or txErrors fields, however, the configuration will be the same as for lastResponseRTT field.
