@@ -7,7 +7,7 @@ AC_CONFIG_SRCDIR([lora-collector.c])
 AC_CONFIG_HEADERS([config.h])
 
 AM_INIT_AUTOMAKE([foreign silent-rules subdir-objects])
-AC_CONFIG_MACRO_DIR([m4])
+AC_CONFIG_MACRO_DIR([../m4])
 
 AX_LIBTRAP_CHECK
 AX_UNIREC_CHECK
