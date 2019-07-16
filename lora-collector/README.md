@@ -3,4 +3,4 @@
 
 ---
 # README
-# LoRaWAN logger
+# LoRaWAN Collector
