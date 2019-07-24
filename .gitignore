@@ -31,7 +31,9 @@
 # *.out # removed for the auto-test purposes
 *.app
 
-# invisible files for JetBrains products
+# invisible files for JetBrains products and other IDES
 
 **/.idea
-
+**/.project
+**/.pydevproject
+**/.settings
