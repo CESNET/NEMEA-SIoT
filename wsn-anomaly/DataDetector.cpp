@@ -60,7 +60,8 @@ trap_module_info_t *module_info = NULL;
 #define MODULE_BASIC_INFO(BASIC) \
   BASIC("data-series-detector", "This module detect anomalies in data series", 1, 1)
 #define MODULE_PARAMS(PARAM) \
-  PARAM('c', "config", "Configuration files with detection rules", required_argument, "string")
+  PARAM('c', "config", "Configuration files with detection rules", required_argument, "string") \
+  PARAM('I', "ignore-in-eof", "Do not terminate on incomming termination message.", no_argument, "none")
 
 /*
 * Print configured data from configuration file
@@ -219,10 +220,11 @@ int main (int argc, char** argv){
     map<int, vector<string> > ur_export_fields; // Map with unirec values for each interface. The first key is number of interface and the second is name of record according to the configuration file (ur_field). In the last vector are profile items for export.
 
     int ret = 2;                                              // Tmp store variable
-    uint64_t ur_id = 0;                                      // Tmp store variable
-    double ur_time = 0;                                      // Tmp store variable
-    double ur_data = 0;                                      // Tmp store variable
+    uint64_t ur_id = 0;                                       // Tmp store variable
+    double ur_time = 0;                                       // Tmp store variable
+    double ur_data = 0;                                       // Tmp store variable
     string config_file = "";                                  // Configuration file
+    int ignore_eof = 0;                                       // Ignore EOF input parameter flag
 
     /*
     ** interface initialization **
@@ -248,6 +250,9 @@ int main (int argc, char** argv){
         // Configuration file
         case 'c':
             config_file = optarg;
+            break;
+        case 'I':
+            ignore_eof = 1;
             break;
         default:
             cerr << "Error: Invalid arguments." << endl;
@@ -373,7 +378,10 @@ int main (int argc, char** argv){
                 char dummy[1] = {0};
                 trap_ctx_send(ctx, 0, dummy, 1);
                 trap_ctx_send_flush(ctx,0);
-                goto cleanup;
+                // if ignore_eof option is used -> forward eof message but keep this module running
+                if ( !ignore_eof ){
+                    goto cleanup;
+                }
             }
 
             if (verbose >= 2){
