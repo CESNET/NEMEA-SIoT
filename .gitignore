@@ -31,9 +31,12 @@
 # *.out # removed for the auto-test purposes
 *.app
 
-# invisible files for JetBrains products and other IDES
-
+# invisible config files for IDEs
 **/.idea
 **/.project
 **/.pydevproject
 **/.settings
+
+# pycache
+**/__pycache__
+
