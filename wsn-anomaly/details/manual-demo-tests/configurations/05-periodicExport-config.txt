@@ -1,0 +1,36 @@
+# Below configuration examples are focused on demostration of exporting feature. Its usage is very simple. Just specify the export period (last number in general part of configuration, for all below examples it is five) and in export keyword write list of profile items to export. 
+# If you want to apply a configuration for wsn-anomaly detector, uncomment specific line and run wsn-anomaly with this configuration file. 
+# Detailed description see above each configuration.
+
+#=======================================================================================
+#***************************************************************************************
+#****************************** TEST8: Periodic Export *********************************
+#***************************************************************************************
+
+# DESCRIPTION #
+# With this configurating you can use any recorded traffic files that contains defiend UniRec field.
+
+# CONFIGURATION #
+#rxBytes: 3;3;0;simple;-;-;5;profile(moving_average,moving_variance,moving_median,average,);moving_average(-,-,-,-,-,2,0.5,0,0,);moving_variance(-,-,-,-,-,2,0.5,0,0,);average(-,-,-,-,-,2,0.5,0,0,);moving_median(-,-,-,-,-,2,0.5,0,0,);export(moving_average,moving_variance,moving_median,average,);
+
+#***************************************************************************************
+#****************************** TEST9: Periodic Export *********************************
+#***************************************************************************************
+
+# DESCRIPTION #
+# With this configurating you can use any recorded traffic files that contains defiend UniRec field.
+
+# CONFIGURATION #
+#rxBytes: 3;3;0;simple;-;-;5;profile(moving_variance,);moving_average(-,-,-,-,-,2,0.5,0,0,);moving_variance(-,-,-,-,-,2,0.5,0,0,);average(-,-,-,-,-,2,0.5,0,0,);moving_median(-,-,-,-,-,2,0.5,0,0,);export(moving_variance,);
+
+#***************************************************************************************
+#***************************** TEST10: Periodic Export *********************************
+#***************************************************************************************
+
+# DESCRIPTION #
+# With this configurating you can use any recorded traffic files that contains defiend UniRec field.
+
+# CONFIGURATION #
+#receivedCount;2: 3;3;0;delta;-;-;5;profile(average,);average(-,-,-,-,-,5,0.2,0,0,);export(average,);
+
+#=======================================================================================

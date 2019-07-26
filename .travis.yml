@@ -1,0 +1,22 @@
+---
+compiler:
+  - gcc
+
+before_install:
+  # dependencies to build NEMEA
+  - sudo apt-get -y install git autoconf libtool pkg-config libxml2-dev gawk
+  # NEMEA-SIOT dependencies
+  - sudo apt-get -y install libbluetooth-dev
+  # Download, build, and install dependencies
+  - ( git clone https://github.com/cesnet/nemea-framework /tmp/nemea-framework && cd /tmp/nemea-framework && ./bootstrap.sh && ./configure --prefix=/usr --bindir=/usr/bin/nemea -q && make -j 4 && sudo make install; )
+  - ( git clone https://github.com/cesnet/nemea-modules /tmp/nemea-modules && cd /tmp/nemea-modules && ./bootstrap.sh && ./configure --prefix=/usr --bindir=/usr/bin/nemea -q && make -j 4 -C logger && sudo make -C logger install && make -j 4 -C logreplay && sudo make -C logreplay install; )
+addons:
+  apt:
+    update: true
+
+script:
+  - ./bootstrap.sh
+  - ./configure --bindir=/usr/bin/nemea
+  - make -j4
+  - make check
+  - python3 ./AutoTest.py

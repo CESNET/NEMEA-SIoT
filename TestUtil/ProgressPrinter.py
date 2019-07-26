@@ -66,7 +66,7 @@ class ProgressPrinter:
             color += Colors.RED
             sign = '✘'
 
-        sys.stdout.write('\r{}  {}  {}{}\n'.format(color, sign, self.__message, Colors.RESET))
+        sys.stdout.write(str('\r{}  {}  {}{}\n'.format(color, sign, self.__message, Colors.RESET).encode('utf-8')))
         sys.stdout.flush()
 
     # This method should be called if the task succeeded. It prints out the

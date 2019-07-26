@@ -22,12 +22,12 @@ RECORDED ANOMALY TYPES
     * z-wave-connection: contain changes in communication channel quality stats
     * z-wave-measurement: test traffic used for measurements profile items
 
-config.txt
-    * configuration exaples
-    * each line represents one testing scenario
+CONFIGURATIONS
+    * contains configuration examples
+    * each file conrains a configuraion example with single of more lines that demonstrate specific feature of wsn-anomaly detector
 
 HOW TO RUN A TEST
-    1. Prepare detector configuration file (config.txt)
+    1. Prepare detector configuration file, i.e. 
         SOFCount: 10;12;11;delta;-;-;-;profile(moving_average,moving_variance,moving_median,average,);moving_average(-,-,-,-,-,5,0.2,0,0,);moving_variance(-,-,-,-,-,5,0.2,0,0,);average(-,-,-,-,-,5,0.2,0,0,);moving_median(-,-,-,-,-,5,0.2,0,0,);export(-,);
 
     2. Run logger for alert output interface
@@ -36,7 +36,7 @@ HOW TO RUN A TEST
     3. Optionaly you can run more logger instances for periodic export feature
 
     4. Run detector (you can remove or increase the vebose mode)
-        ./wsn-anomaly -i "u:zwave,u:alert" -c config.txt -v
+        ./siot-wsn-anomaly -i "u:zwave,u:alert" -c config.txt -v
 
     5. Run logreplay for recorded traffic
-        * logreplay -i "u:zwave" -f z-wave-connection.log -n
+         logreplay -i "u:zwave" -f z-wave-connection.log -n
