@@ -46,6 +46,7 @@
 #include <algorithm>
 #include <sstream>
 #include "Conversion.h"
+#include "INIReader.h"
 
 using namespace std;
 
@@ -84,7 +85,15 @@ class ConfigParser{
         */
         map<string, map<uint64_t, map<string, vector<string> > > > getSeries();
         /*
+        * Parse data in configuration file in ini format into series structure
+        */
+        int parseIniFile();
+        /*
         * Parse data in configuration file into series structure
+        */
+        int parseConfFile();
+        /*
+        * Method for selecting configuration file format
         */
         void parseFile();
     private:

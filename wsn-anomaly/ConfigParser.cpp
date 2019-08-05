@@ -44,8 +44,43 @@ using namespace std;
 // Constructor
 ConfigParser::ConfigParser(string configFile) : config(configFile){}
 
+// Select type of configuration file
+void ConfigParse::parseFile(){
+int err = 0;
+    if (config.is_open()){
+        err = parseIniFile();
+        if (err){
+           err = parseConfFile(); 
+           if (err){
+                cerr << "ERROR: Wrong format of configuration file" << endl;
+                cerr << "NOTE: Read documentation and improve it!!" << endl;
+            }
+        }
+    } else {
+        cerr << "ERROR: Unable to open the configuration fle " << endl;
+        cerr << "NOTE: Create configuration file!!" << endl;
+    }
+    // TODO: print/return success return code -> err == 0
+    config.close();
+
+}
+
+// Parse ini configuration file
+int ConfigParser::parseIniFile(){
+
+    INIReader reader(config);
+    if (reader.ParseError() < 0){
+        cerr << "ERROR: Unable to load the configuration fle " << endl;
+        return 1;
+    }
+
+    return 0;
+
+}
+
+// TODO: implement checks during parsion a configuration file
 // Parse configuration file
-void ConfigParser::parseFile(){
+int ConfigParser::parseConfFile(){
     if (config.is_open()){
         // Local tmp store variables
         string line;         // One line from configuration file
@@ -133,9 +168,10 @@ void ConfigParser::parseFile(){
         }
     } else {
         cerr << "ERROR: Unable to open the configuration fle " << endl;
-        cerr << "NOTE: Create configuration file config.txt in detector root directory" << endl;
+        cerr << "NOTE: Create configuration file!!" << endl;
     }
     config.close();
+    return 0;
 }
 
 // Destructor
