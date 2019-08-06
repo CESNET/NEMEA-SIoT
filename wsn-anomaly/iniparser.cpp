@@ -1,8 +1,28 @@
 #include <iostream>
 #include "INIReader.h"
+#include <vector>
+
+// Data format
+// - integers value: negative value means missing value, each field has it's owen data range
+// - string value: dash (-) means missing values, other fileds must be verified. 
 
 
 using namespace std;
+
+vector<string> parseString(string value, string delimiter){
+
+    size_t pos = 0;
+    string token;
+    vector<string> parsedData;
+    while ((pos = value.find(delimiter)) != string::npos) {
+        token = value.substr(0, pos);
+        parsedData.push_back(token);
+        value.erase(0, pos + delimiter.length());
+    }
+
+    parsedData.push_back(value);
+    return parsedData;
+}
 
 int main (){
 INIReader reader("test.ini");
@@ -12,45 +32,53 @@ if (reader.ParseError() < 0){
     return 1;
 }
 
-cout << "config file loaded" << endl;
-
 set<string> sections = reader.Sections();
+string profile = "";
+vector<string> subsections;
 
 for (auto it=sections.begin(); it != sections.end(); ++it){ 
-        cout << ' ' << *it; 
+
+    cout << "Parsing section " << (*it) << endl;      
+    cout << endl;
+
+    if ((*it).find(".") == string::npos ){
+    
+        //TODO validate each parameter
         cout << reader.GetInteger(*it,"id",-1) << endl;
         cout << reader.GetInteger(*it,"len",-1) << endl;
         cout << reader.GetInteger(*it,"learn",-1) << endl;
         cout << reader.GetInteger(*it,"ignore",-1) << endl;
-        cout << reader.Get(*it,"store","None") << endl;
+        cout << reader.Get(*it,"store","-") << endl;
         cout << reader.GetInteger(*it,"check",-1) << endl;
         cout << reader.GetInteger(*it,"export",-1) << endl;
+        cout << reader.Get(*it,"profile","-") << endl;
+        profile = reader.Get(*it,"profile","-");
+        cout << reader.Get(*it,"export_fields","-") << endl;
+        
+        //parse profile values;
+        subsections = parseString(profile,",");
+    } else {
+        //parse subsections
+        vector<string> tmp = parseString((*it),".");
+        if ( find(subsections.begin(),subsections.end(),tmp[1]) != subsections.end() ){
+            //continue with parsing the specific section
+            cout << reader.GetInteger(*it,"soft_min",-1) << endl;
+            cout << reader.GetInteger(*it,"soft_max",-1) << endl;
+            cout << reader.GetInteger(*it,"hard_min",-1) << endl;
+            cout << reader.GetInteger(*it,"hard_max",-1) << endl;
+            cout << reader.GetInteger(*it,"grace_period",-1) << endl;
+            cout << reader.GetInteger(*it,"grow_up",-1) << endl;
+            cout << reader.GetInteger(*it,"grow_down",-1) << endl;
+
+        } else {
+            cout << "subsection filed was not found" << endl;
+            // found subsection has no configuration
+        }
+    }
+        // check section for each profile
+        // verify if section exist in profile
+        // if yes parse data, if print error message and continue
 }
-
-//cout << reader.GetInteger("SOFCount","profile","UNK") << endl;
-
-
-//reader.Sections();
-
 
 return 1;
 }
-
-/*
-td::string Get(std::string section, std::string name,
-335                     std::string default_value) const;
-336
-337     // Get an integer (long) value from INI file, returning default_value if
-338     // not found or not a valid integer (decimal "1234", "-1234", or hex "0x4d2").
-339     long GetInteger(std::string section, std::string name, long default_value) const;
-340
-341     // Get a real (floating point double) value from INI file, returning
-342     // default_value if not found or not a valid floating point value
-343     // according to strtod().
-344     double GetReal(std::string section, std::string name, double default_value) const;
-345
-346     // Get a boolean value from INI file, returning default_value if not found or if
-347     // not a valid true/false value. Valid true values are "true", "yes", "on", "1",
-348     // and valid false values are "false", "no", "off", "0" (not case sensitive).
-349     bool GetBoolean(s
-*/
