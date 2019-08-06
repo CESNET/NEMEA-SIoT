@@ -6,7 +6,6 @@
 // - integers value: negative value means missing value, each field has it's owen data range
 // - string value: dash (-) means missing values, other fileds must be verified. 
 
-
 using namespace std;
 
 vector<string> parseString(string value, string delimiter){
@@ -60,8 +59,12 @@ for (auto it=sections.begin(); it != sections.end(); ++it){
     } else {
         //parse subsections
         vector<string> tmp = parseString((*it),".");
+        if (tmp.size() != 2){
+            cout << "Configuration error, subsection is wrogly named" << endl;
+        }
         if ( find(subsections.begin(),subsections.end(),tmp[1]) != subsections.end() ){
             //continue with parsing the specific section
+            // check section for each profile
             cout << reader.GetInteger(*it,"soft_min",-1) << endl;
             cout << reader.GetInteger(*it,"soft_max",-1) << endl;
             cout << reader.GetInteger(*it,"hard_min",-1) << endl;
@@ -72,12 +75,9 @@ for (auto it=sections.begin(); it != sections.end(); ++it){
 
         } else {
             cout << "subsection filed was not found" << endl;
-            // found subsection has no configuration
+            // print error message and continue
         }
     }
-        // check section for each profile
-        // verify if section exist in profile
-        // if yes parse data, if print error message and continue
 }
 
 return 1;
