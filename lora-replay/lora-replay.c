@@ -71,7 +71,7 @@ struct dl_device {
  * are captured from LoRaWAN packet.
  */
 UR_FIELDS(
-        uint64 TIMESTAMP,
+        time TIMESTAMP,
         string DEV_ADDR,
         string FCNT,
         string PHY_PAYLOAD,

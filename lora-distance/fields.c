@@ -21,7 +21,7 @@ short ur_field_sizes_static[] = {
 ur_field_type_t ur_field_types_static[] = {
    UR_TYPE_DOUBLE, /* BASE_RSSI */
    UR_TYPE_DOUBLE, /* RSSI */
-   UR_TYPE_UINT64, /* TIMESTAMP */
+   UR_TYPE_TIME, /* TIMESTAMP */
    UR_TYPE_DOUBLE, /* VARIANCE */
    UR_TYPE_STRING, /* DEV_ADDR */
    UR_TYPE_STRING, /* PHY_PAYLOAD */

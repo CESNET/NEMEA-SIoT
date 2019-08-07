@@ -440,7 +440,7 @@ UR_FIELDS(
         uint32 SF,
         uint32 BAD_WIDTH,
         uint32 CODE_RATE,
-        uint64 TIMESTAMP,
+        time TIMESTAMP,
         string PHY_PAYLOAD,
         double RSSI
         //        string DEV_ADDR,
@@ -751,13 +751,17 @@ int main(int argc, char **argv) {
             /* end of log file line */
             ++pkt_in_log;
 
+	    /* TIMESTAMP time */
+	    time_t t = time(0);
+	    ur_time_t timestamp = ur_time_from_sec_msec(t, t/1000);
+
             /* set RSSI */
             ur_set(out_tmplt, out_rec, F_BAD_WIDTH, band_width);
             ur_set(out_tmplt, out_rec, F_SIZE, p->size);
             ur_set(out_tmplt, out_rec, F_RSSI, (double) p->rssi);
             ur_set(out_tmplt, out_rec, F_CODE_RATE, code_rate);
             ur_set(out_tmplt, out_rec, F_SF, sf);
-            ur_set(out_tmplt, out_rec, F_TIMESTAMP, time(NULL));
+            ur_set(out_tmplt, out_rec, F_TIMESTAMP, timestamp);
             ur_set_string(out_tmplt, out_rec, F_PHY_PAYLOAD, payload);
 
             //free(payload);

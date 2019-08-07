@@ -22,7 +22,7 @@ short ur_field_sizes_static[] = {
 };
 ur_field_type_t ur_field_types_static[] = {
    UR_TYPE_DOUBLE, /* RSSI */
-   UR_TYPE_UINT64, /* TIMESTAMP */
+   UR_TYPE_TIME, /* TIMESTAMP */
    UR_TYPE_UINT32, /* BAD_WIDTH */
    UR_TYPE_UINT32, /* CODE_RATE */
    UR_TYPE_UINT32, /* SF */

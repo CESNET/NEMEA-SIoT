@@ -71,7 +71,7 @@ struct dl_device {
  * PHY_PAYLOAD. This values are captured from LoRaWAN packet.
  */
 UR_FIELDS(
-        uint64 TIMESTAMP,
+        time TIMESTAMP,
         string DEV_ADDR,
         string PHY_PAYLOAD,
         double RSSI,

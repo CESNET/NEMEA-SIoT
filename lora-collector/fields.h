@@ -7,7 +7,7 @@
 #define F_RSSI   0
 #define F_RSSI_T   double
 #define F_TIMESTAMP   1
-#define F_TIMESTAMP_T   uint64_t
+#define F_TIMESTAMP_T   ur_time_t
 #define F_BAD_WIDTH   2
 #define F_BAD_WIDTH_T   uint32_t
 #define F_CODE_RATE   3
