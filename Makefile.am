@@ -5,7 +5,7 @@ hci-collector \
 wsn-anomaly \
 lora-airtime \
 lora-replay \
-lora-distance \
+lora-distance
 
 
 if HAVE_PYTHON
