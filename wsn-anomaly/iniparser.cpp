@@ -6,6 +6,8 @@
 // - integers value: negative value means missing value, each field has it's owen data range
 // - string value: dash (-) means missing values, other fileds must be verified. 
 
+//Caveat detector export value (-) as undefined, therefore, use it during storing into data structures
+
 using namespace std;
 
 vector<string> parseString(string value, string delimiter){
@@ -43,7 +45,7 @@ for (auto it=sections.begin(); it != sections.end(); ++it){
     if ((*it).find(".") == string::npos ){
     
         //TODO validate each parameter
-        cout << reader.GetInteger(*it,"id",-1) << endl;
+        /*cout << reader.GetInteger(*it,"id",-1) << endl;
         cout << reader.GetInteger(*it,"len",-1) << endl;
         cout << reader.GetInteger(*it,"learn",-1) << endl;
         cout << reader.GetInteger(*it,"ignore",-1) << endl;
@@ -53,6 +55,25 @@ for (auto it=sections.begin(); it != sections.end(); ++it){
         cout << reader.Get(*it,"profile","-") << endl;
         profile = reader.Get(*it,"profile","-");
         cout << reader.Get(*it,"export_fields","-") << endl;
+        */
+
+        cout << reader.Get(*it,"id","-") << endl;
+        cout << reader.Get(*it,"len","-") << endl;
+        cout << reader.Get(*it,"learn","-") << endl;
+        cout << reader.Get(*it,"ignore","-") << endl;
+        cout << reader.Get(*it,"store","-") << endl;
+        cout << reader.Get(*it,"check","-") << endl;
+        cout << reader.Get(*it,"export","-") << endl;
+        cout << reader.Get(*it,"profile","-") << endl;
+        profile = reader.Get(*it,"profile","-");
+        cout << reader.Get(*it,"export_fields","-") << endl;
+        try{
+            cout << "TEST " << stoi("xt12x3") << endl;
+        } catch (const std::exception& e) {
+            cout << "stoi exception " << endl;
+        }
+
+
         
         //parse profile values;
         subsections = parseString(profile,",");

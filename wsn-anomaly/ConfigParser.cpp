@@ -45,7 +45,7 @@ using namespace std;
 ConfigParser::ConfigParser(string configFile) : config(configFile){}
 
 // Select type of configuration file
-void ConfigParse::parseFile(){
+void ConfigParser::parseFile(){
 int err = 0;
     if (config.is_open()){
         err = parseIniFile();
@@ -65,13 +65,130 @@ int err = 0;
 
 }
 
+vector<string> ConfigParser::parseString(string value, string delimiter){
+
+    size_t pos = 0;
+    string token;
+    vector<string> parsedData;
+    while ((pos = value.find(delimiter)) != string::npos) {
+        token = value.substr(0, pos);
+        parsedData.push_back(token);
+        value.erase(0, pos + delimiter.length());
+    }
+
+    parsedData.push_back(value);
+    return parsedData;
+}
+
+
+int ConfigParser::checkValue(string parsed_value, string key_name ){
+
+    try {
+        if ( (stoi(parsed_value) < 0 && "ignore" == key_name) || stoi(parsed_value) <= 0 ) {
+            cerr << "ERROR: Wrong value " << parsed_value  << ". Check documentation for the right range."
+            return 2;
+        } else {
+            series[main_key][main_id]["general"].push_back(parsed_value);
+        }
+    } catch (const std::exception& e) {
+        cerr << "ERROR: The value " << parsed_value << " must be int" << endl;
+        return 2;
+    }
+
+    // Add value to the data structure
+    series[main_key][main_id]["general"].push_back(parsed_value);
+    return 0;
+}
+
 // Parse ini configuration file
 int ConfigParser::parseIniFile(){
+    set<string> sections; // All specified sections in ini file
+    vector<string> profile_items; // Parsed profile items
+    string main_key = "";   // UniRec field name
+    string parsed_value = ""; // Parsed value for ini configuration file
+    int check_result = 0; // Result of configuration value check
+    
 
+    // Parse ini configuration file
     INIReader reader(config);
     if (reader.ParseError() < 0){
         cerr << "ERROR: Unable to load the configuration fle " << endl;
         return 1;
+    }
+
+
+    for (auto it=sections.begin(); it != sections.end(); ++it){
+
+        // Parse the main section
+        if ((*it).find(".") == string::npos ){
+            main_key = *it;
+            //TODO  main id can be mac address -> convert; + it must be convert into unit64_t
+            main_id = reader.Get(*it,"id","-");
+            if (main_id == -1 ){
+                main_id = 0;
+            } 
+            // Prepare data structures
+            for (int i=0; i < DYNAMIC; i++){
+                series[main_key][main_id]["metaProfile"].push_back(to_string(0));
+                series[main_key][main_id]["metaData"].push_back("x");
+            }
+
+            parsed_value = Get(*it,"len","-");
+            check_result = checkValue(parsed_value,"len");
+            if (check_result != 0 ){
+                return check_result;
+            }
+            
+            parsed_value = Get(*it,"learn","-");
+            check_result = checkValue(parsed_value,"learn");
+            if (check_result != 0 ){
+                return check_result;
+            }
+
+            parsed_value = reader.Get(*it,"ignore","-");
+            check_result = checkValue(parsed_value,"ignore");
+            if (check_result != 0 ){
+                return check_result;
+            }
+
+            parsed_value = reader.Get(*it,"store","-");
+            if (parsed_value != "store" || parsed_value != "simple"){
+                cerr << "ERROR: Wrong value " << parsed_value  << ". Check documentation for the right range."
+                return 2;
+            }
+        
+            parsed_value = reader.Get(*it,"check","-");
+            check_result = checkValue(parsed_value,"check");
+            if (check_result != 0 ){
+                return check_result;
+            }
+            
+            parsed_value = reader.Get(*it,"export","-");
+            check_result = checkValue(parsed_value,"export");
+            if (check_result != 0 ){
+                return check_result;
+            }
+
+
+            // Parsed separetely because of independed section
+            parsed_value = reader.Get(*it,"profile","-");
+            // TODO check return value from parseString method
+            profile_items = parseString(parsed_value,",");
+            for (auto it2=profile_items.begin(); it2 != profile_items.end(); ++it2){
+                series[main_key][main_id]["profile"].push_back(*it2);
+            } 
+
+            parsed_value = reader.Get(*it,"export_fields","-");
+            // TODO check return value from parseString method
+            profile_items = parseString(parsed_value,",");
+            for (auto it2=profile_items.begin(); it2 != profile_items.end(); ++it2){
+                series[main_key][main_id]["export"].push_back(*it2);
+            } 
+
+        } else {
+        // Parse subsection
+
+        }
     }
 
     return 0;

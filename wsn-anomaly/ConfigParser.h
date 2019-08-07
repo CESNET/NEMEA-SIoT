@@ -96,7 +96,17 @@ class ConfigParser{
         * Method for selecting configuration file format
         */
         void parseFile();
+        /*
+        * Method for veryfiing configuration values
+        */
+        void checkValue(string parsed_value, string key_name);
+        /*
+        * Method to split string based on delimiter
+        */
+        vector<string> parseString(string value, string delimiter);
     private:
         map<string, map<uint64_t, map<string, vector<string> > > > series; // parsed data from configuration file. Data sequence: unirec field, ur_id, subsection category (profile, profile items, export, general, metaData, metaProfile, profile), config params
         ifstream config; // configuration filename
+        
+        
 };
