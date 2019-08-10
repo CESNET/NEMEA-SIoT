@@ -99,7 +99,7 @@ class ConfigParser{
         /*
         * Method for veryfiing configuration values
         */
-        void checkValue(string parsed_value, string key_name);
+        int checkValue(string parsed_value, string key_name);
         /*
         * Method to split string based on delimiter
         */
@@ -107,6 +107,9 @@ class ConfigParser{
     private:
         map<string, map<uint64_t, map<string, vector<string> > > > series; // parsed data from configuration file. Data sequence: unirec field, ur_id, subsection category (profile, profile items, export, general, metaData, metaProfile, profile), config params
         ifstream config; // configuration filename
+        string config_filename; // configuration filename
+        string main_key;     // Name of unirec field
+        uint64_t main_id;    // Name of record ID   
         
         
 };

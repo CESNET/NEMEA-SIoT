@@ -42,7 +42,7 @@
 using namespace std;
 
 // Constructor
-ConfigParser::ConfigParser(string configFile) : config(configFile){}
+ConfigParser::ConfigParser(string configFile) : config(configFile), config_filename(configFile) {}
 
 // Select type of configuration file
 void ConfigParser::parseFile(){
@@ -85,7 +85,7 @@ int ConfigParser::checkValue(string parsed_value, string key_name ){
 
     try {
         if ( (stoi(parsed_value) < 0 && "ignore" == key_name) || stoi(parsed_value) <= 0 ) {
-            cerr << "ERROR: Wrong value " << parsed_value  << ". Check documentation for the right range."
+            cerr << "ERROR: Wrong value " << parsed_value  << ". Check documentation for the right range." << endl;
             return 2;
         } else {
             series[main_key][main_id]["general"].push_back(parsed_value);
@@ -104,13 +104,15 @@ int ConfigParser::checkValue(string parsed_value, string key_name ){
 int ConfigParser::parseIniFile(){
     set<string> sections; // All specified sections in ini file
     vector<string> profile_items; // Parsed profile items
-    string main_key = "";   // UniRec field name
+    //string main_key = "";   // UniRec field name
     string parsed_value = ""; // Parsed value for ini configuration file
     int check_result = 0; // Result of configuration value check
+    //uint64_t main_id;    // Name of record ID
+    string tmp_main_id;  // Tmp variable for the record ID
     
 
     // Parse ini configuration file
-    INIReader reader(config);
+    INIReader reader(config_filename);
     if (reader.ParseError() < 0){
         cerr << "ERROR: Unable to load the configuration fle " << endl;
         return 1;
@@ -122,24 +124,39 @@ int ConfigParser::parseIniFile(){
         // Parse the main section
         if ((*it).find(".") == string::npos ){
             main_key = *it;
-            //TODO  main id can be mac address -> convert; + it must be convert into unit64_t
-            main_id = reader.Get(*it,"id","-");
-            if (main_id == -1 ){
+
+
+            // Create main id
+            tmp_main_id = reader.Get(*it,"id","-");
+            // ID was not found -> use default value
+            if (tmp_main_id == "-" ){
                 main_id = 0;
-            } 
+            } else {
+                // Check if sensor ID is in mac addr form
+                if (tmp_main_id.find("-") != string::npos){
+                    // Conver mac addr to hex int
+                    tmp_main_id.erase(remove(tmp_main_id.begin(), tmp_main_id.end(), '-'), tmp_main_id.end());
+                    istringstream iss(tmp_main_id);
+                    iss >> hex >> main_id;
+                } else {
+                    istringstream iss(tmp_main_id);
+                    iss >> main_id;
+                }
+            }
+
             // Prepare data structures
             for (int i=0; i < DYNAMIC; i++){
                 series[main_key][main_id]["metaProfile"].push_back(to_string(0));
                 series[main_key][main_id]["metaData"].push_back("x");
             }
 
-            parsed_value = Get(*it,"len","-");
+            parsed_value = reader.Get(*it,"len","-");
             check_result = checkValue(parsed_value,"len");
             if (check_result != 0 ){
                 return check_result;
             }
             
-            parsed_value = Get(*it,"learn","-");
+            parsed_value = reader.Get(*it,"learn","-");
             check_result = checkValue(parsed_value,"learn");
             if (check_result != 0 ){
                 return check_result;
@@ -153,7 +170,7 @@ int ConfigParser::parseIniFile(){
 
             parsed_value = reader.Get(*it,"store","-");
             if (parsed_value != "store" || parsed_value != "simple"){
-                cerr << "ERROR: Wrong value " << parsed_value  << ". Check documentation for the right range."
+                cerr << "ERROR: Wrong value " << parsed_value  << ". Check documentation for the right range." << endl;
                 return 2;
             }
         
@@ -188,6 +205,10 @@ int ConfigParser::parseIniFile(){
         } else {
         // Parse subsection
 
+
+        
+        series[main_key][main_id]["export"].push_back(*it2);
+
         }
     }
 
@@ -202,8 +223,8 @@ int ConfigParser::parseConfFile(){
         // Local tmp store variables
         string line;         // One line from configuration file
         string key;          // Name of config record (unirec field+id)
-        string main_key;     // Name of unirec field
-        uint64_t main_id;    // Name of record ID
+        //string main_key;     // Name of unirec field
+        //uint64_t main_id;    // Name of record ID
         string tmp_main_id;  // Tmp variable for the record ID
         string value;        // Config params for one key
         string multi_key;    // Name of composite value
