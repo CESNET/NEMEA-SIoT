@@ -97,13 +97,21 @@ class ConfigParser{
         */
         void parseFile();
         /*
-        * Method for veryfiing configuration values
+        * Method for verifying configuration values
         */
-        int checkValue(string parsed_value, string key_name);
+        int checkSectionValue(string parsed_value, string key_name);
+        /*
+        * Method for verifying subsection values
+        */
+        int checkSubsectionValue(string parsed_value, string key_name); 
         /*
         * Method to split string based on delimiter
         */
         vector<string> parseString(string value, string delimiter);
+        /*
+        * Method to verify proper relations between configuration variables
+        */
+        int checkConfigRelations();
     private:
         map<string, map<uint64_t, map<string, vector<string> > > > series; // parsed data from configuration file. Data sequence: unirec field, ur_id, subsection category (profile, profile items, export, general, metaData, metaProfile, profile), config params
         ifstream config; // configuration filename

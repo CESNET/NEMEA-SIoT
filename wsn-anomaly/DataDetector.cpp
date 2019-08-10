@@ -260,6 +260,7 @@ int main (int argc, char** argv){
     ConfigParser cp(config_file);
     cp.parseFile();
     auto series_meta_data = cp.getSeries();
+    printSeries(series_meta_data);
     if (series_meta_data.empty()){
         cerr << "ERROR configuration file is empty" << endl;
         return 1;

@@ -80,15 +80,46 @@ vector<string> ConfigParser::parseString(string value, string delimiter){
     return parsedData;
 }
 
+int ConfigParser::checkConfigRelations(){
 
-int ConfigParser::checkValue(string parsed_value, string key_name ){
+    return 0;
+}
+
+int ConfigParser::checkSubsectionValue(string parsed_value, string key_name){
+    try {
+        // Check if parsed_value is floating-point datatype
+        stod(parsed_value);
+        // Also check if grace_perido is integer in the correct range
+        if (key_name == "grace_period" && stoi(parsed_value) < 0 ){
+            cerr << "ERROR: Grace period must be positive integer" << endl;
+            return 2;
+        }
+
+    // In case of non-floating-point datatype verify default value
+    } catch (const std::exception& e) {
+        // Default value
+        if (parsed_value == "-"){
+            return 0;
+        } else {
+            cerr << "ERROR: Wrong value " << parsed_value << ". Check documentation for the right range." << endl;
+            return 2;
+        }
+    }
+}
+
+
+int ConfigParser::checkSectionValue(string parsed_value, string key_name ){
 
     try {
         if ( (stoi(parsed_value) < 0 && "ignore" == key_name) || stoi(parsed_value) <= 0 ) {
             cerr << "ERROR: Wrong value " << parsed_value  << ". Check documentation for the right range." << endl;
             return 2;
         } else {
+            // Add value to the data structure
+
+            //TODO if keyname contais _ -> subsection
             series[main_key][main_id]["general"].push_back(parsed_value);
+            return 0;
         }
     } catch (const std::exception& e) {
         cerr << "ERROR: The value " << parsed_value << " must be int" << endl;
@@ -96,8 +127,8 @@ int ConfigParser::checkValue(string parsed_value, string key_name ){
     }
 
     // Add value to the data structure
-    series[main_key][main_id]["general"].push_back(parsed_value);
-    return 0;
+    // series[main_key][main_id]["general"].push_back(parsed_value);
+    // return 0;
 }
 
 // Parse ini configuration file
@@ -151,19 +182,19 @@ int ConfigParser::parseIniFile(){
             }
 
             parsed_value = reader.Get(*it,"len","-");
-            check_result = checkValue(parsed_value,"len");
+            check_result = checkSectionValue(parsed_value,"len");
             if (check_result != 0 ){
                 return check_result;
             }
             
             parsed_value = reader.Get(*it,"learn","-");
-            check_result = checkValue(parsed_value,"learn");
+            check_result = checkSectionValue(parsed_value,"learn");
             if (check_result != 0 ){
                 return check_result;
             }
 
             parsed_value = reader.Get(*it,"ignore","-");
-            check_result = checkValue(parsed_value,"ignore");
+            check_result = checkSectionValue(parsed_value,"ignore");
             if (check_result != 0 ){
                 return check_result;
             }
@@ -175,45 +206,113 @@ int ConfigParser::parseIniFile(){
             }
         
             parsed_value = reader.Get(*it,"check","-");
-            check_result = checkValue(parsed_value,"check");
+            check_result = checkSectionValue(parsed_value,"check");
             if (check_result != 0 ){
                 return check_result;
             }
             
             parsed_value = reader.Get(*it,"export","-");
-            check_result = checkValue(parsed_value,"export");
+            check_result = checkSectionValue(parsed_value,"export");
             if (check_result != 0 ){
                 return check_result;
             }
 
-
             // Parsed separetely because of independed section
             parsed_value = reader.Get(*it,"profile","-");
-            // TODO check return value from parseString method
+            if (parsed_value == "-"){
+                cerr << "ERROR: Profile keyword is required. Please follow configuraiton guide" << endl;
+                return 2;
+            }
             profile_items = parseString(parsed_value,",");
+            if (profile_items.size() == 0 ){
+                cerr << "ERROR: Profile items in profile keyword are wrongly formated. Expected delimiter is ,. Please follow configuration guide for more details" << endl;
+                return 2;
+            }
             for (auto it2=profile_items.begin(); it2 != profile_items.end(); ++it2){
                 series[main_key][main_id]["profile"].push_back(*it2);
             } 
 
             parsed_value = reader.Get(*it,"export_fields","-");
-            // TODO check return value from parseString method
-            profile_items = parseString(parsed_value,",");
-            for (auto it2=profile_items.begin(); it2 != profile_items.end(); ++it2){
-                series[main_key][main_id]["export"].push_back(*it2);
-            } 
+            if (parsed_value == "-"){
+                series[main_key][main_id]["export"].push_back(parsed_value);
+            } else {
+                profile_items = parseString(parsed_value,",");
+                if (profile_items.size() == 0 ){
+                    cerr << "ERROR: Export parameter is wrongly formated. Expected delimiter is ,. Please follow configuration guide for more details" << endl;
+                    return 2;
+
+                }
+                for (auto it2=profile_items.begin(); it2 != profile_items.end(); ++it2){
+                    series[main_key][main_id]["export"].push_back(*it2);
+                } 
+            }
 
         } else {
         // Parse subsection
+            vector<string> tmp_subsection = parseString((*it),".");
+            if (tmp_subsection.size() != 2){
+                cerr << "ERROR: Subsection in the configuration file is wrongly named." << endl;
+                return 2;
+            }
 
+            // Verify if found subsection configuration has proper keyword in profile key configured 
+            if (find(profile_items.begin(), profile_items.end(), tmp_subsection[1]) != profile_items.end() ){
+                parsed_value = reader.Get(*it,"soft_min","-");
+                check_result = checkSubsectionValue(parsed_value, "soft_min");
+                if (check_result != 0 ){
+                    return check_result;
+                }
+                series[main_key][main_id][tmp_subsection[1]].push_back( parsed_value );
 
-        
-        series[main_key][main_id]["export"].push_back(*it2);
+                parsed_value = reader.Get(*it,"soft_max","-");
+                check_result = checkSubsectionValue(parsed_value, "soft_max");
+                if (check_result != 0 ){
+                    return check_result;
+                }
+                series[main_key][main_id][tmp_subsection[1]].push_back( parsed_value );
 
+                parsed_value = reader.Get(*it,"hard_min","-");
+                check_result = checkSubsectionValue(parsed_value, "hard_min");
+                if (check_result != 0 ){
+                    return check_result;
+                }
+                series[main_key][main_id][tmp_subsection[1]].push_back( parsed_value );
+
+                parsed_value = reader.Get(*it,"hard_max","-");
+                check_result = checkSubsectionValue(parsed_value, "hard_max");
+                if (check_result != 0 ){
+                    return check_result;
+                }
+                series[main_key][main_id][tmp_subsection[1]].push_back( parsed_value );
+
+                parsed_value = reader.Get(*it,"grace_period","-");
+                check_result = checkSubsectionValue(parsed_value, "grace_period");
+                if (check_result != 0 ){
+                    return check_result;
+                }
+
+                parsed_value = reader.Get(*it,"grow_up","-");
+                check_result = checkSubsectionValue(parsed_value, "grow_up");
+                if (check_result != 0 ){
+                    return check_result;
+                }
+                series[main_key][main_id][tmp_subsection[1]].push_back( parsed_value );
+    
+                parsed_value = reader.Get(*it,"grow_down","-");
+                check_result = checkSubsectionValue(parsed_value, "grow_down");
+                if (check_result != 0 ){
+                    return check_result;
+                }
+                series[main_key][main_id][tmp_subsection[1]].push_back( parsed_value );
+
+                //TODO check if related section has been configured
+                // Also check releation beween each other (min max values, ...)
+
+                check_result = checkConfigRelations();
+            }
         }
     }
-
     return 0;
-
 }
 
 // TODO: implement checks during parsion a configuration file
