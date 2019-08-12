@@ -111,7 +111,7 @@ class ConfigParser{
         /*
         * Method to verify proper relations between configuration variables
         */
-        int checkConfigRelations();
+        int checkConfigRelations(string subsection);
     private:
         map<string, map<uint64_t, map<string, vector<string> > > > series; // parsed data from configuration file. Data sequence: unirec field, ur_id, subsection category (profile, profile items, export, general, metaData, metaProfile, profile), config params
         ifstream config; // configuration filename

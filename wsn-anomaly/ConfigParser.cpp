@@ -84,9 +84,35 @@ vector<string> ConfigParser::parseString(string value, string delimiter){
     return parsedData;
 }
 
-int ConfigParser::checkConfigRelations(){
+int ConfigParser::checkConfigRelations(string subsection){
+    // Check soft limit
+    string soft_min = series[main_key][main_id][subsection][SOFT_MIN];
+    string soft_max = series[main_key][main_id][subsection][SOFT_MAX];
+    string grace_period = series[main_key][main_id][subsection][SOFT_PERIOD];
 
-    return 0;
+    if ( (soft_min == "-" && soft_max == "-" && grace_period == "-") || (soft_min != "-" && soft_max != "-" && grace_period != "-") ) {
+        // Soft limit dependencies are correct
+        return 0;
+    } else { cerr << "ERROR: Soft limit dependencies are not satisfied!" << endl; }
+
+    // Check hard limit
+    string hard_min = series[main_key][main_id][subsection][HARD_MIN];
+    string hard_max = series[main_key][main_id][subsection][HARD_MAX];
+    if ( (hard_min == "-" && hard_max == "-" ) || (hard_min != "-" && hard_max != "-") ){
+        // Hard limit dependencies are correct
+        return 0;
+    } else { cerr << "ERROR: Hard limit dependencies are not satisfied!" << endl; }
+    
+
+    // Check grow limit
+    string grow_down = series[main_key][main_id][subsection][GROW_DOWN];
+    string grow_up = series[main_key][main_id][subsection][GROW_UP];
+    if ( (grow_down == "-" && grow_up == "-" ) || (grow_down != "-" && grow_up != "-") ){
+        // Grow limit dependencies are correct
+        return 0;
+    } else { cerr << "ERROR: Grow limit dependencies are not satisfied!" << endl; }
+    
+    return 3;
 }
 
 int ConfigParser::checkSubsectionValue(string parsed_value, string key_name){
@@ -364,7 +390,11 @@ int ConfigParser::parseIniFile(){
                 //TODO check if related section has been configured
                 // Also check releation beween each other (min max values, ...)
 
-                check_result = checkConfigRelations();
+                check_result = checkConfigRelations(tmp_subsection[1]);
+                if (check_result){
+                    cerr << "ERROR: Configuration dependencies are not satisfied! Please read the documentation" << endl;
+                    return check_result;
+                }
 
                 // Add meta items for soft limit (S_MIN_LIMIT, S_MAX_LIMIT)
                 series[main_key][main_id][tmp_subsection[1]].push_back( to_string(0) );
