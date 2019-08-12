@@ -165,7 +165,8 @@ int initExportInterfaces(map<string, map<uint64_t, map<string, vector<string> > 
         return 3;
     }
 
-    if (trap_ctx_get_last_error(ctx_export) != TRAP_E_OK){
+    // Ignore NOTICE messages from trap_ctx
+    if (trap_ctx_get_last_error(ctx_export) != TRAP_E_OK && trap_ctx_get_last_error(ctx_export) < 256 ){
         cerr << "ERROR in TRAP initialization: " << trap_ctx_get_last_error_msg(ctx_export) << endl;
         return 3;
     }
@@ -260,7 +261,7 @@ int main (int argc, char** argv){
     ConfigParser cp(config_file, verbose);
     cp.parseFile();
     auto series_meta_data = cp.getSeries();
-    //printSeries(series_meta_data);
+    printSeries(series_meta_data);
     if (series_meta_data.empty()){
         cerr << "ERROR configuration file is empty" << endl;
         return 1;
