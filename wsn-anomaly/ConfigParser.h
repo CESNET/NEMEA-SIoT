@@ -75,7 +75,7 @@ class ConfigParser{
         * Constructor
         * /param[in] configFile Name of configuration file
         */
-        ConfigParser(string configFile);
+        ConfigParser(string configFile, int verbose);
         /*
         * Destructor
         */
@@ -118,6 +118,7 @@ class ConfigParser{
         string config_filename; // configuration filename
         string main_key;     // Name of unirec field
         uint64_t main_id;    // Name of record ID   
+        int verbose;        // Verbose level
         
         
 };
