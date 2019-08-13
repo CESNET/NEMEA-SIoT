@@ -206,7 +206,7 @@ int main(int argc, char *argv[])
 			cerr << "Invalid argument." << endl;
 			TRAP_DEFAULT_FINALIZATION();
 			FREE_MODULE_INFO_STRUCT(MODULE_BASIC_INFO, MODULE_PARAMS)
-			return exit_value;
+			return 1;
 		}
 	}
 
