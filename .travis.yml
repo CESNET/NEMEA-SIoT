@@ -19,4 +19,4 @@ script:
   - ./configure --bindir=/usr/bin/nemea
   - make -j4
   - make check
-  - python3 ./AutoTest.py
+  - python3 ./AutoTest.py -m lora-collector/ lora-distance/ lora-airtime/ wsn-anomaly/ 
