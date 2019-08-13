@@ -239,8 +239,11 @@ void BLEPairingDetector::processEvent(
 
 			uint16_t handle = htobl(eventLE->handle);
 
+			bdaddr_t dev_mac;
+			baswap(&dev_mac, &eventLE->peer_bdaddr);
+
 			Connection connection;
-			baswap(&connection.address, &eventLE->peer_bdaddr);
+			connection.address = mac_from_bytes(dev_mac.b);
 			connection.state = STATE_CONNECTED;
 
 			m_connectionMap.insert(make_pair(handle, connection));
@@ -459,8 +462,10 @@ void BLEPairingDetector::generatePairingAlert(
 	bool success)
 {
 	char hciDevMacStr[17];
+	char deviceMacStr[17];
+
 	mac_to_str(hciDevMac, hciDevMacStr);
-	char *deviceMacStr = batostr(&connection.address);
+	mac_to_str(&(connection.address), deviceMacStr);
 
 	bool isRepeated = isRepeatedPairing(hciDevMacStr, deviceMacStr);
 
@@ -479,7 +484,7 @@ void BLEPairingDetector::generatePairingAlert(
 	}
 
 	ur_set(m_alert_template, m_alert_record, F_HCI_DEV_MAC,*hciDevMac);
-	ur_set(m_alert_template, m_alert_record, F_DEVICE_MAC, mac_from_bytes((uint8_t *) connection.address.b));
+	ur_set(m_alert_template, m_alert_record, F_DEVICE_MAC, connection.address);
 	ur_set(m_alert_template, m_alert_record, F_TIMESTAMP, *timestamp);
 	ur_set(m_alert_template, m_alert_record, F_SUCCESS, success);
 	ur_set(m_alert_template, m_alert_record, F_REPEATED, isRepeated);
