@@ -28,13 +28,13 @@ class RepoScanner:
     def filter(self, modules: []):
         if not modules:
             return
-        
+
         self.modules = { k:v for k,v in self.modules.items() if k in modules }
-                        
+
         for m in modules:
             if m not in self.modules.keys():
-                raise RuntimeError('no such module')
-    
+                raise RuntimeError('no such module: {}'.format(m))
+
     @staticmethod
     def __get_test_pairs__(files):
         pairs = []
@@ -55,13 +55,13 @@ class RepoScanner:
     # the repository.
     def got_module(self, m: str) -> bool:
         return m in self.modules.keys()
-    
+
     # Returns true if the given a module with the given name is present in
     # the repository and its directory contains directory named 'tests'
     # Raises an exception, if a module with given name is not present.
     def got_tests(self, m: str) -> bool:
         if not self.got_module(m):
-            raise RuntimeError('no such module')
+            raise RuntimeError('no such module: {}'.format(m))
 
         return self.modules[m]['got-tests']
 
@@ -70,7 +70,7 @@ class RepoScanner:
     # not present.
     def got_test_config(self, m: str) -> bool:
         if not self.got_module(m):
-            raise RuntimeError('no such module')
+            raise RuntimeError('no such module: {}'.format(m))
 
         return self.modules[m]['test-config']
 
