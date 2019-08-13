@@ -3,7 +3,7 @@ from TestUtil.Shell import Shell
 from argparse import ArgumentParser
 import json
 import subprocess
-from ast import literal_eval
+
 
 class AutoTest(SIoTNemeaTester):
     @staticmethod
@@ -51,7 +51,7 @@ class AutoTest(SIoTNemeaTester):
                 # starts the module with appropriate arguments for testing plus
                 # with potential arguments defined in the auto-tests.json file
                 module = subprocess.Popen(
-                    ['valgrind', self.__get_expected_executable__(m),
+                    [self.__get_expected_executable__(m),
                      '-i', '{},{}'.format(ifc_in, ifc_out)] + run_args,
                      stderr=subprocess.PIPE, stdout=subprocess.PIPE, cwd=m)
 
@@ -60,8 +60,6 @@ class AutoTest(SIoTNemeaTester):
                 x.execute_array(post_shell)
 
                 self.__test_ended__(self.__compare_files__(f_exp, f_out))
-                out, err = module.communicate()
-                print(err.decode())
 
         return self.__finished__()
 
