@@ -461,8 +461,8 @@ void BLEPairingDetector::generatePairingAlert(
 	const Connection &connection,
 	bool success)
 {
-	char hciDevMacStr[17];
-	char deviceMacStr[17];
+	char hciDevMacStr[18];
+	char deviceMacStr[18];
 
 	mac_to_str(hciDevMac, hciDevMacStr);
 	mac_to_str(&(connection.address), deviceMacStr);
