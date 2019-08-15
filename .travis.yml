@@ -10,6 +10,8 @@ before_install:
   # Download, build, and install dependencies
   - ( git clone https://github.com/cesnet/nemea-framework /tmp/nemea-framework && cd /tmp/nemea-framework && ./bootstrap.sh && ./configure --prefix=/usr --bindir=/usr/bin/nemea -q && make -j 4 && sudo make install; )
   - ( git clone https://github.com/cesnet/nemea-modules /tmp/nemea-modules && cd /tmp/nemea-modules && ./bootstrap.sh && ./configure --prefix=/usr --bindir=/usr/bin/nemea -q && make -j 4 -C logger && sudo make -C logger install && make -j 4 -C logreplay && sudo make -C logreplay install; )
+  # Test script requires valgrind
+  - sudo apt-get -y install valgrind
 addons:
   apt:
     update: true
@@ -19,4 +21,4 @@ script:
   - ./configure --bindir=/usr/bin/nemea
   - make -j4
   - make check
-  - python3 AutoTest.py
+  - python3 AutoTest.py -d -v
