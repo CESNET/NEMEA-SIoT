@@ -21,4 +21,4 @@ script:
   - ./configure --bindir=/usr/bin/nemea
   - make -j4
   - make check
-  - python3 AutoTest.py -d -v
+  - python3 AutoTest.py -v
