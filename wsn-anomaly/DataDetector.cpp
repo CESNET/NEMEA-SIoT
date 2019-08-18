@@ -256,21 +256,21 @@ int main (int argc, char** argv){
             return 1;
         }
     }
+    verbose = trap_get_verbose_level();
+    if (verbose >= 0) {
+        cout << "Verbosity level: " <<  trap_get_verbose_level() << endl;;
+    }
 
     // Parse created configuration file
     ConfigParser cp(config_file, verbose);
     cp.parseFile();
     auto series_meta_data = cp.getSeries();
-    printSeries(series_meta_data);
+    //printSeries(series_meta_data);
     if (series_meta_data.empty()){
         cerr << "ERROR configuration file is empty" << endl;
         return 1;
     }
 
-    verbose = trap_get_verbose_level();
-    if (verbose >= 0) {
-        cout << "Verbosity level: " <<  trap_get_verbose_level() << endl;;
-    }
 
     // Create analyze object
     Analyzer series_a (series_meta_data, verbose);
