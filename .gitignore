@@ -35,3 +35,6 @@
 
 **/.idea
 
+# pycache
+**/__pycache__
+
