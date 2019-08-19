@@ -47,7 +47,6 @@ class Shell:
         self.out = out.decode()
         self.err = err.decode()
         self.code = self.__process.returncode
-
         return self.code == 0
 
     # Returns PID of the bash subprocess
