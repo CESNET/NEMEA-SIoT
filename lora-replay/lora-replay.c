@@ -134,7 +134,8 @@ trap_module_info_t *module_info = NULL;
  * in case the parameter does not need argument.
  * Module parameter argument types: int8, int16, int32, int64, uint8, uint16, uint32, uint64, float, string
  */
-#define MODULE_PARAMS(PARAM)
+#define MODULE_PARAMS(PARAM)  \
+PARAM('I', "ignore-in-eof", "Do not terminate on incomming termination message.", no_argument, "none") \
 
 /**
  * To define positional parameter ("param" instead of "-m param" or "--mult param"), use the following definition:
@@ -155,6 +156,7 @@ TRAP_DEFAULT_SIGNAL_HANDLER(stop = 1)
 int main(int argc, char **argv) {
     int ret;
     signed char opt;
+    int ignore_eof = 0; // Ignore EOF input parameter flag
 
     /* **** TRAP initialization **** */
 
@@ -181,6 +183,9 @@ int main(int argc, char **argv) {
      */
     while ((opt = TRAP_GETOPT(argc, argv, module_getopt_string, long_options)) != -1) {
         switch (opt) {
+            case 'I':
+                ignore_eof = 1;
+                break;
             default:
                 fprintf(stderr, "Invalid arguments.\n");
                 FREE_MODULE_INFO_STRUCT(MODULE_BASIC_INFO, MODULE_PARAMS);
@@ -234,8 +239,13 @@ int main(int argc, char **argv) {
         TRAP_DEFAULT_RECV_ERROR_HANDLING(ret, continue, break);
 
         /** Indicates EOF */
-        if (in_rec_size == 1)
-            break;
+        if (in_rec_size == 1) {
+            char dummy[1] = {0};
+            trap_send(0, dummy, 1);
+            trap_send_flush(0);
+            if (!ignore_eof)
+                break;
+        }
 
         /** Check size payload min/max */
         uint32_t size = ur_get_var_len(in_tmplt, in_rec, F_PHY_PAYLOAD);
