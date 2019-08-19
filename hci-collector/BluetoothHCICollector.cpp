@@ -154,7 +154,7 @@ int exportPackets(int fd, const mac_addr_t &hci_dev_mac, ur_template_t *out_temp
 				continue;
 
 			std::cerr << "receive failed" << " (" << errno << ")" << std::endl;
-			return -1;
+			return 1;
 		}
 
 		for (cmsghdr *cmsg = CMSG_FIRSTHDR(&msg); cmsg != NULL; cmsg = CMSG_NXTHDR(&msg, cmsg)) {
@@ -186,7 +186,6 @@ int exportPackets(int fd, const mac_addr_t &hci_dev_mac, ur_template_t *out_temp
 
 int main(int argc, char *argv[])
 {
-	int exit_value = 0;
 	int socket = -1;
 	uint16_t hci_dev = 0;
 	int opt;
@@ -207,28 +206,41 @@ int main(int argc, char *argv[])
 			cerr << "Invalid argument." << endl;
 			TRAP_DEFAULT_FINALIZATION();
 			FREE_MODULE_INFO_STRUCT(MODULE_BASIC_INFO, MODULE_PARAMS)
-			return exit_value;
+			return 1;
 		}
 	}
+
+	auto cleanup = [&](){
+		TRAP_DEFAULT_FINALIZATION();
+
+		if (out_template != NULL) { ur_free_template(out_template); }
+		if (out_record != NULL) { ur_free_record(out_record); }
+
+		if (socket != -1) { close(socket); }
+
+		ur_finalize();
+
+		FREE_MODULE_INFO_STRUCT(MODULE_BASIC_INFO, MODULE_PARAMS)
+	};
 
 	out_template = ur_create_output_template(0, "HCI_DEV_MAC, TIMESTAMP, DATA_DIRECTION, PACKET_TYPE, PACKET", NULL);
 	if (out_template == NULL) {
 		cerr << "Error: output template could not be created." << endl;
-		exit_value = -1;
-		goto cleanup;
+		cleanup();
+		return 1;
 	}
 
 	out_record = ur_create_record(out_template, 0);
 	if (out_record == NULL) {
 		cerr << "Error: Memory allocation problem (output record).";
-		exit_value = -1;
-		goto cleanup;
+		cleanup();
+		return 1;
 	}
 
 	socket = openHCISocket(hci_dev);
 	if (socket == -1) {
-		exit_value = -1;
-		goto cleanup;
+		cleanup();
+		return 1;
 	}
 
 	//Get MAC address of the HCI device
@@ -238,23 +250,15 @@ int main(int argc, char *argv[])
 
 	if (ioctl(socket, HCIGETDEVINFO, &info) < 0) {
 		cerr << "Error: Failed to get hci " + to_string(hci_dev) + " device info." << endl;
-		exit_value = -1;
-		goto cleanup;
+		cleanup();
+		return 1;
 	}
 
 	bdaddr_t hci_dev_mac;
 	baswap(&hci_dev_mac, &info.bdaddr);
 
-	exit_value = exportPackets(socket, mac_from_bytes(hci_dev_mac.b), out_template, out_record);
+	int ret = exportPackets(socket, mac_from_bytes(hci_dev_mac.b), out_template, out_record);
 
-cleanup:
-	close(socket);
-
-	ur_free_record(out_record);
-	ur_free_template(out_template);
-
-	TRAP_DEFAULT_FINALIZATION();
-	FREE_MODULE_INFO_STRUCT(MODULE_BASIC_INFO, MODULE_PARAMS)
-
-	return exit_value;
+	cleanup();
+	return ret;
 }
