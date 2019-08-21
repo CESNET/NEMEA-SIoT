@@ -639,13 +639,13 @@ void Analyzer::sendAlert(map<string, vector<string> > &alert_str, string &ur_fie
             // Clear variable-length fields
             ur_clear_varlen(alert_template, data_alert);
             // Set UniRec message values
-            ur_set(alert_template, data_alert, F_ID, *ur_id);
+            ur_set(alert_template, data_alert, F_INCIDENT_DEV_ADDR, *ur_id);
             ur_set(alert_template, data_alert, F_TIME, *ur_time);
-            ur_set(alert_template, data_alert, F_err_value, err_value);
-            ur_set(alert_template, data_alert, F_profile_value, profile_value);
-            ur_set_string(alert_template, data_alert, F_profile_key, profile.first.c_str());
-            ur_set_string(alert_template, data_alert, F_alert_desc, elem.c_str());
-            ur_set_string(alert_template, data_alert, F_ur_key, ur_field.c_str());
+            ur_set(alert_template, data_alert, F_ERR_VALUE, err_value);
+            ur_set(alert_template, data_alert, F_PROFILE_VALUE, profile_value);
+            ur_set_string(alert_template, data_alert, F_PROFILE_KEY, profile.first.c_str());
+            ur_set_string(alert_template, data_alert, F_CAPTION, elem.c_str());
+            ur_set_string(alert_template, data_alert, F_UR_KEY, ur_field.c_str());
             trap_ctx_send(alert_ifc, 0, data_alert, ur_rec_size(alert_template, data_alert) );
             //trap_ctx_send_flush(alert_ifc,0);
         }

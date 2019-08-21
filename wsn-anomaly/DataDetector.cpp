@@ -55,6 +55,70 @@
 
 using namespace std;
 
+UR_FIELDS(
+    time TIME,
+    uint64 INCIDENT_DEV_ADDR,
+    uint32 ALERT_CODE,
+    string CAPTION,
+    double ERR_VALUE,
+    string PROFILE_KEY,
+    double PROFILE_VALUE,
+    string UR_KEY
+    double ACKCount,
+    double ACKWaiting,
+    double aclMtu,
+    double aclPackets,
+    double address,
+    double average,
+    double averageRequestRTT,
+    double averageResponseRTT,
+    double badChecksum,
+    double badroutes,
+    double broadcastReadCount,
+    double broadcastWriteCount,
+    double callbacks,
+    double CANCount,
+    double dropped,
+    double GW_ID,
+    double lastRequestRTT,
+    double lastResponseRTT,
+    double moving_average,
+    double moving_median,
+    double moving_variance,
+    double NAKCount,
+    double netBusy,
+    double noACK
+    double nodeID,
+    double nonDelivery,
+    double notIdle,
+    double OOFCount,
+    double quality,
+    double readAborts,
+    double readCount,
+    double receivedCount,
+    double receivedDuplications,
+    double receivedUnsolicited,
+    double retries,
+    double routedBusy,
+    double rxAcls,
+    double rxBytes,
+    double rxErrors,
+    double rxEvents,
+    double rxScos,
+    double scoMtu,
+    double scoPackets,
+    double sentCount,
+    double sentFailed,
+    double SOFCount,
+    double txAcls,
+    double txBytes,
+    double txCmds,
+    double txErrors,
+    double txScos,
+    double VALUE,
+    double writeCount,
+)
+
 trap_module_info_t *module_info = NULL;
 
 #define MODULE_BASIC_INFO(BASIC) \
@@ -323,7 +387,19 @@ int main (int argc, char** argv){
         goto cleanup;
     }
     // Create alert template
-    alert_template = ur_ctx_create_output_template(ctx, 0, "ID,TIME,ur_key,alert_desc,profile_key,err_value,profile_value", NULL);
+    alert_template = ur_ctx_create_output_template(ctx, 0, "TIME,INCIDENT_DEV_ADDR,ALERT_CODE,CAPTION,ERR_VALUE,PROFILE_KEY,PROFILE_VALUE,UR_KEY", NULL);
+
+// ur_key,alert_desc,profile_key,err_value,profile_value", NULL);
+/*
+TIME -> TIME ur_time
+ID -> INCIDENT_DEV_ADDR
+-- -> ALERT_CODE        // urcit kody jednotlivych detekci
+alert_desc -> CAPTION   // The device 5c:f3:70:87:46:2b exceeded the transmission time by 1 second.
+err_value -> ERR_VALUE  
+profile_key -> PROFILE_KEY
+profile_value -> PROFILE_VALUE
+ur_key -> UR_KEY
+*/
     if (alert_template == NULL) {
         cerr <<  "ERROR: unirec alert template create fail" << endl;
         exit_value = 2;
@@ -363,14 +439,14 @@ int main (int argc, char** argv){
         TRAP_CTX_RECEIVE(ctx,0,data_nemea_input,memory_received,in_template);
 
         // Take ID and TIME field -> user for alert identification
-        ur_id = *(ur_get_ptr(in_template, data_nemea_input, F_ID));
-        ur_time = *(ur_get_ptr(in_template, data_nemea_input, F_TIME));
+        ur_id = *(ur_get_ptr(in_template, data_nemea_input, F_INCIDENT_DEV_ADDR));
+        ur_time = ur_time_get_sec(*(ur_get_ptr(in_template, data_nemea_input, F_TIME)));
 
         // Go through all unirec fields
         ur_field_id_t id = UR_ITER_BEGIN;
         while ((id = ur_iter_fields(in_template, id)) != UR_ITER_END) {
             // Skip id -> not analyzed just used for alert identification
-            if ( strcmp("ID",(ur_get_name(id))) == 0 ){
+            if ( strcmp("INCIDENT_DEV_ADDR",(ur_get_name(id))) == 0 ){
                 continue;
             }
             // EOF close this module 
@@ -387,7 +463,14 @@ int main (int argc, char** argv){
             if (verbose >= 2){
                 cout << "VERBOSE: Received UniRec message with the record name" << ur_id << endl;
             }
-            ur_data = *((double*) ur_get_ptr_by_id(in_template, data_nemea_input,id));
+            // Convert TIME into double
+            if ( strcmp("TIME",(ur_get_name(id))) == 0 ){
+                //ur_data = ur_time_get_sec(*(ur_get_ptr_by_id(in_template, data_nemea_input,F_TIME)));
+                ur_data = ur_time_get_sec(*(ur_get_ptr(in_template, data_nemea_input, F_TIME)));
+                //*(ur_get_ptr_by_id(in_template, data_nemea_input,id))
+            } else {
+                ur_data = *((double*) ur_get_ptr_by_id(in_template, data_nemea_input,id));
+            }
             // Analyze received data
             series_a.processSeries(ur_get_name(id), &ur_id, &ur_time, &ur_data);
         }
