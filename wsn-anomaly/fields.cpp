@@ -20,7 +20,7 @@ char *ur_field_names_static[] = {
    (char *) "dropped",
    (char *) "err_value",
    (char *) "GW_ID",
-   (char *) "ID",
+   (char *) "DEV_ADDR",
    (char *) "lastRequestRTT",
    (char *) "lastResponseRTT",
    (char *) "moving_average",
@@ -82,7 +82,7 @@ short ur_field_sizes_static[] = {
    8, /* dropped */
    8, /* err_value */
    8, /* GW_ID */
-   8, /* ID */
+   8, /* DEV_ADDR */
    8, /* lastRequestRTT */
    8, /* lastResponseRTT */
    8, /* moving_average */
@@ -144,7 +144,7 @@ ur_field_type_t ur_field_types_static[] = {
    UR_TYPE_DOUBLE, /* dropped */
    UR_TYPE_DOUBLE, /* err_value */
    UR_TYPE_UINT64, /* GW_ID */
-   UR_TYPE_UINT64, /* ID */
+   UR_TYPE_UINT64, /* DEV_ADDR */
    UR_TYPE_DOUBLE, /* lastRequestRTT */
    UR_TYPE_DOUBLE, /* lastResponseRTT */
    UR_TYPE_DOUBLE, /* moving_average */
@@ -176,7 +176,7 @@ ur_field_type_t ur_field_types_static[] = {
    UR_TYPE_DOUBLE, /* sentCount */
    UR_TYPE_DOUBLE, /* sentFailed */
    UR_TYPE_DOUBLE, /* SOFCount */
-   UR_TYPE_DOUBLE, /* TIME */
+   UR_TYPE_TIME, /* TIME */
    UR_TYPE_DOUBLE, /* txAcls */
    UR_TYPE_DOUBLE, /* txBytes */
    UR_TYPE_DOUBLE, /* txCmds */

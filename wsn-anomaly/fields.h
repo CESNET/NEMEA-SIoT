@@ -38,8 +38,8 @@
 #define F_err_value_T   double
 #define F_GW_ID   16
 #define F_GW_ID_T   uint64_t
-#define F_ID   17
-#define F_ID_T   uint64_t
+#define F_DEV_ADDR   17
+#define F_DEV_ADDR_T   uint64_t
 #define F_lastRequestRTT   18
 #define F_lastRequestRTT_T   double
 #define F_lastResponseRTT   19
@@ -103,7 +103,7 @@
 #define F_SOFCount   48
 #define F_SOFCount_T   double
 #define F_TIME   49
-#define F_TIME_T   double
+#define F_TIME_T   ur_time_t
 #define F_txAcls   50
 #define F_txAcls_T   double
 #define F_txBytes   51
