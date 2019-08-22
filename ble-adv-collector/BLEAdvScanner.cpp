@@ -20,6 +20,7 @@ BLEAdvScanner::BLEAdvScanner(void)
 	}
 
 	this->openHCISocket();
+	this->running = true;
 }
 
 BLEAdvScanner::~BLEAdvScanner(void)
@@ -121,7 +122,7 @@ void BLEAdvScanner::setPassiveMode(void)
 		throw std::runtime_error("LE_Set_Scan_Parameters command failed.");
 }
 
-void BLEAdvScanner::start(void)
+void BLEAdvScanner::start(bool filter_dup)
 {
 	struct hci_request req;
 	le_set_scan_enable_cp params;
@@ -130,7 +131,7 @@ void BLEAdvScanner::start(void)
 
 	memset(&params, 0, LE_SET_SCAN_ENABLE_CP_SIZE);
 	params.enable = true;
-	params.filter_dup = false; // Inform about duplicite advertising info
+	params.filter_dup = filter_dup;
 	
 	memset(&req, 0, sizeof(hci_request));
 	req.ogf = OGF_LE_CTL;
@@ -148,6 +149,7 @@ void BLEAdvScanner::start(void)
 	if (status != 0)
 		throw std::runtime_error("LE_Set_Scan_Enable command failed.");
 	
+	this->running = true;
 }
 
 void BLEAdvScanner::stop(void)
@@ -177,6 +179,47 @@ void BLEAdvScanner::stop(void)
 	if (status != 0)
 		throw std::runtime_error("LE_Set_Scan_Enable(0) command failed.");
 	
+	this->running = false;
+}
+
+adv_report BLEAdvScanner::scan(void)
+{
+	uint8_t buf[HCI_MAX_EVENT_SIZE];
+	adv_report report;
+	
+	memset(&report, 0, sizeof(adv_report));
+
+	while (read(sock, buf, HCI_MAX_EVENT_SIZE) < 0) {
+		if (errno == EAGAIN || errno == EINTR)
+			continue;
+
+		throw std::runtime_error("Bluetooth socket failed.");
+	}
+
+	if (buf[0] == HCI_EVENT_PKT) {
+		hci_event_hdr *hdr = (hci_event_hdr *) (buf + 1);
+
+		if (hdr->evt == EVT_LE_META_EVENT) {
+			evt_le_meta_event *evt = (evt_le_meta_event *) ((uint8_t *)hdr + HCI_EVENT_HDR_SIZE);
+
+			if (evt->subevent == EVT_LE_ADVERTISING_REPORT) {
+				uint8_t report_cnt = evt->data[0];
+				
+				if (report_cnt != 1) { // TODO: Implement > 1 reports per event
+					std::cout << "Multiple advertising reports in one event is not yet supported.";
+				        std::cout << " Only first report will be processed." << std::endl;
+				}
+
+				le_advertising_info *info = (le_advertising_info *)(evt->data + 1); // first report
+				
+				report.bdaddr_type = info->bdaddr_type;
+				bacpy(&report.bdaddr, &info->bdaddr);
+				report.rssi = *((int8_t *)info + LE_ADVERTISING_INFO_SIZE + info->length);
+			}
+		}
+	}
+
+	return report;
 }
 
 ///////// TODO: Remove later
@@ -197,7 +240,32 @@ int main(int argc, char** argv)
 	scanner->setPassiveMode();
 	std::cout << "Set up passive scanning mode." << std::endl;
 
-	scanner->start();
+	scanner->start(true); // Inform about duplicite advertising info
+
+	adv_report report;
+	report = scanner->scan();
+	ba2str(&report.bdaddr, str);
+	std::cout << "Advertising found" << std::endl;
+	std::cout << "   BDADDR: " << str;
+       	switch (report.bdaddr_type) {
+		case 0x00:
+			std::cout << " (Public Device)";
+			break;
+		case 0x01:
+			std::cout << " (Random Device)";
+			break;
+		case 0x02:
+			std::cout << " (Public Identity)";
+			break;
+		case 0x03:
+			std::cout << " (Random Identity)";
+			break;
+		default:
+			std::cout << " (Invalid type)";
+			break;
+	}
+	std::cout << std::endl;
+	std::cout << "   RSSI: " << (int)report.rssi << std::endl;
 
 	scanner->stop();
 	

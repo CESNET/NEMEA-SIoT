@@ -1,14 +1,14 @@
 #ifndef BLE_ADV_SCANNER_H
 #define BLE_ADV_SCANNER_H
 
+typedef struct {
+	uint8_t  bdaddr_type; // Type of BDADDR: 0x00 = Public, 0x01 = Random
+	bdaddr_t bdaddr;
+	int8_t   rssi;
+} adv_report;	
+
 class BLEAdvScanner
 {
-private:
-	bdaddr_t bdaddr;
-	uint16_t hciDevID;
-	int      sock;
-
-	void openHCISocket(void);
 public:
 	BLEAdvScanner(void);
 	~BLEAdvScanner(void);
@@ -17,8 +17,17 @@ public:
 	const uint16_t getHCIDevice(void);
 
 	void setPassiveMode(void);
-	void start(void);
+	void start(bool filter_dup);
 	void stop(void);
+
+	adv_report scan(void); // temporary, replace with iterator
+private:
+	bdaddr_t bdaddr;
+	uint16_t hciDevID;
+	int      sock;
+	bool     running;
+
+	void openHCISocket(void);
 };
 
 #endif
