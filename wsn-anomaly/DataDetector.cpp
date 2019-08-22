@@ -389,17 +389,6 @@ int main (int argc, char** argv){
     // Create alert template
     alert_template = ur_ctx_create_output_template(ctx, 0, "TIME,INCIDENT_DEV_ADDR,ALERT_CODE,CAPTION,ERR_VALUE,PROFILE_KEY,PROFILE_VALUE,UR_KEY", NULL);
 
-// ur_key,alert_desc,profile_key,err_value,profile_value", NULL);
-/*
-TIME -> TIME ur_time
-ID -> INCIDENT_DEV_ADDR
--- -> ALERT_CODE        // urcit kody jednotlivych detekci
-alert_desc -> CAPTION   // The device 5c:f3:70:87:46:2b exceeded the transmission time by 1 second.
-err_value -> ERR_VALUE  
-profile_key -> PROFILE_KEY
-profile_value -> PROFILE_VALUE
-ur_key -> UR_KEY
-*/
     if (alert_template == NULL) {
         cerr <<  "ERROR: unirec alert template create fail" << endl;
         exit_value = 2;
@@ -465,9 +454,7 @@ ur_key -> UR_KEY
             }
             // Convert TIME into double
             if ( strcmp("TIME",(ur_get_name(id))) == 0 ){
-                //ur_data = ur_time_get_sec(*(ur_get_ptr_by_id(in_template, data_nemea_input,F_TIME)));
                 ur_data = ur_time_get_sec(*(ur_get_ptr(in_template, data_nemea_input, F_TIME)));
-                //*(ur_get_ptr_by_id(in_template, data_nemea_input,id))
             } else {
                 ur_data = *((double*) ur_get_ptr_by_id(in_template, data_nemea_input,id));
             }
