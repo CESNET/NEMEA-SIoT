@@ -20,7 +20,7 @@ public:
 	void start(bool filter_dup);
 	void stop(void);
 
-	adv_report scan(void); // temporary, replace with iterator
+	adv_report getAdvReport(void);
 private:
 	bdaddr_t bdaddr;
 	uint16_t hciDevID;

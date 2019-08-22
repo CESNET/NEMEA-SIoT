@@ -182,44 +182,48 @@ void BLEAdvScanner::stop(void)
 	this->running = false;
 }
 
-adv_report BLEAdvScanner::scan(void)
+adv_report BLEAdvScanner::getAdvReport(void)
 {
 	uint8_t buf[HCI_MAX_EVENT_SIZE];
 	adv_report report;
+	bool receivedReport;
 	
 	memset(&report, 0, sizeof(adv_report));
+	receivedReport = false; // Mostly for documentation purpose, could be swapped with while(true)
+	while (!receivedReport) {
+		while (read(sock, buf, HCI_MAX_EVENT_SIZE) < 0) {
+			if (errno == EAGAIN || errno == EINTR)
+				continue;
 
-	while (read(sock, buf, HCI_MAX_EVENT_SIZE) < 0) {
-		if (errno == EAGAIN || errno == EINTR)
-			continue;
+			throw std::runtime_error("Bluetooth socket failed.");
+		}
 
-		throw std::runtime_error("Bluetooth socket failed.");
-	}
+		if (buf[0] == HCI_EVENT_PKT) {
+			hci_event_hdr *hdr = (hci_event_hdr *) (buf + 1);
 
-	if (buf[0] == HCI_EVENT_PKT) {
-		hci_event_hdr *hdr = (hci_event_hdr *) (buf + 1);
+			if (hdr->evt == EVT_LE_META_EVENT) {
+				evt_le_meta_event *evt = (evt_le_meta_event *) ((uint8_t *)hdr + HCI_EVENT_HDR_SIZE);
 
-		if (hdr->evt == EVT_LE_META_EVENT) {
-			evt_le_meta_event *evt = (evt_le_meta_event *) ((uint8_t *)hdr + HCI_EVENT_HDR_SIZE);
+				if (evt->subevent == EVT_LE_ADVERTISING_REPORT) {
+					uint8_t report_cnt = evt->data[0];
+					
+					if (report_cnt != 1) { // TODO: Implement > 1 reports per event
+						std::cout << "Multiple advertising reports in one event is not yet supported.";
+						std::cout << " Only first report will be processed." << std::endl;
+					}
 
-			if (evt->subevent == EVT_LE_ADVERTISING_REPORT) {
-				uint8_t report_cnt = evt->data[0];
-				
-				if (report_cnt != 1) { // TODO: Implement > 1 reports per event
-					std::cout << "Multiple advertising reports in one event is not yet supported.";
-				        std::cout << " Only first report will be processed." << std::endl;
+					le_advertising_info *info = (le_advertising_info *)(evt->data + 1); // first report
+					
+					report.bdaddr_type = info->bdaddr_type;
+					bacpy(&report.bdaddr, &info->bdaddr);
+					report.rssi = *((int8_t *)info + LE_ADVERTISING_INFO_SIZE + info->length);
 				}
-
-				le_advertising_info *info = (le_advertising_info *)(evt->data + 1); // first report
-				
-				report.bdaddr_type = info->bdaddr_type;
-				bacpy(&report.bdaddr, &info->bdaddr);
-				report.rssi = *((int8_t *)info + LE_ADVERTISING_INFO_SIZE + info->length);
 			}
 		}
-	}
 
-	return report;
+		receivedReport = true;
+		return report;
+	}
 }
 
 ///////// TODO: Remove later
@@ -228,6 +232,7 @@ int main(int argc, char** argv)
 	const bdaddr_t* bdaddr;
 	BLEAdvScanner* scanner;
 	char str[18];
+	adv_report report;
        
 	scanner = new BLEAdvScanner();
 	
@@ -239,34 +244,32 @@ int main(int argc, char** argv)
 
 	scanner->setPassiveMode();
 	std::cout << "Set up passive scanning mode." << std::endl;
-
-	scanner->start(true); // Inform about duplicite advertising info
-
-	adv_report report;
-	report = scanner->scan();
-	ba2str(&report.bdaddr, str);
-	std::cout << "Advertising found" << std::endl;
-	std::cout << "   BDADDR: " << str;
-       	switch (report.bdaddr_type) {
-		case 0x00:
-			std::cout << " (Public Device)";
-			break;
-		case 0x01:
-			std::cout << " (Random Device)";
-			break;
-		case 0x02:
-			std::cout << " (Public Identity)";
-			break;
-		case 0x03:
-			std::cout << " (Random Identity)";
-			break;
-		default:
-			std::cout << " (Invalid type)";
-			break;
+	
+	// Start without filtering duplicities
+	for (scanner->start(false); true; report = scanner->getAdvReport()) {
+		ba2str(&report.bdaddr, str);
+		std::cout << "Advertising found" << std::endl;
+		std::cout << "   BDADDR: " << str;
+		switch (report.bdaddr_type) {
+			case 0x00:
+				std::cout << " (Public Device)";
+				break;
+			case 0x01:
+				std::cout << " (Random Device)";
+				break;
+			case 0x02:
+				std::cout << " (Public Identity)";
+				break;
+			case 0x03:
+				std::cout << " (Random Identity)";
+				break;
+			default:
+				std::cout << " (Invalid type)";
+				break;
+		}
+		std::cout << std::endl;
+		std::cout << "   RSSI: " << (int)report.rssi << std::endl;
 	}
-	std::cout << std::endl;
-	std::cout << "   RSSI: " << (int)report.rssi << std::endl;
-
 	scanner->stop();
 	
 	delete scanner;
