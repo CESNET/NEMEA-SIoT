@@ -95,7 +95,7 @@ class ConfigParser{
         /*
         * Method for selecting configuration file format
         */
-        void parseFile();
+        int parseFile(bool legacy_config_format);
         /*
         * Method for verifying configuration values
         */

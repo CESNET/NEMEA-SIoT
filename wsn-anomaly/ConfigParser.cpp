@@ -38,8 +38,6 @@
  */
 
 #include "ConfigParser.h"
-//TODO: Add return value to parseFile method so that the module can be stoped in case of parsing error of configuration file
-// -> check proper return codes 
 
 using namespace std;
 
@@ -47,30 +45,30 @@ using namespace std;
 ConfigParser::ConfigParser(string configFile, int verbose) : config(configFile), config_filename(configFile), verbose(verbose) {}
 
 // Select type of configuration file
-void ConfigParser::parseFile(){
+int ConfigParser::parseFile(bool legacy_config_format){
 int err = 0;
-    cout << "VERBOSE MODE " << verbose << endl;
+
     if (config.is_open()){
-        err = parseIniFile();
-        // If configuration format is not ini try the internal one
-        // TODO set proper return codes levels 
-        if (err){
-            if (verbose >= 0 ){
-                cout << "VERBOSE: Error during parsing INI configuration format.. Continue with internal format " << endl;
+        if (!legacy_config_format){
+            err = parseIniFile();
+            if (err){
+                if (verbose >= 0 ){
+                    cout << "VERBOSE: Error during parsing INI configuration format.. Continue with internal format " << endl;
+                }
             }
-           err = parseConfFile(); 
-           // Wrong configuration -> quit module
-           if (err){
+        } else {
+            // NOTE: this method represents internal format of configuration file. There are just very simple verifycation. This method will be deprecated soon.
+            err = parseConfFile(); 
+            // Wrong configuration -> quit module
+            if (err){
                 cerr << "ERROR: Wrong format of configuration file" << endl;
                 cerr << "NOTE: Read documentation and improve it!!" << endl;
             }
         }
-    } else {
-        cerr << "ERROR: Unable to open the configuration file " << endl;
-        cerr << "NOTE: Create configuration file!!" << endl;
-    }
-    config.close();
 
+        config.close();
+    } 
+    return err;
 }
 
 vector<string> ConfigParser::parseString(string value, string delimiter){
@@ -119,7 +117,6 @@ int ConfigParser::checkConfigRelations(string subsection){
         }
 
     // Subsection fields
-    // TODO: add conditions where min/max numbers are compared (min can't be higher than max...), hard range should be bigger that soft range -> at least add note about that
     } else {
         // Check soft limit
         string soft_min = series[main_key][main_id][subsection][SOFT_MIN];
@@ -130,7 +127,7 @@ int ConfigParser::checkConfigRelations(string subsection){
             // Soft limit dependencies are correct
             return_value = 0;
         } else { 
-            cerr << "ERROR: Soft limit dependencies are not satisfied!" << endl; 
+            cerr << "ERROR: Soft limit dependencies are not satisfied! Some required fields missing." << endl; 
             return 3;
         }
 
@@ -156,9 +153,11 @@ int ConfigParser::checkConfigRelations(string subsection){
             return 3;
         }
 
-        // Return error flag because of bad configuration dependency 
-       // cerr << "ERROR: Uknown condition during dependency check!" << endl; 
-        //return 3;
+        // Check min max boundaries
+        if (soft_min >= soft_max || hard_min >= hard_max || grow_down > grow_up ){
+            cerr << "ERROR: Min value is bigger than max value. Check soft, hard and grow limits!" << endl;
+            return 3;
+        }
     }
     return return_value;
 }

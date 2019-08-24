@@ -60,7 +60,8 @@ trap_module_info_t *module_info = NULL;
 #define MODULE_BASIC_INFO(BASIC) \
   BASIC("data-series-detector", "This module detect anomalies in data series", 1, 1)
 #define MODULE_PARAMS(PARAM) \
-  PARAM('c', "config", "Configuration files with detection rules", required_argument, "string")
+  PARAM('c', "config", "Configuration files with detection rules", required_argument, "string") \
+  PARAM('l', "legacy", "Legacy format of configuration file", no_argument, "none")
 
 /*
 * Print configured data from configuration file
@@ -224,6 +225,7 @@ int main (int argc, char** argv){
     double ur_time = 0;                                      // Tmp store variable
     double ur_data = 0;                                      // Tmp store variable
     string config_file = "";                                  // Configuration file
+    bool legacy_config_format = false;                                  // Configuration file
 
     /*
     ** interface initialization **
@@ -250,6 +252,10 @@ int main (int argc, char** argv){
         case 'c':
             config_file = optarg;
             break;
+        // Legacy configuration file format
+        case 'l':
+            legacy_config_format = true;
+            break;
         default:
             cerr << "Error: Invalid arguments." << endl;
             FREE_MODULE_INFO_STRUCT(MODULE_BASIC_INFO, MODULE_PARAMS)
@@ -263,11 +269,12 @@ int main (int argc, char** argv){
 
     // Parse created configuration file
     ConfigParser cp(config_file, verbose);
-    cp.parseFile();
+    ret = cp.parseFile(legacy_config_format);
     auto series_meta_data = cp.getSeries();
+    // DEBUG: Internal print of parsed data from the configuration file
     //printSeries(series_meta_data);
-    if (series_meta_data.empty()){
-        cerr << "ERROR configuration file is empty" << endl;
+    if (ret != 0 || series_meta_data.empty()){
+        cerr << "ERROR: Configuration file is not valid!" << endl;
         return 1;
     }
 
@@ -337,7 +344,7 @@ int main (int argc, char** argv){
     // Create alert record with maximum size of variable memory length
     data_alert = ur_create_record(alert_template, UR_MAX_SIZE);
         if ( data_alert == NULL ) {
-            cout << "ERROR: Data are not prepared for alert template" << endl;
+            cerr << "ERROR: Data are not prepared for alert template" << endl;
             exit_value = 3;
             goto cleanup;
         }
