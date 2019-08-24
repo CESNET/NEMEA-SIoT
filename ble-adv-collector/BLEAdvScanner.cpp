@@ -3,7 +3,6 @@
 #include <bluetooth/hci.h>
 #include <bluetooth/hci_lib.h>
 #include <errno.h>
-#include <iomanip> // TODO: remove
 #include <iostream>
 #include <sys/ioctl.h>
 #include <sys/poll.h>
@@ -224,55 +223,4 @@ adv_report BLEAdvScanner::getAdvReport(void)
 		receivedReport = true;
 		return report;
 	}
-}
-
-///////// TODO: Remove later
-int main(int argc, char** argv)
-{
-	const bdaddr_t* bdaddr;
-	BLEAdvScanner* scanner;
-	char str[18];
-	adv_report report;
-       
-	scanner = new BLEAdvScanner();
-	
-	std::cout << "Using HCI device " << scanner->getHCIDevice() << std::endl;
-	
-	bdaddr = scanner->getBDAddr();
-	ba2str(bdaddr, str);
-	std::cout << "Bluetooth address: " << str << std::endl;
-
-	scanner->setPassiveMode();
-	std::cout << "Set up passive scanning mode." << std::endl;
-	
-	// Start without filtering duplicities
-	for (scanner->start(false); true; report = scanner->getAdvReport()) {
-		ba2str(&report.bdaddr, str);
-		std::cout << "Advertising found" << std::endl;
-		std::cout << "   BDADDR: " << str;
-		switch (report.bdaddr_type) {
-			case 0x00:
-				std::cout << " (Public Device)";
-				break;
-			case 0x01:
-				std::cout << " (Random Device)";
-				break;
-			case 0x02:
-				std::cout << " (Public Identity)";
-				break;
-			case 0x03:
-				std::cout << " (Random Identity)";
-				break;
-			default:
-				std::cout << " (Invalid type)";
-				break;
-		}
-		std::cout << std::endl;
-		std::cout << "   RSSI: " << (int)report.rssi << std::endl;
-	}
-	scanner->stop();
-	
-	delete scanner;
-
-	return 1;
 }

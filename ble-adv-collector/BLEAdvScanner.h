@@ -1,6 +1,8 @@
 #ifndef BLE_ADV_SCANNER_H
 #define BLE_ADV_SCANNER_H
 
+#include <bluetooth/bluetooth.h>
+
 typedef struct {
 	uint8_t  bdaddr_type; // Type of BDADDR: 0x00 = Public, 0x01 = Random
 	bdaddr_t bdaddr;
