@@ -59,6 +59,7 @@ int main(int argc, char **argv)
 	BLEAdvScanner* scanner;
 	char buf[BDADDR_STR_SIZE];
 	
+	
 	/* UniRec Initialization */
 	INIT_MODULE_INFO_STRUCT(MODULE_BASIC_INFO, MODULE_PARAMS)
 	
@@ -82,6 +83,11 @@ int main(int argc, char **argv)
 		// TODO: Cleanup
 	}
 
+	record = ur_create_record(out_template, 0);
+	if (record == NULL) {
+		// TODO: Cleanup
+	}
+
 	/* BLE Advertisement Scanner initialization */
 	scanner = new BLEAdvScanner();
 	
@@ -97,34 +103,26 @@ int main(int argc, char **argv)
 	/* Main loop */
 	// Start without filtering duplicities
 	for (scanner->start(false); BLEAdvCollector_run; report = scanner->getAdvReport()) {
-		ba2str(&report.bdaddr, buf);
-		std::cout << report.timestamp.tv_sec << " Advertising found" << std::endl;
-		std::cout << "   BDADDR: " << buf;
-		switch (report.bdaddr_type) {
-			case 0x00:
-				std::cout << " (Public Device)";
-				break;
-			case 0x01:
-				std::cout << " (Random Device)";
-				break;
-			case 0x02:
-				std::cout << " (Public Identity)";
-				break;
-			case 0x03:
-				std::cout << " (Random Identity)";
-				break;
-			default:
-				std::cout << " (Invalid type)";
-				break;
-		}
-		std::cout << std::endl;
-		std::cout << "   RSSI: " << (int)report.rssi << std::endl;
+
+		ur_time_t timestamp = ur_time_from_sec_msec(
+			report.timestamp.tv_sec,
+			report.timestamp.tv_usec / 1000);
+
+		mac_addr_t bdaddr = mac_from_bytes(report.bdaddr.b);
+
+		ur_set(out_template, record, F_TIMESTAMP, timestamp);
+		ur_set(out_template, record, F_DEV_ADDR, bdaddr);
+		ur_set(out_template, record, F_ATYPE, report.bdaddr_type);
+		ur_set(out_template, record, F_RSSI, report.rssi);
+	
+		trap_send(0, record, ur_rec_size(out_template, record));
 	}
 	scanner->stop();
 
 	delete scanner;
 
 	/* UniRec Cleanup */
+	ur_free_record(record);
 	ur_free_template(out_template);
 
 	TRAP_DEFAULT_FINALIZATION();
