@@ -2,8 +2,10 @@
 #define BLE_ADV_SCANNER_H
 
 #include <bluetooth/bluetooth.h>
+#include <sys/time.h>
 
 typedef struct {
+	struct timeval timestamp;
 	uint8_t  bdaddr_type; // Type of BDADDR: 0x00 = Public, 0x01 = Random
 	bdaddr_t bdaddr;
 	int8_t   rssi;

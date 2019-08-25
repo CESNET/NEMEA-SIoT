@@ -7,9 +7,12 @@
 #include <sys/ioctl.h>
 #include <sys/poll.h>
 #include <sys/socket.h>
+#include <sys/time.h>
 #include <unistd.h>
 
 #include "BLEAdvScanner.h"
+
+#define MSG_CONTROL_DATA_SIZE 100
 
 BLEAdvScanner::BLEAdvScanner(void)
 {
@@ -52,8 +55,8 @@ void BLEAdvScanner::openHCISocket(void)
 
 	// Setup filter 
 	hci_filter_clear(&filt);
-	hci_filter_all_ptypes(&filt);
-	hci_filter_all_events(&filt);
+	hci_filter_set_ptype(HCI_EVENT_PKT, &filt);
+	hci_filter_set_event(EVT_LE_META_EVENT, &filt);
 
 	if (setsockopt(sock, SOL_HCI, HCI_FILTER, &filt, sizeof(filt)) < 0) {
 		throw std::runtime_error("Failed to set HCI filter.");
@@ -183,14 +186,28 @@ void BLEAdvScanner::stop(void)
 
 adv_report BLEAdvScanner::getAdvReport(void)
 {
-	uint8_t buf[HCI_MAX_EVENT_SIZE];
-	adv_report report;
 	bool receivedReport;
+	adv_report report;
 	
-	memset(&report, 0, sizeof(adv_report));
+	uint8_t       buf[HCI_MAX_EVENT_SIZE];
+	struct iovec  iv;
+	struct msghdr msg;
+	uint8_t       ctrl[MSG_CONTROL_DATA_SIZE];
+
+	iv.iov_base = &buf;
+	iv.iov_len  = HCI_MAX_EVENT_SIZE;
+
+	memset(&msg, 0, sizeof(msg));
+	msg.msg_iov     = &iv;
+	msg.msg_iovlen  = 1; // Number of IV elements in msg_iov array
+	msg.msg_control = &ctrl;
+	msg.msg_controllen = HCI_MAX_EVENT_SIZE;
+
+	memset(&report, 0, sizeof(report));
+
 	receivedReport = false; // Mostly for documentation purpose, could be swapped with while(true)
 	while (!receivedReport) {
-		while (read(sock, buf, HCI_MAX_EVENT_SIZE) < 0) {
+		while (recvmsg(sock, &msg, 0) < 0) {
 			if (errno == EAGAIN || errno == EINTR)
 				continue;
 
@@ -212,7 +229,16 @@ adv_report BLEAdvScanner::getAdvReport(void)
 					}
 
 					le_advertising_info *info = (le_advertising_info *)(evt->data + 1); // first report
-					
+
+					// Iterate through control messages and find timestamp
+					for (cmsghdr *cmsg = CMSG_FIRSTHDR(&msg); cmsg != NULL; cmsg = CMSG_NXTHDR(&msg, cmsg)) {
+						if (cmsg->cmsg_level != SOL_HCI)
+							continue;
+
+						if (cmsg->cmsg_type == HCI_CMSG_TSTAMP)
+							memcpy(&report.timestamp, CMSG_DATA(cmsg), sizeof(report.timestamp));
+					}
+
 					report.bdaddr_type = info->bdaddr_type;
 					bacpy(&report.bdaddr, &info->bdaddr);
 					report.rssi = *((int8_t *)info + LE_ADVERTISING_INFO_SIZE + info->length);

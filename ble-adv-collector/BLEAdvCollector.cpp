@@ -98,7 +98,7 @@ int main(int argc, char **argv)
 	// Start without filtering duplicities
 	for (scanner->start(false); BLEAdvCollector_run; report = scanner->getAdvReport()) {
 		ba2str(&report.bdaddr, buf);
-		std::cout << "Advertising found" << std::endl;
+		std::cout << report.timestamp.tv_sec << " Advertising found" << std::endl;
 		std::cout << "   BDADDR: " << buf;
 		switch (report.bdaddr_type) {
 			case 0x00:
