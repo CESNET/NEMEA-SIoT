@@ -56,6 +56,7 @@ int main(int argc, char **argv)
 
 	/* Bluetooth variables */
 	const bdaddr_t* bdaddr;
+	const bdaddr_t bdaddr_any = { 0 }; // BDADDR_ANY is temporary and cannot be used in C++
 	adv_report report;
 	BLEAdvScanner* scanner;
 	char buf[BDADDR_STR_SIZE];
@@ -122,6 +123,10 @@ int main(int argc, char **argv)
 	/* Main loop */
 		// Start without filtering duplicities
 		for (scanner->start(false); BLEAdvCollector_run; report = scanner->getAdvReport()) {
+
+			// Invalid address
+			if (bacmp(&report.bdaddr, &bdaddr_any) == 0)
+				continue;
 
 			ur_time_t timestamp = ur_time_from_sec_msec(
 				report.timestamp.tv_sec,
