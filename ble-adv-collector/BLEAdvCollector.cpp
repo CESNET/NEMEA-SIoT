@@ -80,16 +80,26 @@ int main(int argc, char **argv)
 
 	out_template = ur_create_output_template(0, "TIMESTAMP,DEV_ADDR,ATYPE,RSSI", NULL);
 	if (out_template == NULL) {
-		// TODO: Cleanup
+		std::cerr << "Error: Failed to create UniRec output template." << std::endl;
+		retval = 1;
+		goto unirec_cleanup;
 	}
 
 	record = ur_create_record(out_template, 0);
 	if (record == NULL) {
-		// TODO: Cleanup
+		std::cerr << "Error: Failed to create UniRec record." << std::endl;
+		retval = 1;
+		goto unirec_cleanup;
 	}
 
 	/* BLE Advertisement Scanner initialization */
-	scanner = new BLEAdvScanner();
+	try {
+		scanner = new BLEAdvScanner();
+	} catch (std::runtime_error& e) {
+		std::cerr << "Error: " << e.what() << std::endl;
+		retval = 2;
+		goto unirec_cleanup;
+	}
 	
 	std::cout << "Using HCI device " << scanner->getHCIDevice() << std::endl;
 
@@ -97,30 +107,36 @@ int main(int argc, char **argv)
 	ba2str(bdaddr, buf);
 	std::cout << "Bluetooth address: " << buf << std::endl;
 
-	scanner->setPassiveMode();
-	std::cout << "Set up passive scanning mode." << std::endl;
+	try {
+		scanner->setPassiveMode();
+		std::cout << "Set up passive scanning mode." << std::endl;
 	
 	/* Main loop */
-	// Start without filtering duplicities
-	for (scanner->start(false); BLEAdvCollector_run; report = scanner->getAdvReport()) {
+		// Start without filtering duplicities
+		for (scanner->start(false); BLEAdvCollector_run; report = scanner->getAdvReport()) {
 
-		ur_time_t timestamp = ur_time_from_sec_msec(
-			report.timestamp.tv_sec,
-			report.timestamp.tv_usec / 1000);
+			ur_time_t timestamp = ur_time_from_sec_msec(
+				report.timestamp.tv_sec,
+				report.timestamp.tv_usec / 1000);
 
-		mac_addr_t bdaddr = mac_from_bytes(report.bdaddr.b);
+			mac_addr_t bdaddr = mac_from_bytes(report.bdaddr.b);
 
-		ur_set(out_template, record, F_TIMESTAMP, timestamp);
-		ur_set(out_template, record, F_DEV_ADDR, bdaddr);
-		ur_set(out_template, record, F_ATYPE, report.bdaddr_type);
-		ur_set(out_template, record, F_RSSI, report.rssi);
-	
-		trap_send(0, record, ur_rec_size(out_template, record));
+			ur_set(out_template, record, F_TIMESTAMP, timestamp);
+			ur_set(out_template, record, F_DEV_ADDR, bdaddr);
+			ur_set(out_template, record, F_ATYPE, report.bdaddr_type);
+			ur_set(out_template, record, F_RSSI, report.rssi);
+		
+			trap_send(0, record, ur_rec_size(out_template, record));
+		}
+		scanner->stop();
+	} catch (std::runtime_error& e) {
+		std::cerr << "Error: " << e.what() << std::endl;
+		retval = 3;
 	}
-	scanner->stop();
 
 	delete scanner;
 
+unirec_cleanup:
 	/* UniRec Cleanup */
 	ur_free_record(record);
 	ur_free_template(out_template);
