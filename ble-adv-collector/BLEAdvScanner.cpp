@@ -22,7 +22,14 @@ BLEAdvScanner::BLEAdvScanner(void)
 	}
 
 	this->openHCISocket();
-	this->running = true;
+	this->running = false;
+}
+
+BLEAdvScanner::BLEAdvScanner(uint16_t hci_dev)
+{
+	hciDevID = hci_dev;
+	this->openHCISocket();
+	this->running = false;
 }
 
 BLEAdvScanner::~BLEAdvScanner(void)

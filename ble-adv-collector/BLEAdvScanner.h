@@ -15,6 +15,7 @@ class BLEAdvScanner
 {
 public:
 	BLEAdvScanner(void);
+	BLEAdvScanner(uint16_t hci_dev);
 	~BLEAdvScanner(void);
 
 	const bdaddr_t* getBDAddr(void);

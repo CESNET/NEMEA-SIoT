@@ -32,7 +32,7 @@ trap_module_info_t *module_info = NULL;
 			0, 1)
 
 #define MODULE_PARAMS(PARAM) \
-	PARAM('d', "dev", "HCI device id of Bluetooth controller to use.", no_argument, "uint16")
+	PARAM('d', "dev", "HCI device id of Bluetooth controller to use.", required_argument, "uint16")
 
 #define BDADDR_STR_SIZE 18
 
@@ -47,6 +47,7 @@ int main(int argc, char **argv)
 	
 	/* User interface variables */
 	signed char opt;
+	bool custom_hci_flag = false;
 	uint16_t hci_dev = 0;
 	
 	/* UniRec variables */
@@ -70,11 +71,14 @@ int main(int argc, char **argv)
 	while ((opt = TRAP_GETOPT(argc, argv, module_getopt_string, long_options)) != -1) {
 		switch (opt) {
 			case 'd':
+				custom_hci_flag = true;
 				hci_dev = atoi(optarg);
 				break;
 
 			default:
-				break;
+				std::cerr << "Error: Invalid arguments." << std::endl;
+				FREE_MODULE_INFO_STRUCT(MODULE_BASIC_INFO, MODULE_PARAMS)
+				return 1;
 		}
 	}
 
@@ -94,10 +98,14 @@ int main(int argc, char **argv)
 
 	/* BLE Advertisement Scanner initialization */
 	try {
-		scanner = new BLEAdvScanner();
+		if (custom_hci_flag) {
+			scanner = new BLEAdvScanner(hci_dev);
+		} else {
+			scanner = new BLEAdvScanner();
+		}
 	} catch (std::runtime_error& e) {
 		std::cerr << "Error: " << e.what() << std::endl;
-		retval = 2;
+		retval = 1;
 		goto unirec_cleanup;
 	}
 	
@@ -131,7 +139,7 @@ int main(int argc, char **argv)
 		scanner->stop();
 	} catch (std::runtime_error& e) {
 		std::cerr << "Error: " << e.what() << std::endl;
-		retval = 3;
+		retval = 2;
 	}
 
 	delete scanner;
