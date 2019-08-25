@@ -21,7 +21,7 @@ UR_FIELDS (
    macaddr DEV_ADDR, // Bluetooth address of the device
 
    uint8   ATYPE, // Address type: 0 = public, 1 = random
-   uint8   RSSI   // Signal strength
+   int8    RSSI   // Signal strength
 )
 
 trap_module_info_t *module_info = NULL;
