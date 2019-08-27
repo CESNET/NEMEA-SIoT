@@ -9,7 +9,7 @@
 #define F_RSSI   1
 #define F_RSSI_T   double
 #define F_TIMESTAMP   2
-#define F_TIMESTAMP_T   uint64_t
+#define F_TIMESTAMP_T   ur_time_t
 #define F_VARIANCE   3
 #define F_VARIANCE_T   double
 #define F_DEV_ADDR   4

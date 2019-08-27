@@ -57,7 +57,8 @@ trap_module_info_t *module_info = NULL;
 	BASIC("ble-pairing-detector", \
 		"Analyze received packets from bluetooth-hci-collector and detect BLE pairing.", 1, 1)
 #define MODULE_PARAMS(PARAM) \
-	PARAM('d', "dir", "Directory to store/load paired devices.", required_argument, "string")
+	PARAM('d', "dir", "Directory to store/load paired devices.", required_argument, "string") \
+    PARAM('I', "ignore-in-eof", "Do not terminate on incomming termination message.", no_argument, "none")
 
 static int g_stop = 0;
 
@@ -65,13 +66,13 @@ TRAP_DEFAULT_SIGNAL_HANDLER(g_stop = 1)
 
 int main(int argc, char *argv[])
 {
-	int exit_value = 0;
 	ur_template_t *in_template = NULL;
 	ur_template_t *alert_template = NULL;
 	void *alert_record = NULL;
 	int opt;
 	int verbose = 0;
 	string directory = ".";
+    int ignore_eof = 0; // Ignore EOF input parameter flag
 
 	INIT_MODULE_INFO_STRUCT(MODULE_BASIC_INFO, MODULE_PARAMS)
 	TRAP_DEFAULT_INITIALIZATION(argc, argv, *module_info);
@@ -83,84 +84,94 @@ int main(int argc, char *argv[])
 			case 'd':
 				directory = optarg;
 				break;
+            case 'I':
+                ignore_eof = 1;
+                break;
 			default:
 				cerr << "Invalid argument." << endl;
 				TRAP_DEFAULT_FINALIZATION();
 				FREE_MODULE_INFO_STRUCT(MODULE_BASIC_INFO, MODULE_PARAMS)
-				return exit_value;
+				return 1;
 		}
 	}
 
+	auto cleanup = [&](){
+		TRAP_DEFAULT_FINALIZATION();
+
+		if (in_template != NULL) { ur_free_template(in_template); }
+		if (alert_template != NULL) { ur_free_template(alert_template); }
+		if (alert_record != NULL) { ur_free_record(alert_record); }
+
+		ur_finalize();
+
+		FREE_MODULE_INFO_STRUCT(MODULE_BASIC_INFO, MODULE_PARAMS)
+	};
+
 	if (trap_ifcctl(TRAPIFC_INPUT, 0, TRAPCTL_SETTIMEOUT, TRAP_WAIT) != TRAP_E_OK) {
 		cerr << "Error: could not set input interface timeout." << endl;
-		exit_value = -1;
-		goto cleanup;
+		cleanup();
+		return 1;
 	}
 
 	in_template = ur_create_input_template(0, "HCI_DEV_MAC, TIMESTAMP, DATA_DIRECTION, PACKET_TYPE, PACKET", NULL);
 	if (in_template == NULL) {
 		cerr << "Error: input template could not be created." << endl;
-		exit_value = -1;
-		goto cleanup;
+		cleanup();
+		return 1;
 	}
 
 	alert_template = ur_create_output_template(0, "HCI_DEV_MAC, DEVICE_MAC, TIMESTAMP, SUCCESS, REPEATED, VERSION, METHOD", NULL);
 	if (alert_template == NULL) {
 		cerr << "Error: alert template could not be created." << endl;
-		exit_value = -1;
-		goto cleanup;
+		cleanup();
+		return 1;
 	}
 
 	alert_record = ur_create_record(alert_template, 0);
 	if (alert_record == NULL) {
 		cerr << "Error: Memory allocation problem (output record).";
-		exit_value = -1;
-		goto cleanup;
+		cleanup();
+		return 1;
 	}
 
 	verbose = trap_get_verbose_level();
 
-	{
-		BLEPairingDetector detector(directory, verbose, alert_template, alert_record);
+	BLEPairingDetector detector(directory, verbose, alert_template, alert_record);
 
-		while(!g_stop) {
+	while(!g_stop) {
 
-			const void *in_record;
-			uint16_t in_record_size;
+		const void *in_record;
+		uint16_t in_record_size;
 
-			int ret = TRAP_RECEIVE(0, in_record, in_record_size, in_template);
-			TRAP_DEFAULT_RECV_ERROR_HANDLING(ret, continue, break);
+		int ret = TRAP_RECEIVE(0, in_record, in_record_size, in_template);
+		TRAP_DEFAULT_RECV_ERROR_HANDLING(ret, continue, break);
 
-            // EOF close this module 
-            if ( in_record_size <= 1 ){
-                char dummy[1] = {0};
-                trap_send(0, dummy, 1); 
-                trap_send_flush(0);
-                goto cleanup;
-            }
-            
-
-
-			detector.processPacket(
-				ur_get_ptr(in_template, in_record, F_HCI_DEV_MAC),
-				ur_get_ptr(in_template, in_record, F_TIMESTAMP),
-				ur_get_ptr(in_template, in_record, F_PACKET_TYPE),
-				ur_get_var_len(in_template, in_record, F_PACKET),
-				(uint8_t *) ur_get_ptr(in_template, in_record, F_PACKET)
-			);
+		// EOF close this module
+		if ( in_record_size <= 1 ){
+			char dummy[1] = {0};
+			trap_send(0, dummy, 1);
+			trap_send_flush(0);
+			// if ignore_eof option is used -> forward eof message but keep this module running
+			if ( !ignore_eof ){
+				cleanup();
+				return 1;
+			}
 		}
+
+
+
+		detector.processPacket(
+			ur_get_ptr(in_template, in_record, F_HCI_DEV_MAC),
+			ur_get_ptr(in_template, in_record, F_TIMESTAMP),
+			ur_get_ptr(in_template, in_record, F_PACKET_TYPE),
+			ur_get_var_len(in_template, in_record, F_PACKET),
+			(uint8_t *) ur_get_ptr(in_template, in_record, F_PACKET)
+		);
 	}
 
-cleanup:
-	ur_free_template(in_template);
 
-	ur_free_record(alert_record);
-	ur_free_template(alert_template);
-
-	TRAP_DEFAULT_FINALIZATION();
-	FREE_MODULE_INFO_STRUCT(MODULE_BASIC_INFO, MODULE_PARAMS)
-
-	return exit_value;
+	cleanup();
+	return 0;
 }
 
 BLEPairingDetector::BLEPairingDetector(
@@ -228,8 +239,11 @@ void BLEPairingDetector::processEvent(
 
 			uint16_t handle = htobl(eventLE->handle);
 
+			bdaddr_t dev_mac;
+			baswap(&dev_mac, &eventLE->peer_bdaddr);
+
 			Connection connection;
-			baswap(&connection.address, &eventLE->peer_bdaddr);
+			connection.address = mac_from_bytes(dev_mac.b);
 			connection.state = STATE_CONNECTED;
 
 			m_connectionMap.insert(make_pair(handle, connection));
@@ -447,9 +461,11 @@ void BLEPairingDetector::generatePairingAlert(
 	const Connection &connection,
 	bool success)
 {
-	char hciDevMacStr[17];
+	char hciDevMacStr[18];
+	char deviceMacStr[18];
+
 	mac_to_str(hciDevMac, hciDevMacStr);
-	char *deviceMacStr = batostr(&connection.address);
+	mac_to_str(&(connection.address), deviceMacStr);
 
 	bool isRepeated = isRepeatedPairing(hciDevMacStr, deviceMacStr);
 
@@ -468,7 +484,7 @@ void BLEPairingDetector::generatePairingAlert(
 	}
 
 	ur_set(m_alert_template, m_alert_record, F_HCI_DEV_MAC,*hciDevMac);
-	ur_set(m_alert_template, m_alert_record, F_DEVICE_MAC, mac_from_bytes((uint8_t *) connection.address.b));
+	ur_set(m_alert_template, m_alert_record, F_DEVICE_MAC, connection.address);
 	ur_set(m_alert_template, m_alert_record, F_TIMESTAMP, *timestamp);
 	ur_set(m_alert_template, m_alert_record, F_SUCCESS, success);
 	ur_set(m_alert_template, m_alert_record, F_REPEATED, isRepeated);

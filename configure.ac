@@ -46,6 +46,6 @@ wsn-anomaly
 lora-airtime
 lora-replay
 lora-distance
-lora-collector
-ble-adv-collector])
+ble-adv-scanner])
+
 AC_OUTPUT

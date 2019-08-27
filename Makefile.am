@@ -6,6 +6,5 @@ wsn-anomaly \
 lora-airtime \
 lora-replay \
 lora-distance \
-lora-collector \
 ble-adv-collector
 
