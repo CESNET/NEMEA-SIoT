@@ -4,4 +4,4 @@ siot_ble_adv_collector_LDADD=-ltrap -lunirec -lbluetooth
 siot_ble_adv_collector_LDFLAGS=-Wno-write-strings
 siot_ble_adv_collector_CXXFLAGS=--std=c++11 -Wno-write-strings
 
-include ./aminclude.am
+include ../aminclude.am
