@@ -9,6 +9,7 @@
 #include <unirec/unirec.h>
 #include <unistd.h>
 
+#include "BLEConnDetector.h"
 #include "fields.h"
 
 UR_FIELDS (
@@ -41,13 +42,6 @@ static bool BLEConnDetector_run = true;
 
 TRAP_DEFAULT_SIGNAL_HANDLER(BLEConnDetector_run = false)
     
-typedef struct {
-	ur_time_t  timestamp;
-	mac_addr_t bdaddr;
-	uint8_t    bdaddr_type; // Type of BDADDR: 0x00 = Public, 0x01 = Random
-	int8_t     rssi;
-} adv_report;	
-
 int main(int argc, char **argv)
 {
 	int retval = 0;
@@ -55,6 +49,9 @@ int main(int argc, char **argv)
 	/* UniRec variables */
 	ur_template_t *in_tmplt = NULL, *out_tmplt = NULL;
 	void *out_rec = NULL;
+
+  /* Detector variables */
+  BLEConnDetector* detector;
 	
   /* UniRec Initialization */
 	INIT_MODULE_INFO_STRUCT(MODULE_BASIC_INFO, MODULE_PARAMS)
@@ -84,6 +81,9 @@ int main(int argc, char **argv)
 		goto unirec_cleanup;
 	}
 
+  /* Detector Initialization */
+  detector = new BLEConnDetector();
+
 	/* Main loop */
   while (BLEConnDetector_run) {
     const void *in_rec;
@@ -111,6 +111,8 @@ int main(int argc, char **argv)
     report.bdaddr_type = ur_get(in_tmplt, in_rec, F_ATYPE);
     report.rssi        = ur_get(in_tmplt, in_rec, F_RSSI);
 
+    detector->processAdvReport(&report);
+/*
     mac_to_str(&report.bdaddr, buf);
 
     std::cout << report.timestamp << " Received advertisement report" << std::endl;
@@ -127,7 +129,10 @@ int main(int argc, char **argv)
         break;
     }
     std::cout << "\tRSSI: " << (int)report.rssi << std::endl;
+*/
   }
+
+  delete detector;
 
 unirec_cleanup:
 	/* UniRec Cleanup */
