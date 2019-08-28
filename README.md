@@ -1,7 +1,7 @@
 # Nemea Secured IoT 
 
 This repository contains [Nemea system](https://github.com/CESNET/Nemea) modules for a threat detection in IoT networks. The modules and their functionality/purposes are:
- * [ble-adv-scanner](ble-adv-scanner) -- provide ble devices which are in proximity
+ * [ble-adv-collector](ble-adv-collector) -- provide ble devices which are in proximity
  * [ble-pairing](ble-pairing) -- detect unexpected ble pairing
  * [hci-collector](hci-collector) -- exports ble packet date from hci interface
  * [lora-airtime](lora-airtime) -- detect unexpected frequency of lora messages
