@@ -3,66 +3,67 @@
 #include "fields.h"
 
 char *ur_field_names_static[] = {
-   (char *) "ACKCount",
-   (char *) "ACKWaiting",
-   (char *) "aclMtu",
-   (char *) "aclPackets",
-   (char *) "address",
-   (char *) "average",
-   (char *) "averageRequestRTT",
-   (char *) "averageResponseRTT",
-   (char *) "badChecksum",
-   (char *) "badroutes",
-   (char *) "broadcastReadCount",
-   (char *) "broadcastWriteCount",
-   (char *) "callbacks",
-   (char *) "CANCount",
-   (char *) "dropped",
-   (char *) "err_value",
-   (char *) "GW_ID",
-   (char *) "ID",
-   (char *) "lastRequestRTT",
-   (char *) "lastResponseRTT",
-   (char *) "moving_average",
-   (char *) "moving_median",
-   (char *) "moving_variance",
-   (char *) "NAKCount",
-   (char *) "netBusy",
-   (char *) "noACK",
-   (char *) "nodeID",
-   (char *) "nonDelivery",
-   (char *) "notIdle",
-   (char *) "OOFCount",
-   (char *) "profile_value",
-   (char *) "quality",
-   (char *) "readAborts",
-   (char *) "readCount",
-   (char *) "receivedCount",
-   (char *) "receiveDuplications",
-   (char *) "receiveUnsolicited",
-   (char *) "retries",
-   (char *) "routedBusy",
-   (char *) "rxAcls",
-   (char *) "rxBytes",
-   (char *) "rxErrors",
-   (char *) "rxEvents",
-   (char *) "rxScos",
-   (char *) "scoMtu",
-   (char *) "scoPackets",
-   (char *) "sentCount",
-   (char *) "sentFailed",
-   (char *) "SOFCount",
-   (char *) "TIME",
-   (char *) "txAcls",
-   (char *) "txBytes",
-   (char *) "txCmds",
-   (char *) "txErrors",
-   (char *) "txScos",
-   (char *) "VALUE",
-   (char *) "writeCount",
-   (char *) "alert_desc",
-   (char *) "profile_key",
-   (char *) "ur_key",
+  (char *)   "ACKCount",
+  (char *)   "ACKWaiting",
+  (char *)   "aclMtu",
+  (char *)   "aclPackets",
+  (char *)   "address",
+  (char *)   "average",
+  (char *)   "averageRequestRTT",
+  (char *)   "averageResponseRTT",
+  (char *)   "badChecksum",
+  (char *)   "badroutes",
+  (char *)   "broadcastReadCount",
+  (char *)   "broadcastWriteCount",
+  (char *)   "callbacks",
+  (char *)   "CANCount",
+  (char *)   "dropped",
+  (char *)   "ERR_VALUE",
+  (char *)   "GW_ID",
+  (char *)   "INCIDENT_DEV_ADDR",
+  (char *)   "lastRequestRTT",
+  (char *)   "lastResponseRTT",
+  (char *)   "moving_average",
+  (char *)   "moving_median",
+  (char *)   "moving_variance",
+  (char *)   "NAKCount",
+  (char *)   "netBusy",
+  (char *)   "noACK",
+  (char *)   "nodeID",
+  (char *)   "nonDelivery",
+  (char *)   "notIdle",
+  (char *)   "OOFCount",
+  (char *)   "PROFILE_VALUE",
+  (char *)   "quality",
+  (char *)   "readAborts",
+  (char *)   "readCount",
+  (char *)   "receivedCount",
+  (char *)   "receivedDuplications",
+  (char *)   "receivedUnsolicited",
+  (char *)   "retries",
+  (char *)   "routedBusy",
+  (char *)   "rxAcls",
+  (char *)   "rxBytes",
+  (char *)   "rxErrors",
+  (char *)   "rxEvents",
+  (char *)   "rxScos",
+  (char *)   "scoMtu",
+  (char *)   "scoPackets",
+  (char *)   "sentCount",
+  (char *)   "sentFailed",
+  (char *)   "SOFCount",
+  (char *)   "TIME",
+  (char *)   "txAcls",
+  (char *)   "txBytes",
+  (char *)   "txCmds",
+  (char *)   "txErrors",
+  (char *)   "txScos",
+  (char *)   "VALUE",
+  (char *)   "writeCount",
+  (char *)   "ALERT_CODE",
+  (char *)   "CAPTION",
+  (char *)   "PROFILE_KEY",
+  (char *)   "UR_KEY",
 };
 short ur_field_sizes_static[] = {
    8, /* ACKCount */
@@ -80,9 +81,9 @@ short ur_field_sizes_static[] = {
    8, /* callbacks */
    8, /* CANCount */
    8, /* dropped */
-   8, /* err_value */
+   8, /* ERR_VALUE */
    8, /* GW_ID */
-   8, /* ID */
+   8, /* INCIDENT_DEV_ADDR */
    8, /* lastRequestRTT */
    8, /* lastResponseRTT */
    8, /* moving_average */
@@ -95,13 +96,13 @@ short ur_field_sizes_static[] = {
    8, /* nonDelivery */
    8, /* notIdle */
    8, /* OOFCount */
-   8, /* profile_value */
+   8, /* PROFILE_VALUE */
    8, /* quality */
    8, /* readAborts */
    8, /* readCount */
    8, /* receivedCount */
-   8, /* receiveDuplications */
-   8, /* receiveUnsolicited */
+   8, /* receivedDuplications */
+   8, /* receivedUnsolicited */
    8, /* retries */
    8, /* routedBusy */
    8, /* rxAcls */
@@ -122,9 +123,10 @@ short ur_field_sizes_static[] = {
    8, /* txScos */
    8, /* VALUE */
    8, /* writeCount */
-   -1, /* alert_desc */
-   -1, /* profile_key */
-   -1, /* ur_key */
+   4, /* ALERT_CODE */
+   -1, /* CAPTION */
+   -1, /* PROFILE_KEY */
+   -1, /* UR_KEY */
 };
 ur_field_type_t ur_field_types_static[] = {
    UR_TYPE_DOUBLE, /* ACKCount */
@@ -142,9 +144,9 @@ ur_field_type_t ur_field_types_static[] = {
    UR_TYPE_DOUBLE, /* callbacks */
    UR_TYPE_DOUBLE, /* CANCount */
    UR_TYPE_DOUBLE, /* dropped */
-   UR_TYPE_DOUBLE, /* err_value */
-   UR_TYPE_UINT64, /* GW_ID */
-   UR_TYPE_UINT64, /* ID */
+   UR_TYPE_DOUBLE, /* ERR_VALUE */
+   UR_TYPE_DOUBLE, /* GW_ID */
+   UR_TYPE_UINT64, /* INCIDENT_DEV_ADDR */
    UR_TYPE_DOUBLE, /* lastRequestRTT */
    UR_TYPE_DOUBLE, /* lastResponseRTT */
    UR_TYPE_DOUBLE, /* moving_average */
@@ -157,13 +159,13 @@ ur_field_type_t ur_field_types_static[] = {
    UR_TYPE_DOUBLE, /* nonDelivery */
    UR_TYPE_DOUBLE, /* notIdle */
    UR_TYPE_DOUBLE, /* OOFCount */
-   UR_TYPE_DOUBLE, /* profile_value */
+   UR_TYPE_DOUBLE, /* PROFILE_VALUE */
    UR_TYPE_DOUBLE, /* quality */
    UR_TYPE_DOUBLE, /* readAborts */
    UR_TYPE_DOUBLE, /* readCount */
    UR_TYPE_DOUBLE, /* receivedCount */
-   UR_TYPE_DOUBLE, /* receiveDuplications */
-   UR_TYPE_DOUBLE, /* receiveUnsolicited */
+   UR_TYPE_DOUBLE, /* receivedDuplications */
+   UR_TYPE_DOUBLE, /* receivedUnsolicited */
    UR_TYPE_DOUBLE, /* retries */
    UR_TYPE_DOUBLE, /* routedBusy */
    UR_TYPE_DOUBLE, /* rxAcls */
@@ -176,7 +178,7 @@ ur_field_type_t ur_field_types_static[] = {
    UR_TYPE_DOUBLE, /* sentCount */
    UR_TYPE_DOUBLE, /* sentFailed */
    UR_TYPE_DOUBLE, /* SOFCount */
-   UR_TYPE_DOUBLE, /* TIME */
+   UR_TYPE_TIME, /* TIME */
    UR_TYPE_DOUBLE, /* txAcls */
    UR_TYPE_DOUBLE, /* txBytes */
    UR_TYPE_DOUBLE, /* txCmds */
@@ -184,9 +186,10 @@ ur_field_type_t ur_field_types_static[] = {
    UR_TYPE_DOUBLE, /* txScos */
    UR_TYPE_DOUBLE, /* VALUE */
    UR_TYPE_DOUBLE, /* writeCount */
-   UR_TYPE_STRING, /* alert_desc */
-   UR_TYPE_STRING, /* profile_key */
-   UR_TYPE_STRING, /* ur_key */
+   UR_TYPE_UINT32, /* ALERT_CODE */
+   UR_TYPE_STRING, /* CAPTION */
+   UR_TYPE_STRING, /* PROFILE_KEY */
+   UR_TYPE_STRING, /* UR_KEY */
 };
-ur_static_field_specs_t UR_FIELD_SPECS_STATIC = {ur_field_names_static, ur_field_sizes_static, ur_field_types_static, 60};
-ur_field_specs_t ur_field_specs = {ur_field_names_static, ur_field_sizes_static, ur_field_types_static, 60, 60, 60, NULL, UR_UNINITIALIZED};
+ur_static_field_specs_t UR_FIELD_SPECS_STATIC = {ur_field_names_static, ur_field_sizes_static, ur_field_types_static, 61};
+ur_field_specs_t ur_field_specs = {ur_field_names_static, ur_field_sizes_static, ur_field_types_static, 61, 61, 61, NULL, UR_UNINITIALIZED};

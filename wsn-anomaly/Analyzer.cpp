@@ -477,6 +477,8 @@ void Analyzer::addAlert(string & profile_name, string alert_message, map<string,
 }
 
 void Analyzer::dataLimitCheck(map<string, map<uint64_t, map<string, vector<string> > > >::iterator &meta_it, string ur_field, uint64_t *ur_id, double *ur_time ,double *ur_data, map<string,vector<string> > &alert_str){
+    int err = 0;
+    string alert_message;
 
     for (auto profile_values: meta_it->second[getMetaID(meta_it,ur_id)]["profile"]){
         // Test if soft limits are set
@@ -491,7 +493,11 @@ void Analyzer::dataLimitCheck(map<string, map<uint64_t, map<string, vector<strin
                     if (verbose >= 0){
                         cout << "VERBOSE: ALERT: Lower soft limit" << endl;
                     }
-                    addAlert(profile_values, "Lower soft limit", alert_str);
+                    // Count exact error value 
+                    err = stoi (meta_it->second[getMetaID(meta_it,ur_id)][profile_values][S_MIN_LIMIT],nullptr) - stoi (meta_it->second[getMetaID(meta_it,ur_id)][profile_values][S_MIN_LIMIT],nullptr); 
+                    // Alert alert messaga (caption) and add alert code
+                    alert_message = "The device " + to_string(*ur_id) + " exceeded the minimal soft limit by " + to_string(err) + "3";
+                    addAlert(profile_values, alert_message, alert_str);
                 } else{
                     meta_it->second[getMetaID(meta_it,ur_id)][profile_values][S_MIN_LIMIT] = to_string(stoi (meta_it->second[getMetaID(meta_it,ur_id)][profile_values][S_MIN_LIMIT],nullptr) + 1);
                 }
@@ -507,7 +513,11 @@ void Analyzer::dataLimitCheck(map<string, map<uint64_t, map<string, vector<strin
                     if (verbose >= 0){
                         cout <<  "VERBOSE: ALERT: Higher soft limit" << endl;
                     }
-                    addAlert(profile_values, "Higher soft limit", alert_str);
+                    // Count exact error value 
+                    err = stod(meta_it->second[getMetaID(meta_it,ur_id)]["metaData"][getIndex(profile_values)],nullptr)  - stod(meta_it->second[getMetaID(meta_it,ur_id)][profile_values][SOFT_MAX],nullptr);
+                    // Alert alert messaga (caption) and add alert code
+                    alert_message = "The device " + to_string(*ur_id) + " exceeded the maximal soft limit by " + to_string(err) + "4";
+                    addAlert(profile_values, alert_message, alert_str);
                 } else{
                     meta_it->second[getMetaID(meta_it,ur_id)][profile_values][S_MAX_LIMIT] = to_string(stoi (meta_it->second[getMetaID(meta_it,ur_id)][profile_values][S_MAX_LIMIT],nullptr) + 1);
                 }
@@ -526,14 +536,23 @@ void Analyzer::dataLimitCheck(map<string, map<uint64_t, map<string, vector<strin
                 if (verbose >= 0){
                     cout << "VERBOSE: ALERT: Lower hard limit" << endl;
                 }
-                addAlert(profile_values, "Lower hard limit", alert_str);
+    
+                // Count exact error value 
+                err = stod(meta_it->second[getMetaID(meta_it,ur_id)][profile_values][HARD_MIN],nullptr) - stod(meta_it->second[getMetaID(meta_it,ur_id)]["metaData"][getIndex(profile_values)],nullptr);
+                // Alert alert messaga (caption) and add alert code
+                alert_message = "The device " + to_string(*ur_id) + " exceeded the minimal hard limit by " + to_string(err) + "5";
+                addAlert(profile_values, alert_message, alert_str);
             }
             //hard limit max
             if (stod(meta_it->second[getMetaID(meta_it,ur_id)]["metaData"][getIndex(profile_values)],nullptr)  > stod(meta_it->second[getMetaID(meta_it,ur_id)][profile_values][HARD_MAX],nullptr) ){
                 if (verbose >= 0){
                     cout  << "VERBOSE: ALERT: Higher hard limit" << endl;
                 }
-                addAlert(profile_values, "Higher hard limit", alert_str);
+                // Count exact error value 
+                err = stod(meta_it->second[getMetaID(meta_it,ur_id)]["metaData"][getIndex(profile_values)],nullptr)  - stod(meta_it->second[getMetaID(meta_it,ur_id)][profile_values][HARD_MAX],nullptr);
+                // Alert alert messaga (caption) and add alert code
+                alert_message = "The device " + to_string(*ur_id) + " exceeded the maximal hard limit by " + to_string(err) + "6";
+                addAlert(profile_values, alert_message, alert_str);
             }
         }
     }
@@ -543,6 +562,7 @@ void Analyzer::dataChangeCheck(map<uint64_t,vector<double> >::iterator &sensor_i
     double alert_coef = 0;
     double new_value = 0;
     double profile_value = 0;
+    string alert_message;
 
     for (auto profile_values: meta_it->second[getMetaID(meta_it,ur_id)]["profile"]){
         new_value = stod(meta_it->second[getMetaID(meta_it,ur_id)]["metaData"][getIndex(profile_values)],nullptr);
@@ -566,13 +586,17 @@ void Analyzer::dataChangeCheck(map<uint64_t,vector<double> >::iterator &sensor_i
                 if (verbose >= 0){
                     cout << "VERBOSE: ALERT: GROW UP with value " << alert_coef << endl;
                 }
-                addAlert(profile_values, "Higher grow limit", alert_str);
+                // Alert alert messaga (caption) and add alert code
+                alert_message = "The device " + to_string(*ur_id) + " exceeded the grow up limit with value " + to_string(alert_coef) + "7"; 
+                addAlert(profile_values, alert_message, alert_str);
 
             }
             if (alert_coef < stod(meta_it->second[getMetaID(meta_it,ur_id)][profile_values][GROW_DOWN],nullptr)){
                 if (verbose >= 0){
                     cout << "VERBOSE: ALERT: GROW DOWN " << endl;
                 }
+                // Alert alert messaga (caption) and add alert code
+                alert_message = "The device " + to_string(*ur_id) + " exceeded the grow down limit with value " + to_string(alert_coef) + "8";
                 addAlert(profile_values, "Lower grow limit", alert_str);
             }
         }
@@ -607,6 +631,17 @@ map<string,vector<string> > Analyzer::analyzeData(string ur_field, uint64_t *ur_
 
 }
 
+/*
+ALERT Codes
+1 - Inactivity period 
+2 - Static data limit 
+3 - Soft limit min
+4 - Soft limit max
+5 - Hard limit min
+6 - Hard limit max
+7 - Grow Up limit
+8 - Grow Down limit
+*/
 void Analyzer::sendAlert(map<string, vector<string> > &alert_str, string &ur_field, uint64_t *ur_id, double *ur_time){
     if (alert_str.empty()){
         if (verbose >= 1){
@@ -620,6 +655,7 @@ void Analyzer::sendAlert(map<string, vector<string> > &alert_str, string &ur_fie
     double err_value = 0;
     double profile_value = 0;
     int index = 0;
+    string alert_code;
 
     for (auto profile: alert_str){
         for (auto elem: profile.second){
@@ -635,17 +671,23 @@ void Analyzer::sendAlert(map<string, vector<string> > &alert_str, string &ur_fie
                 err_value = 0;
                 profile_value = 0;
             }
-
+            //Get alert code from CAPTION message
+            alert_code = elem.substr(elem.size()-1,elem.size());
+            elem = elem.substr(0, elem.size()-1);
+            
+            // Convert timestamp to UniRec time
+            ur_time_t timestamp = ur_time_from_sec_msec(*ur_time,0);
             // Clear variable-length fields
             ur_clear_varlen(alert_template, data_alert);
             // Set UniRec message values
-            ur_set(alert_template, data_alert, F_ID, *ur_id);
-            ur_set(alert_template, data_alert, F_TIME, *ur_time);
-            ur_set(alert_template, data_alert, F_err_value, err_value);
-            ur_set(alert_template, data_alert, F_profile_value, profile_value);
-            ur_set_string(alert_template, data_alert, F_profile_key, profile.first.c_str());
-            ur_set_string(alert_template, data_alert, F_alert_desc, elem.c_str());
-            ur_set_string(alert_template, data_alert, F_ur_key, ur_field.c_str());
+            ur_set(alert_template, data_alert, F_INCIDENT_DEV_ADDR, *ur_id);
+            ur_set(alert_template, data_alert, F_TIME, timestamp);
+            ur_set(alert_template, data_alert, F_ALERT_CODE, stod(alert_code));
+            ur_set(alert_template, data_alert, F_ERR_VALUE, err_value);
+            ur_set(alert_template, data_alert, F_PROFILE_VALUE, profile_value);
+            ur_set_string(alert_template, data_alert, F_PROFILE_KEY, profile.first.c_str());
+            ur_set_string(alert_template, data_alert, F_CAPTION, elem.c_str());
+            ur_set_string(alert_template, data_alert, F_UR_KEY, ur_field.c_str());
             trap_ctx_send(alert_ifc, 0, data_alert, ur_rec_size(alert_template, data_alert) );
             //trap_ctx_send_flush(alert_ifc,0);
         }
@@ -659,6 +701,8 @@ void Analyzer::periodicCheck(int period,  string ur_field, uint64_t *ur_id){
     double change_period = 0;
     uint64_t data_id = *ur_id;
     double ur_time = 0;
+    string alert_message;
+    int err = 0;
 
     while(true){
         sleep(period);
@@ -667,9 +711,14 @@ void Analyzer::periodicCheck(int period,  string ur_field, uint64_t *ur_id){
             map<string,vector<string> > alert_str;
             // Alert -> data hasn't been received
             if (verbose >= 0){
-                cout << "VERBOSE: ALERT: data period" << endl;
+                cout << "VERBOSE: ALERT: inactivity data period exceeded" << endl;
             }
-            addAlert(ur_field, "Periodic check", alert_str);
+
+            // Count the exact error value
+            err = (result - stoi(meta_it->second[getMetaID(meta_it,&data_id)]["metaData"][LAST_TIME]));
+            // Alert alert messaga (caption) and add alert code
+            alert_message = "The device " + to_string(*ur_id) + " exceeded the inactivity period by " + to_string(err) + "1";
+            addAlert(ur_field, alert_message, alert_str);
             ur_time = stod(meta_it->second[getMetaID(meta_it,&data_id)]["metaData"][LAST_TIME],nullptr);
             sendAlert(alert_str, ur_field, &data_id, &ur_time);
         }
@@ -693,7 +742,12 @@ void Analyzer::periodicCheck(int period,  string ur_field, uint64_t *ur_id){
                 if (verbose >= 0){
                     cout << "VERBOSE: ALERT: data hasn't been chagend long time" << endl;
                 }
-                addAlert(ur_field, "Periodic data limit check", alert_str);
+
+                // Count the exact error value
+                err = change_period - stod(meta_it->second[getMetaID(meta_it,&data_id)]["general"][PERIODIC_INTERVAL],nullptr);
+                // Alert alert messaga (caption) and add alert code
+                alert_message = "The device " + to_string(*ur_id) + " exceeded the static data limit by " + to_string(err) + "2";
+                addAlert(ur_field, alert_message, alert_str);
                 ur_time = stod(meta_it->second[getMetaID(meta_it,&data_id)]["metaData"][LAST_TIME],nullptr);
                 sendAlert(alert_str, ur_field, &data_id, &ur_time);
             }
