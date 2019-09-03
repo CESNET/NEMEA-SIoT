@@ -442,34 +442,25 @@ UR_FIELDS(
         uint32 CODE_RATE,
         time TIMESTAMP,
         string PHY_PAYLOAD,
-        double RSSI
-        //        string DEV_ADDR,
-        //        double BASE_RSSI,
-        //        double VARIANCE
-        //        string GW_ID,
-        //        string NODE_MAC,
-        //        uint32 US_COUNT,
-        //        uint32 FRQ,
-        //        uint32 RF_CHAIN,
-        //        uint32 RX_CHAIN,
-        //        string STATUS,
-        //        string MOD,
-        //        double SNR,
-        //        string APP_EUI,
-        //        string APP_NONCE,
-        //        string DEV_EUI,
-        //        string DEV_NONCE,
-        //        string FCTRL,
-        //        string FHDR,
-        //        string F_OPTS,
-        //        string F_PORT,
-        //        string FRM_PAYLOAD,
-        //        string LORA_PACKET,
-        //        string MAC_PAYLOAD,
-        //        string MHDR,
-        //        string MIC,
-        //        string NET_ID,
-        //        uint64 AIR_TIME
+        double RSSI,
+        string DEV_ADDR,
+        uint32 US_COUNT,
+        uint32 FRQ,
+        uint32 RF_CHAIN,
+        string STATUS,
+        string MOD,
+        double SNR,
+        string APP_EUI,
+        string APP_NONCE,
+        string DEV_EUI,
+        string DEV_NONCE,
+        string FCTRL,
+        string FHDR,
+        string FOPTS,
+        string FPORT,
+        string MHDR,
+        string MIC,
+        string NET_ID
         )
 
 trap_module_info_t *module_info = NULL;
@@ -635,7 +626,7 @@ int main(int argc, char **argv) {
     }
 
     /** Create Output UniRec templates */
-    ur_template_t *out_tmplt = ur_create_output_template(0, "SIZE,SF,BAD_WIDTH,CODE_RATE,TIMESTAMP,PHY_PAYLOAD,RSSI", NULL);
+    ur_template_t *out_tmplt = ur_create_output_template(0, "SIZE,SF,BAD_WIDTH,CODE_RATE,TIMESTAMP,PHY_PAYLOAD,RSSI,RF_CHAIN,SNR,DEV_ADDR,APP_EUI,DEV_EUI,FOPTS,FPORT,DEV_NONCE,FCTRL,FHDR,APP_NONCE,MHDR,MIC,NET_ID,FRQ,US_COUNT,STATUS,MOD", NULL);
     if (out_tmplt == NULL) {
         //        ur_free_template(in_tmplt);
         ur_free_template(out_tmplt);
@@ -754,16 +745,51 @@ int main(int argc, char **argv) {
 	    /* TIMESTAMP time */
 	    time_t t = time(0);
 	    ur_time_t timestamp = ur_time_from_sec_msec(t, t/1000);
+            
+            /** Check size payload min/max */
+            if (p->size < 14 || p->size > 512)
+                continue;
 
-            /* set RSSI */
+            /** Initialization physical payload for parsing and reversing octet fields. */
+            lr_initialization(payload);
+
+            if (DevAddr == NULL)
+                continue;
+            
+            /** Identity message type */
+            if (lr_is_join_accept_message()) {
+                ur_set_string(out_tmplt, out_rec, F_DEV_ADDR, DevAddr);
+            } else if (lr_is_data_message()) {
+                ur_set_string(out_tmplt, out_rec, F_DEV_ADDR, DevAddr);
+            }
+
+            /* Set value of UniRec fields */
             ur_set(out_tmplt, out_rec, F_BAD_WIDTH, band_width);
             ur_set(out_tmplt, out_rec, F_SIZE, p->size);
             ur_set(out_tmplt, out_rec, F_RSSI, (double) p->rssi);
             ur_set(out_tmplt, out_rec, F_CODE_RATE, code_rate);
             ur_set(out_tmplt, out_rec, F_SF, sf);
             ur_set(out_tmplt, out_rec, F_TIMESTAMP, timestamp);
+            ur_set(out_tmplt, out_rec, F_RF_CHAIN, p->rf_chain);
+            ur_set(out_tmplt, out_rec, F_SNR, p->snr);
             ur_set_string(out_tmplt, out_rec, F_PHY_PAYLOAD, payload);
-
+            
+            ur_set_string(out_tmplt, out_rec, F_APP_EUI, AppEUI);
+            ur_set_string(out_tmplt, out_rec, F_DEV_EUI, DevEUI);
+            ur_set_string(out_tmplt, out_rec, F_FOPTS, FOpts);
+            ur_set_string(out_tmplt, out_rec, F_FPORT, FPort);
+            ur_set_string(out_tmplt, out_rec, F_DEV_NONCE, DevNonce);
+            ur_set_string(out_tmplt, out_rec, F_FCTRL, FCtrl);
+            ur_set_string(out_tmplt, out_rec, F_FHDR, FHDR);
+            ur_set_string(out_tmplt, out_rec, F_APP_NONCE, AppNonce);
+            ur_set_string(out_tmplt, out_rec, F_MHDR, MHDR);
+            ur_set_string(out_tmplt, out_rec, F_MIC, MIC);
+            ur_set_string(out_tmplt, out_rec, F_NET_ID, NetID);
+            ur_set(out_tmplt, out_rec, F_FRQ, p->freq_hz);
+            ur_set(out_tmplt, out_rec, F_US_COUNT, p->count_us);
+            ur_set(out_tmplt, out_rec, F_STATUS, p->status);
+            ur_set(out_tmplt, out_rec, F_MOD, p->modulation);
+            
             //free(payload);
             //payload = NULL;
             payload[0] = '\0';
