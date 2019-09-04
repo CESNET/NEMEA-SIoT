@@ -122,7 +122,6 @@ int ConfigParser::checkConfigRelations(string subsection){
         string soft_min = series[main_key][main_id][subsection][SOFT_MIN];
         string soft_max = series[main_key][main_id][subsection][SOFT_MAX];
         string grace_period = series[main_key][main_id][subsection][SOFT_PERIOD];
-
         if ( (soft_min == "-" && soft_max == "-" && grace_period == "-") || (soft_min != "-" && soft_max != "-" && grace_period != "-") ) {
             // Soft limit dependencies are correct
             return_value = 0;
@@ -154,8 +153,16 @@ int ConfigParser::checkConfigRelations(string subsection){
         }
 
         // Check min max boundaries
-        if (soft_min >= soft_max || hard_min >= hard_max || grow_down > grow_up ){
-            cerr << "ERROR: Min value is bigger than max value. Check soft, hard and grow limits!" << endl;
+        if ( (soft_min != "-") && (stod(soft_min) >= stod(soft_max)) ){
+            cerr << "ERROR: Min value is bigger than max value. Check soft limits in subsection!" << endl;
+            return 3;
+
+        } else if ( hard_min != "-" && stod(hard_min) >= stod(hard_max) ){
+            cerr << "ERROR: Min value is bigger than max value. Check hard limits!" << endl;
+            return 3;
+
+        } else if ( grow_down != "-" && stod(grow_down) > stod(grow_up)) {
+            cerr << "ERROR: Min value is bigger than max value. Check grow limits in subsection!" << endl;
             return 3;
         }
     }
@@ -178,7 +185,7 @@ int ConfigParser::checkSubsectionValue(string parsed_value, string key_name){
         if (parsed_value == "-"){
             return 0;
         } else {
-            cerr << "ERROR: Wrong value " << parsed_value << ". Check documentation for the right range." << endl;
+            cerr << "ERROR: Wrong value " << key_name << ": " << parsed_value << ". Check documentation for the right range." << endl;
             return 2;
         }
     }
@@ -189,8 +196,8 @@ int ConfigParser::checkSubsectionValue(string parsed_value, string key_name){
 int ConfigParser::checkSectionValue(string parsed_value, string key_name ){
 
     try {
-        if ( (stoi(parsed_value) < 0 && "ignore" == key_name) || stoi(parsed_value) <= 0 ) {
-            cerr << "ERROR: Wrong value " << parsed_value  << ". Check documentation for the right range." << endl;
+        if ( (stoi(parsed_value) < 0 && "ignore" == key_name) || (stoi(parsed_value) <= 0 && "ignore" != key_name) ) {
+            cerr << "ERROR: Wrong value " << key_name << ": " << parsed_value  << ". Check documentation for the right range." << endl;
             return 2;
         } else {
             // Add value to the data structure
@@ -232,12 +239,34 @@ int ConfigParser::parseIniFile(){
         }
         // Parse the main section
         if ((*it).find(".") == string::npos ){
-            main_key = *it;
-
-
             if (verbose >= 0 ){
-                cout << "VERBOSE: Parsing key id " << *it << endl;
+                cout << "VERBOSE: Parsing Main key and ID key " << *it << endl;
             }
+            // Separate Main key and ID
+            if ((*it).find("#") == string::npos){
+                if (verbose >= 0 ){
+                    cout << "VERBOSE: No id field has been found -> use default 0 " << *it << endl;
+                }
+                main_key = *it;
+                main_id = 0;
+
+            } else {
+                vector<string> tmp_key = parseString((*it),"#");
+                main_key = tmp_key[0];
+                tmp_main_id = tmp_key[1];
+                // Check if sensor ID is in mac addr form
+                if (tmp_main_id.find("-") != string::npos){
+                    // Conver mac addr to hex int
+                    tmp_main_id.erase(remove(tmp_main_id.begin(), tmp_main_id.end(), '-'), tmp_main_id.end());
+                    istringstream iss(tmp_main_id);
+                    iss >> hex >> main_id;
+                } else {
+                    istringstream iss(tmp_main_id);
+                    iss >> main_id;
+                }
+            }
+
+        /*
             // Create main id
             tmp_main_id = reader.Get(*it,"id","-");
             // ID was not found -> use default value
@@ -258,6 +287,7 @@ int ConfigParser::parseIniFile(){
                     iss >> main_id;
                 }
             }
+        */
 
             // Prepare data structures
             for (int i=0; i < DYNAMIC; i++){
@@ -429,6 +459,7 @@ int ConfigParser::parseIniFile(){
                 if (check_result != 0 ){
                     return check_result;
                 }
+                series[main_key][main_id][tmp_subsection[1]].push_back( parsed_value );
 
                 if (verbose >= 0 ){
                     cout << "VERBOSE: Parsing subsection grow_up " << *it << endl;

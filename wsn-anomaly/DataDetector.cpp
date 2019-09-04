@@ -342,7 +342,7 @@ int main (int argc, char** argv){
     ret = cp.parseFile(legacy_config_format);
     auto series_meta_data = cp.getSeries();
     // DEBUG: Internal print of parsed data from the configuration file
-    //printSeries(series_meta_data);
+    printSeries(series_meta_data);
     if (ret != 0 || series_meta_data.empty()){
         cerr << "ERROR: Configuration file is not valid!" << endl;
         return 1;
