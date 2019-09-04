@@ -136,7 +136,8 @@ trap_module_info_t *module_info = NULL;
   PARAM('e', "header", "Defines explicit header 1/0 (true/false), default value 1 (true).", required_argument, "int") \
   PARAM('r', "data-rate", "Low data rate optimization 1/0 (true/false)", required_argument, "int") \
   PARAM('p', "preamble", "Preamble symbol is defined for all regions in LoRaWAN 1.0 standard is 8, this is a default value.", required_argument, "int") \
-  PARAM('d', "dutycycle", "Defines time between packet subsequence starts, default value dutycycle is 0.10. Dutycycle is expressed as a percentage.", required_argument, "double")
+  PARAM('d', "dutycycle", "Defines time between packet subsequence starts, default value dutycycle is 0.10. Dutycycle is expressed as a percentage.", required_argument, "double") \
+  PARAM('I', "ignore-in-eof", "Do not terminate on incomming termination message.", no_argument, "none") \
 
 /**
  * To define positional parameter ("param" instead of "-m param" or "--mult param"), use the following definition:
@@ -164,6 +165,7 @@ void trap_fin(char *arg) {
 int main(int argc, char **argv) {
     int ret;
     signed char opt;
+    int ignore_eof = 0; // Ignore EOF input parameter flag
 
     /** 
      * Default fields for calculate air-time
@@ -226,6 +228,9 @@ int main(int argc, char **argv) {
                 trap_fin("Invalid arguments dutycycle 0 - 100% -d.\n");
                 FREE_MODULE_INFO_STRUCT(MODULE_BASIC_INFO, MODULE_PARAMS);
                 return -1;
+            case 'I':
+                ignore_eof = 1;
+                break;
             default:
                 trap_fin("Invalid arguments.\n");
                 FREE_MODULE_INFO_STRUCT(MODULE_BASIC_INFO, MODULE_PARAMS);
@@ -278,8 +283,13 @@ int main(int argc, char **argv) {
         TRAP_DEFAULT_RECV_ERROR_HANDLING(ret, continue, break);
 
         /** Indicates EOF */
-        if (in_rec_size == 1)
-            break;
+        if (in_rec_size == 1) {
+            char dummy[1] = {0};
+            trap_send(0, dummy, 1);
+            trap_send_flush(0);
+            if (!ignore_eof)
+                break;
+        }
 
         /** Check size payload min/max */
         uint32_t size = ur_get(in_tmplt, in_rec, F_SIZE);

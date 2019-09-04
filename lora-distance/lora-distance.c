@@ -71,7 +71,7 @@ struct dl_device {
  * PHY_PAYLOAD. This values are captured from LoRaWAN packet.
  */
 UR_FIELDS(
-        uint64 TIMESTAMP,
+        time TIMESTAMP,
         string DEV_ADDR,
         string PHY_PAYLOAD,
         double RSSI,
@@ -127,7 +127,9 @@ trap_module_info_t *module_info = NULL;
  * Module parameter argument types: int8, int16, int32, int64, uint8, uint16, uint32, uint64, float, string
  */
 #define MODULE_PARAMS(PARAM) \
-    PARAM('a', "variance", "Defines explicit variance, default value 10% (0.1).", required_argument, "double")
+    PARAM('a', "variance", "Defines explicit variance, default value 10% (0.1).", required_argument, "double") \
+    PARAM('I', "ignore-in-eof", "Do not terminate on incomming termination message.", no_argument, "none") \
+
 /**
  * To define positional parameter ("param" instead of "-m param" or "--mult param"), use the following definition:
  * PARAM('-', "", "Parameter description", required_argument, "string")
@@ -154,6 +156,7 @@ void trap_fin(char *arg) {
 int main(int argc, char **argv) {
     int ret;
     signed char opt;
+    int ignore_eof = 0; // Ignore EOF input parameter flag
 
     /** 
      * Default fields for calculate variance
@@ -192,6 +195,9 @@ int main(int argc, char **argv) {
                 trap_fin("Invalid arguments variance 0.0 - 1.0\n");
                 FREE_MODULE_INFO_STRUCT(MODULE_BASIC_INFO, MODULE_PARAMS);
                 return -1;
+            case 'I':
+                ignore_eof = 1;
+                break;
             default:
                 trap_fin("Invalid arguments.\n");
                 FREE_MODULE_INFO_STRUCT(MODULE_BASIC_INFO, MODULE_PARAMS);
@@ -244,9 +250,14 @@ int main(int argc, char **argv) {
         TRAP_DEFAULT_RECV_ERROR_HANDLING(ret, continue, break);
 
         /** Indicates EOF */
-        if (in_rec_size == 1)
-            break;
-        
+        if (in_rec_size == 1) {
+            char dummy[1] = {0};
+            trap_send(0, dummy, 1);
+            trap_send_flush(0);
+            if (!ignore_eof)
+                break;
+        }
+
         /** Check size payload min/max */
         uint32_t size = ur_get_len(in_tmplt, in_rec, F_PHY_PAYLOAD);
         if(size < 14 || size > 512)

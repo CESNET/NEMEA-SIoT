@@ -55,13 +55,78 @@
 
 using namespace std;
 
+UR_FIELDS(
+    time TIME,
+    uint64 INCIDENT_DEV_ADDR,
+    uint32 ALERT_CODE,
+    string CAPTION,
+    double ERR_VALUE,
+    string PROFILE_KEY,
+    double PROFILE_VALUE,
+    string UR_KEY
+    double ACKCount,
+    double ACKWaiting,
+    double aclMtu,
+    double aclPackets,
+    double address,
+    double average,
+    double averageRequestRTT,
+    double averageResponseRTT,
+    double badChecksum,
+    double badroutes,
+    double broadcastReadCount,
+    double broadcastWriteCount,
+    double callbacks,
+    double CANCount,
+    double dropped,
+    double GW_ID,
+    double lastRequestRTT,
+    double lastResponseRTT,
+    double moving_average,
+    double moving_median,
+    double moving_variance,
+    double NAKCount,
+    double netBusy,
+    double noACK
+    double nodeID,
+    double nonDelivery,
+    double notIdle,
+    double OOFCount,
+    double quality,
+    double readAborts,
+    double readCount,
+    double receivedCount,
+    double receivedDuplications,
+    double receivedUnsolicited,
+    double retries,
+    double routedBusy,
+    double rxAcls,
+    double rxBytes,
+    double rxErrors,
+    double rxEvents,
+    double rxScos,
+    double scoMtu,
+    double scoPackets,
+    double sentCount,
+    double sentFailed,
+    double SOFCount,
+    double txAcls,
+    double txBytes,
+    double txCmds,
+    double txErrors,
+    double txScos,
+    double VALUE,
+    double writeCount,
+)
+
 trap_module_info_t *module_info = NULL;
 
 #define MODULE_BASIC_INFO(BASIC) \
   BASIC("data-series-detector", "This module detect anomalies in data series", 1, 1)
 #define MODULE_PARAMS(PARAM) \
   PARAM('c', "config", "Configuration files with detection rules", required_argument, "string") \
-  PARAM('l', "legacy", "Legacy format of configuration file", no_argument, "none")
+  PARAM('l', "legacy", "Legacy format of configuration file", no_argument, "none") \
+  PARAM('I', "ignore-in-eof", "Do not terminate on incomming termination message.", no_argument, "none")
 
 /*
 * Print configured data from configuration file
@@ -221,11 +286,12 @@ int main (int argc, char** argv){
     map<int, vector<string> > ur_export_fields; // Map with unirec values for each interface. The first key is number of interface and the second is name of record according to the configuration file (ur_field). In the last vector are profile items for export.
 
     int ret = 2;                                              // Tmp store variable
-    uint64_t ur_id = 0;                                      // Tmp store variable
-    double ur_time = 0;                                      // Tmp store variable
-    double ur_data = 0;                                      // Tmp store variable
+    uint64_t ur_id = 0;                                       // Tmp store variable
+    double ur_time = 0;                                       // Tmp store variable
+    double ur_data = 0;                                       // Tmp store variable
     string config_file = "";                                  // Configuration file
-    bool legacy_config_format = false;                                  // Configuration file
+    bool legacy_config_format = false;                        // Configuration file
+    int ignore_eof = 0;                                       // Ignore EOF input parameter flag
 
     /*
     ** interface initialization **
@@ -255,6 +321,10 @@ int main (int argc, char** argv){
         // Legacy configuration file format
         case 'l':
             legacy_config_format = true;
+            break;
+        // Ignore EOF flag
+        case 'I':
+            ignore_eof = 1;
             break;
         default:
             cerr << "Error: Invalid arguments." << endl;
@@ -327,7 +397,8 @@ int main (int argc, char** argv){
         goto cleanup;
     }
     // Create alert template
-    alert_template = ur_ctx_create_output_template(ctx, 0, "ID,TIME,ur_key,alert_desc,profile_key,err_value,profile_value", NULL);
+    alert_template = ur_ctx_create_output_template(ctx, 0, "TIME,INCIDENT_DEV_ADDR,ALERT_CODE,CAPTION,ERR_VALUE,PROFILE_KEY,PROFILE_VALUE,UR_KEY", NULL);
+
     if (alert_template == NULL) {
         cerr <<  "ERROR: unirec alert template create fail" << endl;
         exit_value = 2;
@@ -367,14 +438,14 @@ int main (int argc, char** argv){
         TRAP_CTX_RECEIVE(ctx,0,data_nemea_input,memory_received,in_template);
 
         // Take ID and TIME field -> user for alert identification
-        ur_id = *(ur_get_ptr(in_template, data_nemea_input, F_ID));
-        ur_time = *(ur_get_ptr(in_template, data_nemea_input, F_TIME));
+        ur_id = *(ur_get_ptr(in_template, data_nemea_input, F_INCIDENT_DEV_ADDR));
+        ur_time = ur_time_get_sec(*(ur_get_ptr(in_template, data_nemea_input, F_TIME)));
 
         // Go through all unirec fields
         ur_field_id_t id = UR_ITER_BEGIN;
         while ((id = ur_iter_fields(in_template, id)) != UR_ITER_END) {
             // Skip id -> not analyzed just used for alert identification
-            if ( strcmp("ID",(ur_get_name(id))) == 0 ){
+            if ( strcmp("INCIDENT_DEV_ADDR",(ur_get_name(id))) == 0 ){
                 continue;
             }
             // EOF close this module 
@@ -382,13 +453,21 @@ int main (int argc, char** argv){
                 char dummy[1] = {0};
                 trap_ctx_send(ctx, 0, dummy, 1);
                 trap_ctx_send_flush(ctx,0);
-                goto cleanup;
+                // if ignore_eof option is used -> forward eof message but keep this module running
+                if ( !ignore_eof ){
+                    goto cleanup;
+                }
             }
 
             if (verbose >= 2){
                 cout << "VERBOSE: Received UniRec message with the record name" << ur_id << endl;
             }
-            ur_data = *((double*) ur_get_ptr_by_id(in_template, data_nemea_input,id));
+            // Convert TIME into double
+            if ( strcmp("TIME",(ur_get_name(id))) == 0 ){
+                ur_data = ur_time_get_sec(*(ur_get_ptr(in_template, data_nemea_input, F_TIME)));
+            } else {
+                ur_data = *((double*) ur_get_ptr_by_id(in_template, data_nemea_input,id));
+            }
             // Analyze received data
             series_a.processSeries(ur_get_name(id), &ur_id, &ur_time, &ur_data);
         }

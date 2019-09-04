@@ -122,7 +122,7 @@ public:
 	 * needed for pairing alert.
 	 */
 	struct Connection {
-		bdaddr_t address;
+		mac_addr_t address;
 		ConnectionState state = STATE_CONNECTED;
 		uint8_t pairingVersion = UNKNOWN_VERSION;
 		uint8_t pairingMethod = UNKNOWN_METHOD;
