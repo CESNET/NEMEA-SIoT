@@ -185,7 +185,7 @@ int ConfigParser::checkSubsectionValue(string parsed_value, string key_name){
         if (parsed_value == "-"){
             return 0;
         } else {
-            cerr << "ERROR: Wrong value " << key_name << ": " << parsed_value << ". Check documentation for the right range." << endl;
+            cerr << "ERROR: Wrong value in subsection: " << key_name << ": " << parsed_value << ". Check documentation for the right range." << endl;
             return 2;
         }
     }
@@ -210,7 +210,7 @@ int ConfigParser::checkSectionValue(string parsed_value, string key_name ){
             series[main_key][main_id]["general"].push_back(parsed_value);
             return 0;
         }
-        cerr << "ERROR: The value " << parsed_value << " must be int" << endl;
+        cerr << "ERROR: Wrong configuration format. The value " << parsed_value << " must be int" << endl;
         return 2;
     }
 }
