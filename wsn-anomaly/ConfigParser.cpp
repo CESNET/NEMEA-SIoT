@@ -42,16 +42,471 @@
 using namespace std;
 
 // Constructor
-ConfigParser::ConfigParser(string configFile) : config(configFile){}
+ConfigParser::ConfigParser(string configFile, int verbose) : config(configFile), config_filename(configFile), verbose(verbose) {}
 
+// Select type of configuration file
+int ConfigParser::parseFile(bool legacy_config_format){
+int err = 0;
+
+    if (config.is_open()){
+        if (!legacy_config_format){
+            err = parseIniFile();
+            if (err){
+                if (verbose >= 0 ){
+                    cout << "VERBOSE: Error during parsing INI configuration format.. Continue with internal format " << endl;
+                }
+            }
+        } else {
+            // NOTE: this method represents internal format of configuration file. There are just very simple verifycation. This method will be deprecated soon.
+            err = parseConfFile(); 
+            // Wrong configuration -> quit module
+            if (err){
+                cerr << "ERROR: Wrong format of configuration file" << endl;
+                cerr << "NOTE: Read documentation and improve it!!" << endl;
+            }
+        }
+
+        config.close();
+    } 
+    return err;
+}
+
+vector<string> ConfigParser::parseString(string value, string delimiter){
+
+    size_t pos = 0;
+    string token;
+    vector<string> parsedData;
+    while ((pos = value.find(delimiter)) != string::npos) {
+        token = value.substr(0, pos);
+        parsedData.push_back(token);
+        value.erase(0, pos + delimiter.length());
+    }
+
+    parsedData.push_back(value);
+    return parsedData;
+}
+int ConfigParser::checkConfigRelations(string subsection){
+
+    int return_value = 0;
+
+    // General fields
+    if (subsection == "general"){
+        // Check export configuration
+        // Check udefined values for export_fields and export params
+        if ( series[main_key][main_id]["export"].size() == 1 && series[main_key][main_id]["export"][0] == "-"){
+            if ( series[main_key][main_id]["general"][EXPORT_INTERVAL] == "-" ) {
+                return_value = 0;
+            } else { 
+                cerr << "ERROR: Export interval is set but no export fields are defined" << endl; 
+                return 3;
+            }
+        
+        } else if ( series[main_key][main_id]["export"].size() > 1 && series[main_key][main_id]["general"][EXPORT_INTERVAL] != "-" ) { 
+            // Check if export_field make sense
+            vector<string> profile_items = series[main_key][main_id]["profile"];
+            vector<string> export_fields = series[main_key][main_id]["export"];
+            for (auto it=export_fields.begin(); it != export_fields.end(); ++it){
+                if (find(profile_items.begin(), profile_items.end(), *it ) == profile_items.end() ){
+                    cerr << "ERROR: Defined export field '" << *it << "' not found in profile items" << endl; 
+                    return 3;
+                }
+            }
+        } else {
+            cerr << "ERROR: Dependency issue between export_fields and export fields. Please check documentation for more details" << endl;
+            return 3;
+        }
+
+    // Subsection fields
+    } else {
+        // Check soft limit
+        string soft_min = series[main_key][main_id][subsection][SOFT_MIN];
+        string soft_max = series[main_key][main_id][subsection][SOFT_MAX];
+        string grace_period = series[main_key][main_id][subsection][SOFT_PERIOD];
+        if ( (soft_min == "-" && soft_max == "-" && grace_period == "-") || (soft_min != "-" && soft_max != "-" && grace_period != "-") ) {
+            // Soft limit dependencies are correct
+            return_value = 0;
+        } else { 
+            cerr << "ERROR: Soft limit dependencies are not satisfied! Some required fields missing." << endl; 
+            return 3;
+        }
+
+        // Check hard limit
+        string hard_min = series[main_key][main_id][subsection][HARD_MIN];
+        string hard_max = series[main_key][main_id][subsection][HARD_MAX];
+        if ( (hard_min == "-" && hard_max == "-" ) || (hard_min != "-" && hard_max != "-") ){
+            // Hard limit dependencies are correct
+            return_value = 0;
+        } else { 
+            cerr << "ERROR: Hard limit dependencies are not satisfied!" << endl; 
+            return 3;
+        }
+    
+        // Check grow limit
+        string grow_down = series[main_key][main_id][subsection][GROW_DOWN];
+        string grow_up = series[main_key][main_id][subsection][GROW_UP];
+        if ( (grow_down == "-" && grow_up == "-" ) || (grow_down != "-" && grow_up != "-") ){
+            // Grow limit dependencies are correct
+            return_value = 0;
+        } else { 
+            cerr << "ERROR: Grow limit dependencies are not satisfied!" << endl; 
+            return 3;
+        }
+
+        // Check min max boundaries
+        if ( (soft_min != "-") && (stod(soft_min) >= stod(soft_max)) ){
+            cerr << "ERROR: Min value is bigger than max value. Check soft limits in subsection!" << endl;
+            return 3;
+
+        } else if ( hard_min != "-" && stod(hard_min) >= stod(hard_max) ){
+            cerr << "ERROR: Min value is bigger than max value. Check hard limits!" << endl;
+            return 3;
+
+        } else if ( grow_down != "-" && stod(grow_down) > stod(grow_up)) {
+            cerr << "ERROR: Min value is bigger than max value. Check grow limits in subsection!" << endl;
+            return 3;
+        }
+    }
+    return return_value;
+}
+
+int ConfigParser::checkSubsectionValue(string parsed_value, string key_name){
+    try {
+        // Check if parsed_value is floating-point datatype
+        stod(parsed_value);
+        // Also check if grace_period is integer in the correct range
+        if (key_name == "grace_period" && stoi(parsed_value) < 0 ){
+            cerr << "ERROR: Grace period must be positive integer" << endl;
+            return 2;
+        }
+
+    // In case of non-floating-point datatype verify default value
+    } catch (const std::exception& e) {
+        // Default value has been found
+        if (parsed_value == "-"){
+            return 0;
+        } else {
+            cerr << "ERROR: Wrong value in subsection: " << key_name << ": " << parsed_value << ". Check documentation for the right range." << endl;
+            return 2;
+        }
+    }
+    return 0;
+}
+
+
+int ConfigParser::checkSectionValue(string parsed_value, string key_name ){
+
+    try {
+        if ( (stoi(parsed_value) < 0 && "ignore" == key_name) || (stoi(parsed_value) <= 0 && "ignore" != key_name) ) {
+            cerr << "ERROR: Wrong value " << key_name << ": " << parsed_value  << ". Check documentation for the right range." << endl;
+            return 2;
+        } else {
+            // Add value to the data structure
+            series[main_key][main_id]["general"].push_back(parsed_value);
+            return 0;
+        }
+    } catch (const std::exception& e) {
+        // These values are optional
+        if ("check" == key_name || "export" == key_name || "change" == key_name){
+            series[main_key][main_id]["general"].push_back(parsed_value);
+            return 0;
+        }
+        cerr << "ERROR: Wrong configuration format. The value " << parsed_value << " must be int" << endl;
+        return 2;
+    }
+}
+
+// Parse ini configuration file
+int ConfigParser::parseIniFile(){
+    set<string> sections;           // All specified sections in ini file
+    vector<string> profile_items;   // Parsed profile items
+    vector<string> export_items;   // Parsed profile items
+    string parsed_value = "";       // Parsed value for ini configuration file
+    int check_result = 0;           // Result of configuration value check
+    string tmp_main_id;             // Tmp variable for the record ID
+
+    // Parse ini configuration file
+    INIReader reader(config_filename);
+    if (reader.ParseError() < 0){
+        cerr << "ERROR: Unable to load the configuration fle " << endl;
+        return 1;
+    }
+    
+    sections = reader.Sections();
+
+    for (auto it=sections.begin(); it != sections.end(); ++it){
+        if (verbose >= 0 ){
+            cout << "VERBOSE: Parsing section " << *it << endl;
+        }
+        // Parse the main section
+        if ((*it).find(".") == string::npos ){
+            if (verbose >= 0 ){
+                cout << "VERBOSE: Parsing Main key and ID key " << *it << endl;
+            }
+            // Separate Main key and ID
+            if ((*it).find("#") == string::npos){
+                if (verbose >= 0 ){
+                    cout << "VERBOSE: No id field has been found -> use default 0 " << *it << endl;
+                }
+                main_key = *it;
+                main_id = 0;
+
+            } else {
+                vector<string> tmp_key = parseString((*it),"#");
+                main_key = tmp_key[0];
+                tmp_main_id = tmp_key[1];
+                // Check if sensor ID is in mac addr form
+                if (tmp_main_id.find("-") != string::npos){
+                    // Conver mac addr to hex int
+                    tmp_main_id.erase(remove(tmp_main_id.begin(), tmp_main_id.end(), '-'), tmp_main_id.end());
+                    istringstream iss(tmp_main_id);
+                    iss >> hex >> main_id;
+                } else {
+                    istringstream iss(tmp_main_id);
+                    iss >> main_id;
+                }
+            }
+
+        /*
+            // Create main id
+            tmp_main_id = reader.Get(*it,"id","-");
+            // ID was not found -> use default value
+            if (tmp_main_id == "-" ){
+                if (verbose >= 0 ){
+                    cout << "VERBOSE: No id field has been found -> use default 0 " << *it << endl;
+                }
+                main_id = 0;
+            } else {
+                // Check if sensor ID is in mac addr form
+                if (tmp_main_id.find("-") != string::npos){
+                    // Conver mac addr to hex int
+                    tmp_main_id.erase(remove(tmp_main_id.begin(), tmp_main_id.end(), '-'), tmp_main_id.end());
+                    istringstream iss(tmp_main_id);
+                    iss >> hex >> main_id;
+                } else {
+                    istringstream iss(tmp_main_id);
+                    iss >> main_id;
+                }
+            }
+        */
+
+            // Prepare data structures
+            for (int i=0; i < DYNAMIC; i++){
+                series[main_key][main_id]["metaProfile"].push_back(to_string(0));
+                series[main_key][main_id]["metaData"].push_back("x");
+            }
+
+            if (verbose >= 0 ){
+                cout << "VERBOSE: Parsing key len " << *it << endl;
+            }
+            parsed_value = reader.Get(*it,"len","-");
+            check_result = checkSectionValue(parsed_value,"len");
+            if (check_result != 0 ){
+                return check_result;
+            }
+            
+            if (verbose >= 0 ){
+                cout << "VERBOSE: Parsing key learn " << *it << endl;
+            }
+            parsed_value = reader.Get(*it,"learn","-");
+            check_result = checkSectionValue(parsed_value,"learn");
+            if (check_result != 0 ){
+                return check_result;
+            }
+
+            if (verbose >= 0 ){
+                cout << "VERBOSE: Parsing key ignore " << *it << endl;
+            }
+            parsed_value = reader.Get(*it,"ignore","-");
+            check_result = checkSectionValue(parsed_value,"ignore");
+            if (check_result != 0 ){
+                return check_result;
+            }
+
+            if (verbose >= 0 ){
+                cout << "VERBOSE: Parsing key store " << *it << endl;
+            }
+            parsed_value = reader.Get(*it,"store","-");
+            if (parsed_value != "delta" && parsed_value != "simple"){
+                cerr << "ERROR: Store mode. Wrong value " << parsed_value  << ". Check documentation for the right range." << endl;
+                return 2;
+            }
+            series[main_key][main_id]["general"].push_back(parsed_value);
+        
+            if (verbose >= 0 ){
+                cout << "VERBOSE: Parsing key check " << *it << endl;
+            }
+            parsed_value = reader.Get(*it,"check","-");
+            check_result = checkSectionValue(parsed_value,"check");
+            if (check_result != 0 ){
+                return check_result;
+            }
+
+            if (verbose >= 0 ){
+                cout << "VERBOSE: Parsing key change " << *it << endl;
+            }
+            parsed_value = reader.Get(*it,"change","-");
+            check_result = checkSectionValue(parsed_value,"change");
+            if (check_result != 0 ){
+                return check_result;
+            }
+            
+            if (verbose >= 0 ){
+                cout << "VERBOSE: Parsing key export " << *it << endl;
+            }
+            parsed_value = reader.Get(*it,"export","-");
+            check_result = checkSectionValue(parsed_value,"export");
+            if (check_result != 0 ){
+                return check_result;
+            }
+
+            // Parsed separetely because of independed section
+            if (verbose >= 0 ){
+                cout << "VERBOSE: Parsing key profile " << *it << endl;
+            }
+            parsed_value = reader.Get(*it,"profile","-");
+            if (parsed_value == "-"){
+                cerr << "ERROR: Profile keyword is required. Please follow configuraiton guide" << endl;
+                return 2;
+            }
+            profile_items = parseString(parsed_value,",");
+            if (profile_items.size() == 0 ){
+                cerr << "ERROR: Profile items in profile keyword are wrongly formated. Expected delimiter is ,. Please follow configuration guide for more details" << endl;
+                return 2;
+            }
+            for (auto it2=profile_items.begin(); it2 != profile_items.end(); ++it2){
+                series[main_key][main_id]["profile"].push_back(*it2);
+            } 
+
+            if (verbose >= 0 ){
+                cout << "VERBOSE: Parsing key export_fields " << *it << endl;
+            }
+            parsed_value = reader.Get(*it,"export_fields","-");
+            if (parsed_value == "-"){
+                series[main_key][main_id]["export"].push_back(parsed_value);
+            } else {
+                export_items = parseString(parsed_value,",");
+                if (export_items.size() == 0 ){
+                    cerr << "ERROR: Export parameter is wrongly formated. Expected delimiter is ,. Please follow configuration guide for more details" << endl;
+                    return 2;
+
+                }
+                for (auto it2=export_items.begin(); it2 != export_items.end(); ++it2){
+                    series[main_key][main_id]["export"].push_back(*it2);
+                } 
+            }
+
+            check_result = checkConfigRelations("general");
+            if (check_result){
+                cerr << "ERROR: Configuration dependencies are not satisfied! Please read the documentation" << endl;
+                return check_result;
+            }
+
+        } else {
+        // Parse subsection
+            vector<string> tmp_subsection = parseString((*it),".");
+            if (tmp_subsection.size() != 2){
+                cerr << "ERROR: Subsection in the configuration file is wrongly named." << endl;
+                return 2;
+            }
+
+            // Verify if found subsection configuration has proper keyword in profile key configured 
+            if (find(profile_items.begin(), profile_items.end(), tmp_subsection[1]) != profile_items.end() ){
+                if (verbose >= 0 ){
+                    cout << "VERBOSE: Parsing subsection soft_min " << *it << endl;
+                }
+                parsed_value = reader.Get(*it,"soft_min","-");
+                check_result = checkSubsectionValue(parsed_value, "soft_min");
+                if (check_result != 0 ){
+                    return check_result;
+                }
+                series[main_key][main_id][tmp_subsection[1]].push_back( parsed_value );
+
+                if (verbose >= 0 ){
+                    cout << "VERBOSE: Parsing subsection soft_max " << *it << endl;
+                }
+                parsed_value = reader.Get(*it,"soft_max","-");
+                check_result = checkSubsectionValue(parsed_value, "soft_max");
+                if (check_result != 0 ){
+                    return check_result;
+                }
+                series[main_key][main_id][tmp_subsection[1]].push_back( parsed_value );
+
+                if (verbose >= 0 ){
+                    cout << "VERBOSE: Parsing subsection hard_min " << *it << endl;
+                }
+                parsed_value = reader.Get(*it,"hard_min","-");
+                check_result = checkSubsectionValue(parsed_value, "hard_min");
+                if (check_result != 0 ){
+                    return check_result;
+                }
+                series[main_key][main_id][tmp_subsection[1]].push_back( parsed_value );
+
+                if (verbose >= 0 ){
+                    cout << "VERBOSE: Parsing subsection hard_max " << *it << endl;
+                }
+                parsed_value = reader.Get(*it,"hard_max","-");
+                check_result = checkSubsectionValue(parsed_value, "hard_max");
+                if (check_result != 0 ){
+                    return check_result;
+                }
+                series[main_key][main_id][tmp_subsection[1]].push_back( parsed_value );
+
+                if (verbose >= 0 ){
+                    cout << "VERBOSE: Parsing subsection grace_period " << *it << endl;
+                }
+                parsed_value = reader.Get(*it,"grace_period","-");
+                check_result = checkSubsectionValue(parsed_value, "grace_period");
+                if (check_result != 0 ){
+                    return check_result;
+                }
+                series[main_key][main_id][tmp_subsection[1]].push_back( parsed_value );
+
+                if (verbose >= 0 ){
+                    cout << "VERBOSE: Parsing subsection grow_up " << *it << endl;
+                }
+                parsed_value = reader.Get(*it,"grow_up","-");
+                check_result = checkSubsectionValue(parsed_value, "grow_up");
+                if (check_result != 0 ){
+                    return check_result;
+                }
+                series[main_key][main_id][tmp_subsection[1]].push_back( parsed_value );
+    
+                if (verbose >= 0 ){
+                    cout << "VERBOSE: Parsing subsection grow_down " << *it << endl;
+                }
+                parsed_value = reader.Get(*it,"grow_down","-");
+                check_result = checkSubsectionValue(parsed_value, "grow_down");
+                if (check_result != 0 ){
+                    return check_result;
+                }
+                series[main_key][main_id][tmp_subsection[1]].push_back( parsed_value );
+
+                // Add meta items for soft limit (S_MIN_LIMIT, S_MAX_LIMIT)
+                series[main_key][main_id][tmp_subsection[1]].push_back( to_string(0) );
+                series[main_key][main_id][tmp_subsection[1]].push_back( to_string(0) );
+
+
+                check_result = checkConfigRelations(tmp_subsection[1]);
+                if (check_result){
+                    cerr << "ERROR: Configuration dependencies for subsections are not satisfied! Please read the documentation" << endl;
+                    return check_result;
+                }
+
+            } else {
+                cerr << "ERROR: Subsection name '" << tmp_subsection[1] << "' was not found" << endl;
+            }
+        }
+    }
+    return 0;
+}
+
+// IMPORTANT NOTE: This method will be deprecated!! No input data checks are implemented.
 // Parse configuration file
-void ConfigParser::parseFile(){
+int ConfigParser::parseConfFile(){
     if (config.is_open()){
         // Local tmp store variables
         string line;         // One line from configuration file
         string key;          // Name of config record (unirec field+id)
-        string main_key;     // Name of unirec field
-        uint64_t main_id;    // Name of record ID
         string tmp_main_id;  // Tmp variable for the record ID
         string value;        // Config params for one key
         string multi_key;    // Name of composite value
@@ -133,9 +588,10 @@ void ConfigParser::parseFile(){
         }
     } else {
         cerr << "ERROR: Unable to open the configuration fle " << endl;
-        cerr << "NOTE: Create configuration file config.txt in detector root directory" << endl;
+        cerr << "NOTE: Create configuration file!!" << endl;
     }
     config.close();
+    return 0;
 }
 
 // Destructor

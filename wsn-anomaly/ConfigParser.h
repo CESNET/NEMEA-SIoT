@@ -46,6 +46,7 @@
 #include <algorithm>
 #include <sstream>
 #include "Conversion.h"
+#include "INIReader.h"
 
 using namespace std;
 
@@ -74,7 +75,7 @@ class ConfigParser{
         * Constructor
         * /param[in] configFile Name of configuration file
         */
-        ConfigParser(string configFile);
+        ConfigParser(string configFile, int verbose);
         /*
         * Destructor
         */
@@ -84,10 +85,40 @@ class ConfigParser{
         */
         map<string, map<uint64_t, map<string, vector<string> > > > getSeries();
         /*
+        * Parse data in configuration file in ini format into series structure
+        */
+        int parseIniFile();
+        /*
         * Parse data in configuration file into series structure
         */
-        void parseFile();
+        int parseConfFile();
+        /*
+        * Method for selecting configuration file format
+        */
+        int parseFile(bool legacy_config_format);
+        /*
+        * Method for verifying configuration values
+        */
+        int checkSectionValue(string parsed_value, string key_name);
+        /*
+        * Method for verifying subsection values
+        */
+        int checkSubsectionValue(string parsed_value, string key_name); 
+        /*
+        * Method to split string based on delimiter
+        */
+        vector<string> parseString(string value, string delimiter);
+        /*
+        * Method to verify proper relations between configuration variables
+        */
+        int checkConfigRelations(string subsection);
     private:
         map<string, map<uint64_t, map<string, vector<string> > > > series; // parsed data from configuration file. Data sequence: unirec field, ur_id, subsection category (profile, profile items, export, general, metaData, metaProfile, profile), config params
         ifstream config; // configuration filename
+        string config_filename; // configuration filename
+        string main_key;     // Name of unirec field
+        uint64_t main_id;    // Name of record ID   
+        int verbose;        // Verbose level
+        
+        
 };

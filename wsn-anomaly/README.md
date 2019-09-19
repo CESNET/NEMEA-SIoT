@@ -3,7 +3,7 @@
 ## Description
 This NEMEA modules detect anomalies in data streams using time series. 
 
-This module is optimised for IoT networks and IoT use cases. More detailed description you can see in the [description](details/description) directory. Test scenarios, configuration examples and hints are in the [examples](details/manual-demo-tests) directory. The directory [tests](tests) is used for automatic integration tests to verify proprer functionality.
+This module is optimised for IoT networks and IoT vulnerable use cases. More detailed description you can see in the [description](details/description) directory. Test scenarios, configuration examples and hints are in the [examples](details/manual-demo-tests) directory. The directory [tests](tests) is used for automatic integration tests to verify proprer functionality.
 
 ## Interfaces
  - Input: 1
@@ -12,6 +12,8 @@ This module is optimised for IoT networks and IoT use cases. More detailed descr
 ## Parameters
 ### Module specific parameters
   - `-c`    Cofiguration file with detection rules
+  - `-l`    Legacy format of configuration file
+  - `-I`    Do not terminate module on incoming termination message
 
 ### Common TRAP parameters
 - `-h [trap,1]`      Print help message for this module / for libtrap specific parameters.

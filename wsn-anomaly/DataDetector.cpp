@@ -125,6 +125,7 @@ trap_module_info_t *module_info = NULL;
   BASIC("data-series-detector", "This module detect anomalies in data series", 1, 1)
 #define MODULE_PARAMS(PARAM) \
   PARAM('c', "config", "Configuration files with detection rules", required_argument, "string") \
+  PARAM('l', "legacy", "Legacy format of configuration file", no_argument, "none") \
   PARAM('I', "ignore-in-eof", "Do not terminate on incomming termination message.", no_argument, "none")
 
 /*
@@ -230,7 +231,8 @@ int initExportInterfaces(map<string, map<uint64_t, map<string, vector<string> > 
         return 3;
     }
 
-    if (trap_ctx_get_last_error(ctx_export) != TRAP_E_OK){
+    // Ignore NOTICE messages from trap_ctx
+    if (trap_ctx_get_last_error(ctx_export) != TRAP_E_OK && trap_ctx_get_last_error(ctx_export) < 256 ){
         cerr << "ERROR in TRAP initialization: " << trap_ctx_get_last_error_msg(ctx_export) << endl;
         return 3;
     }
@@ -288,6 +290,7 @@ int main (int argc, char** argv){
     double ur_time = 0;                                       // Tmp store variable
     double ur_data = 0;                                       // Tmp store variable
     string config_file = "";                                  // Configuration file
+    bool legacy_config_format = false;                        // Configuration file
     int ignore_eof = 0;                                       // Ignore EOF input parameter flag
 
     /*
@@ -315,6 +318,11 @@ int main (int argc, char** argv){
         case 'c':
             config_file = optarg;
             break;
+        // Legacy configuration file format
+        case 'l':
+            legacy_config_format = true;
+            break;
+        // Ignore EOF flag
         case 'I':
             ignore_eof = 1;
             break;
@@ -324,20 +332,22 @@ int main (int argc, char** argv){
             return 1;
         }
     }
-
-    // Parse created configuration file
-    ConfigParser cp(config_file);
-    cp.parseFile();
-    auto series_meta_data = cp.getSeries();
-    if (series_meta_data.empty()){
-        cerr << "ERROR configuration file is empty" << endl;
-        return 1;
-    }
-
     verbose = trap_get_verbose_level();
     if (verbose >= 0) {
         cout << "Verbosity level: " <<  trap_get_verbose_level() << endl;;
     }
+
+    // Parse created configuration file
+    ConfigParser cp(config_file, verbose);
+    ret = cp.parseFile(legacy_config_format);
+    auto series_meta_data = cp.getSeries();
+    // DEBUG: Internal print of parsed data from the configuration file
+    //printSeries(series_meta_data);
+    if (ret != 0 || series_meta_data.empty()){
+        cerr << "ERROR: Configuration file is not valid!" << endl;
+        return 1;
+    }
+
 
     // Create analyze object
     Analyzer series_a (series_meta_data, verbose);
@@ -405,7 +415,7 @@ int main (int argc, char** argv){
     // Create alert record with maximum size of variable memory length
     data_alert = ur_create_record(alert_template, UR_MAX_SIZE);
         if ( data_alert == NULL ) {
-            cout << "ERROR: Data are not prepared for alert template" << endl;
+            cerr << "ERROR: Data are not prepared for alert template" << endl;
             exit_value = 3;
             goto cleanup;
         }

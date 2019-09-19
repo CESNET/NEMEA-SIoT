@@ -597,7 +597,7 @@ void Analyzer::dataChangeCheck(map<uint64_t,vector<double> >::iterator &sensor_i
                 }
                 // Alert alert messaga (caption) and add alert code
                 alert_message = "The device " + to_string(*ur_id) + " exceeded the grow down limit with value " + to_string(alert_coef) + "8";
-                addAlert(profile_values, "Lower grow limit", alert_str);
+                addAlert(profile_values, alert_message, alert_str);
             }
         }
     }
@@ -662,7 +662,6 @@ void Analyzer::sendAlert(map<string, vector<string> > &alert_str, string &ur_fie
             if (verbose >= 1){
                 cout << "VERBOSE: Send alert: " << profile.first << ", " << elem << endl;
             }
-
             index = getIndex(profile.first);
             if (index != -1){
                 err_value = stod(meta_it->second[getMetaID(meta_it,ur_id)]["metaData"][index],nullptr);

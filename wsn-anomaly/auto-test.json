@@ -1,5 +1,5 @@
 {
   "pre-shell": [],
-  "run-args": ["-c", "config.txt"],
+  "run-args": ["-c", "config.ini"],
   "post-shell": []
 }
