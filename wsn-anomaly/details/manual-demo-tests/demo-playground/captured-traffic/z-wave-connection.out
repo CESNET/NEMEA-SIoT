@@ -1,0 +1,6 @@
+23.000000,1113,0.000000,2018-04-05T15:20:16.000,6,"The device 1113 exceeded the maximal hard limit by 22.000000","moving_median","dropped"
+87.000000,22,36.000000,2018-04-05T15:21:21.000,7,"The device 22 exceeded the grow up limit with value 2.416667","moving_average","lastResponseRTT"
+107.000000,22,36.000000,2018-04-05T15:21:26.000,7,"The device 22 exceeded the grow up limit with value 2.972222","moving_average","lastResponseRTT"
+105.200000,22,36.000000,2018-04-05T15:21:31.000,7,"The device 22 exceeded the grow up limit with value 2.922222","moving_average","lastResponseRTT"
+98.400000,22,36.000000,2018-04-05T15:21:36.000,7,"The device 22 exceeded the grow up limit with value 2.733333","moving_average","lastResponseRTT"
+87.600000,22,36.000000,2018-04-05T15:21:41.000,7,"The device 22 exceeded the grow up limit with value 2.433333","moving_average","lastResponseRTT"

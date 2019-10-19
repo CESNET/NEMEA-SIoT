@@ -477,7 +477,7 @@ void Analyzer::addAlert(string & profile_name, string alert_message, map<string,
 }
 
 void Analyzer::dataLimitCheck(map<string, map<uint64_t, map<string, vector<string> > > >::iterator &meta_it, string ur_field, uint64_t *ur_id, double *ur_time ,double *ur_data, map<string,vector<string> > &alert_str){
-    int err = 0;
+    double err = 0;
     string alert_message;
 
     for (auto profile_values: meta_it->second[getMetaID(meta_it,ur_id)]["profile"]){
@@ -494,7 +494,7 @@ void Analyzer::dataLimitCheck(map<string, map<uint64_t, map<string, vector<strin
                         cout << "VERBOSE: ALERT: Lower soft limit" << endl;
                     }
                     // Count exact error value 
-                    err = stoi (meta_it->second[getMetaID(meta_it,ur_id)][profile_values][S_MIN_LIMIT],nullptr) - stoi (meta_it->second[getMetaID(meta_it,ur_id)][profile_values][S_MIN_LIMIT],nullptr); 
+                    err = stod (meta_it->second[getMetaID(meta_it,ur_id)][profile_values][SOFT_MIN],nullptr) - stod(meta_it->second[getMetaID(meta_it,ur_id)]["metaData"][getIndex(profile_values)],nullptr); 
                     // Alert alert messaga (caption) and add alert code
                     alert_message = "The device " + to_string(*ur_id) + " exceeded the minimal soft limit by " + to_string(err) + "3";
                     addAlert(profile_values, alert_message, alert_str);
@@ -514,7 +514,7 @@ void Analyzer::dataLimitCheck(map<string, map<uint64_t, map<string, vector<strin
                         cout <<  "VERBOSE: ALERT: Higher soft limit" << endl;
                     }
                     // Count exact error value 
-                    err = stod(meta_it->second[getMetaID(meta_it,ur_id)]["metaData"][getIndex(profile_values)],nullptr)  - stod(meta_it->second[getMetaID(meta_it,ur_id)][profile_values][SOFT_MAX],nullptr);
+                    err = stod(meta_it->second[getMetaID(meta_it,ur_id)]["metaData"][getIndex(profile_values)],nullptr) - stod(meta_it->second[getMetaID(meta_it,ur_id)][profile_values][SOFT_MAX],nullptr);
                     // Alert alert messaga (caption) and add alert code
                     alert_message = "The device " + to_string(*ur_id) + " exceeded the maximal soft limit by " + to_string(err) + "4";
                     addAlert(profile_values, alert_message, alert_str);
@@ -538,6 +538,7 @@ void Analyzer::dataLimitCheck(map<string, map<uint64_t, map<string, vector<strin
                 }
     
                 // Count exact error value 
+                cout << "TATA: " << stod(meta_it->second[getMetaID(meta_it,ur_id)][profile_values][HARD_MIN],nullptr) << " " << stod(meta_it->second[getMetaID(meta_it,ur_id)]["metaData"][getIndex(profile_values)],nullptr) << endl;
                 err = stod(meta_it->second[getMetaID(meta_it,ur_id)][profile_values][HARD_MIN],nullptr) - stod(meta_it->second[getMetaID(meta_it,ur_id)]["metaData"][getIndex(profile_values)],nullptr);
                 // Alert alert messaga (caption) and add alert code
                 alert_message = "The device " + to_string(*ur_id) + " exceeded the minimal hard limit by " + to_string(err) + "5";
