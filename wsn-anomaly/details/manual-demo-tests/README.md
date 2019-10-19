@@ -60,4 +60,4 @@
 Note: Recommended format of configuration is ini
 
 ### Demo Playground
-For all input traffic files is prepared one configuration file. The same configuration is available in both formats INI (config.ini) and LEGACY (config.txt). For each input traffic file (suffix <name>.csv) there is file with expected output from wsn-anomly detector module (suffix <name>.out).
+For all input traffic files is prepared one configuration file. The same configuration is available in both formats INI (config.ini) and LEGACY (config.txt). For each input traffic file (suffix \<name\>.csv) there is file with expected output from wsn-anomly detector module (suffix \<name\>.out).
