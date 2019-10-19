@@ -1,4 +1,4 @@
-# Wsn-anomaly detector module
+# WSN-Anomaly Time Series Detector Module
 
 ## Description
 This NEMEA modules detect anomalies in data streams using time series. 
@@ -7,7 +7,7 @@ This module is optimised for IoT networks and IoT vulnerable use cases. More det
 
 ## Interfaces
  - Input: 1
- - Output: 1 (alerts)
+ - Output: 1 (alerts) # Note: Using configuration file is possible to create output export interfaces
 
 ## Parameters
 ### Module specific parameters
