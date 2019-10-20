@@ -6,7 +6,7 @@ BLE Pairing Detector is intended to find unexpected BLE pairing, which may indic
 an attack on the pairing. It receives output of the Bluetooth HCI Collector,
 looks for a pairing process and generates alerts.
 
-Paired devices are stored in the specified directory as HCI_DEV_MAC-DEVICE_MAC.
+Paired devices are stored in the specified directory as HCI_DEV_ADDR-DEV_ADDR.
 
 It requires an installed library libbluetooth.
 
@@ -16,22 +16,24 @@ It requires an installed library libbluetooth.
 ### OpenWrt
 - bluez-libs `opkg install bluez-libs`
 
-## Interfaces
-- Input: One UniRec interface (template contains these fields):
-  - HCI_DEV_MAC    - hci device address
-  - TIMESTAMP
-  - DATA_DIRECTION - 0 / 1
-  - PACKET_TYPE    - command / event / ACL data / SCO data
-  - PACKET         - variable length
+## Input Unirec Interface
+	time    TIMESTAMP
+	macaddr DEV_ADDR       - device address (for ACL data packets)
+	macaddr HCI_DEV_ADDR   - hci device address
+	uint8   PACKET_TYPE    - command / event / ACL data / SCO data
+	uint8   DATA_DIRECTION - 0 / 1
+	uint8   SIZE           - packet size
+	bytes   PACKET         - variable length packet
 
-- Output: One UniRec interface (template contains these fields):
-  - HCI_DEV_MAC - hci device address
-  - DEVICE_MAC  - pairing device address
-  - TIMESTAMP
-  - SUCCESS     - pairing was successful (1 / 0)
-  - REPEATED    - pairing was repeated (1 / 0)
-  - VERSION     - BLE 4.0, 4.1 (0) / BLE 4.2+ (1) / UNKNOWN (255)
-  - METHOD      - JUST WORKS (0) / PASSKEY_ENTRY (1) / OOB (2) / NUMERIC_COMPARISON (3) / UNKNOWN (255)
+## Output Unirec Interface
+	time    TIMESTAMP
+	macaddr INCIDENT_DEV_ADDR  - pairing device address
+	uint32  ALERT_CODE         - repeated pairing (0 / 1)
+	string  CAPTION            
+	macaddr HCI_DEV_ADDR       - hci device address
+	uint8   SUCCESS            - pairing was successful (1 / 0)
+	uint8   VERSION            - BLE 4.0, 4.1 (0) / BLE 4.2+ (1) / UNKNOWN (255)
+	uint8   METHOD             - JUST WORKS (0) / PASSKEY_ENTRY (1) / OOB (2) / NUMERIC_COMPARISON (3) / UNKNOWN (255)
 
 ## Parameters
 ### Module specific parameters
