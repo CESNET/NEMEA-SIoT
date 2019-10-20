@@ -3,7 +3,8 @@
 
 ## Description
 Collects all Bluetooth packets flowing through the specified Bluetooth HCI
-and send them out with their type, timestamp and data direction.
+and send them out with their type, timestamp, size and data direction.
+For ACL data packets, also device address is sent (00:00:00:00:00:00 otherwise).
 
 It requires an installed library libbluetooth and it must be run with root privileges.
 
@@ -13,13 +14,14 @@ It requires an installed library libbluetooth and it must be run with root privi
 ### OpenWrt
 - bluez-libs `opkg install bluez-libs`
 
-## Interfaces
-- Output: One UniRec interface (template contains these fields):
-  - HCI_DEV_MAC    - hci device address
-  - TIMESTAMP
-  - DATA_DIRECTION - 0 / 1
-  - PACKET_TYPE    - command / event / ACL data / SCO data
-  - PACKET         - variable length
+## Output Unirec Interface
+	time    TIMESTAMP
+	macaddr DEV_ADDR       - device address (for ACL data packets)
+	macaddr HCI_DEV_ADDR   - hci device address
+	uint8   PACKET_TYPE    - command / event / ACL data / SCO data
+	uint8   DATA_DIRECTION - 0 / 1
+	uint8   SIZE           - packet size
+	bytes   PACKET         - variable length packet
 
 ## Parameters
 ### Module specific parameters

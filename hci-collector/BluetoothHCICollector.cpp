@@ -39,6 +39,7 @@
 
 #include <csignal>
 #include <iostream>
+#include <unordered_map>
 #include <string>
 #include <vector>
 #include <getopt.h>
@@ -57,6 +58,20 @@
 
 #include "fields.h"
 #include "Conversion.h"
+
+UR_FIELDS (
+	time    TIMESTAMP
+	macaddr DEV_ADDR
+	macaddr HCI_DEV_ADDR
+	uint8   PACKET_TYPE
+	uint8   DATA_DIRECTION
+	uint16  SIZE
+	bytes   PACKET
+)
+
+#define UNIREC_TEMPLATE "TIMESTAMP, DEV_ADDR, HCI_DEV_ADDR, PACKET_TYPE, DATA_DIRECTION, SIZE, PACKET"
+
+#define EVENT_STATUS_SUCCESS 0x00
 
 using namespace std;
 
@@ -121,8 +136,99 @@ int openHCISocket(uint16_t dev)
 	return fd;
 }
 
-int exportPackets(int fd, const mac_addr_t &hci_dev_mac, ur_template_t *out_template, void *out_record)
+mac_addr_t findDevAddr(
+	const uint8_t packet_type,
+	const uint8_t* packet,
+	const ssize_t size,
+	unordered_map<uint16_t, mac_addr_t> &connections)
 {
+	switch (packet_type) {
+	case HCI_EVENT_PKT: {
+		if (size < 2) { //event header
+			cerr << "error: invalid size of packet" << endl;
+			break;
+		}
+
+		const hci_event_hdr *hdr = (hci_event_hdr *) packet;
+		if (size - 2 != hdr->plen) {
+			cerr << "error: invalid size of packet" << endl;
+			break;
+		}
+
+		if (hdr->evt == EVT_LE_META_EVENT) {
+			auto *event = (evt_le_meta_event *) (packet + 2);
+			if (event->subevent == EVT_LE_CONN_COMPLETE) {
+				if (hdr->plen != EVT_LE_META_EVENT_SIZE + EVT_LE_CONN_COMPLETE_SIZE) {
+					cerr << "error: invalid size of packet" << endl;
+					break;
+				}
+
+				auto *event_le = (evt_le_connection_complete *) event->data;
+				if (event_le->status != EVENT_STATUS_SUCCESS) {
+					break;
+				}
+
+				uint16_t handle = htobl(event_le->handle);
+
+				bdaddr_t dev_mac;
+				baswap(&dev_mac, &event_le->peer_bdaddr);
+
+				connections[handle] = mac_from_bytes(dev_mac.b);
+			}
+		}
+		else if (hdr->evt == EVT_DISCONN_COMPLETE) {
+			if (hdr->plen != EVT_DISCONN_COMPLETE_SIZE) {
+				cerr << "error: invalid size of packet" << endl;
+				break;
+			}
+
+			auto *event = (evt_disconn_complete *) (packet + 2);
+
+			uint16_t handle = htobl(event->handle);
+
+			connections.erase(handle);
+		}
+
+		break;
+	}
+	case HCI_ACLDATA_PKT: {
+		if (size < 8) { //acl header + l2cap header
+			cerr << "error: invalid size of packet" << endl;
+			break;
+		}
+
+		auto *hdr = (hci_acl_hdr *) packet;
+		if (size - 4 != hdr->dlen) {
+			cerr << "error: invalid size of packet" << endl;
+			break;
+		}
+
+		uint16_t handle = htobl(hdr->handle) & 0x0FFF; // first 4 bits are ACL flags
+
+		auto it = connections.find(handle);
+		if (it == connections.end()) {
+			break;
+		}
+
+		return it->second;
+	}
+	default: {
+		break;
+	}
+	}
+
+	mac_addr_t dev_addr = {0};
+	return dev_addr;
+}
+
+int exportPackets(
+	int fd,
+	const mac_addr_t &hci_dev_addr,
+	ur_template_t *out_template,
+	void *out_record)
+{
+	unordered_map<uint16_t, mac_addr_t> connections;
+
 	vector<unsigned char> buffer(HCI_MAX_FRAME_SIZE);
 	vector<unsigned char> control(64);
 	struct pollfd pollFd;
@@ -153,7 +259,7 @@ int exportPackets(int fd, const mac_addr_t &hci_dev_mac, ur_template_t *out_temp
 			if (errno == EAGAIN)
 				continue;
 
-			std::cerr << "receive failed" << " (" << errno << ")" << std::endl;
+			std::cerr << "receive failed" << " (" << std::string(strerror(errno)) << ")" << std::endl;
 			return 1;
 		}
 
@@ -172,10 +278,14 @@ int exportPackets(int fd, const mac_addr_t &hci_dev_mac, ur_template_t *out_temp
 		gettimeofday(&tv, NULL);
 		ur_time_t timestamp = ur_time_from_sec_msec(tv.tv_sec, tv.tv_usec / 1000);
 
-		ur_set(out_template, out_record, F_HCI_DEV_MAC, hci_dev_mac);
+		mac_addr_t dev_addr = findDevAddr(buffer[0], buffer.data() + 1, len - 1, connections);
+
 		ur_set(out_template, out_record, F_TIMESTAMP, timestamp);
+		ur_set(out_template, out_record, F_DEV_ADDR, dev_addr);
+		ur_set(out_template, out_record, F_HCI_DEV_ADDR, hci_dev_addr);
 		ur_set(out_template, out_record, F_DATA_DIRECTION, dir);
 		ur_set(out_template, out_record, F_PACKET_TYPE, buffer[0]);
+		ur_set(out_template, out_record, F_SIZE, len - 1);
 		ur_set_var(out_template, out_record, F_PACKET, buffer.data() + 1, len - 1);
 
 		trap_send(0, out_record, ur_rec_size(out_template, out_record));
@@ -223,14 +333,14 @@ int main(int argc, char *argv[])
 		FREE_MODULE_INFO_STRUCT(MODULE_BASIC_INFO, MODULE_PARAMS)
 	};
 
-	out_template = ur_create_output_template(0, "HCI_DEV_MAC, TIMESTAMP, DATA_DIRECTION, PACKET_TYPE, PACKET", NULL);
+	out_template = ur_create_output_template(0, UNIREC_TEMPLATE, NULL);
 	if (out_template == NULL) {
 		cerr << "Error: output template could not be created." << endl;
 		cleanup();
 		return 1;
 	}
 
-	out_record = ur_create_record(out_template, 0);
+	out_record = ur_create_record(out_template, UR_MAX_SIZE);
 	if (out_record == NULL) {
 		cerr << "Error: Memory allocation problem (output record).";
 		cleanup();
@@ -254,10 +364,10 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	bdaddr_t hci_dev_mac;
-	baswap(&hci_dev_mac, &info.bdaddr);
+	bdaddr_t hci_dev_addr;
+	baswap(&hci_dev_addr, &info.bdaddr);
 
-	int ret = exportPackets(socket, mac_from_bytes(hci_dev_mac.b), out_template, out_record);
+	int ret = exportPackets(socket, mac_from_bytes(hci_dev_addr.b), out_template, out_record);
 
 	cleanup();
 	return ret;
