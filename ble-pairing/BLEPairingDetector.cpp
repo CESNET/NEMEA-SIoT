@@ -40,6 +40,7 @@
 #include <csignal>
 #include <fstream>
 #include <iostream>
+#include <string>
 #include <getopt.h>
 
 #include <bluetooth/bluetooth.h>
@@ -48,6 +49,26 @@
 
 #include "BLEPairingDetector.h"
 #include "fields.h"
+
+UR_FIELDS (
+	time    TIMESTAMP
+	macaddr DEV_ADDR
+	macaddr HCI_DEV_ADDR
+	uint8   PACKET_TYPE
+	uint8   DATA_DIRECTION
+	uint16  SIZE
+	bytes   PACKET
+
+	macaddr INCIDENT_DEV_ADDR
+	uint32  ALERT_CODE
+	string  CAPTION
+	uint8   SUCCESS
+	uint8   VERSION
+	uint8   METHOD
+)
+
+#define INPUT_TEMPLATE "TIMESTAMP, DEV_ADDR, HCI_DEV_ADDR, PACKET_TYPE, DATA_DIRECTION, SIZE, PACKET"
+#define ALERT_TEMPLATE "TIMESTAMP, INCIDENT_DEV_ADDR, ALERT_CODE, CAPTION, HCI_DEV_ADDR, SUCCESS, VERSION, METHOD"
 
 using namespace std;
 
@@ -58,7 +79,7 @@ trap_module_info_t *module_info = NULL;
 		"Analyze received packets from bluetooth-hci-collector and detect BLE pairing.", 1, 1)
 #define MODULE_PARAMS(PARAM) \
 	PARAM('d', "dir", "Directory to store/load paired devices.", required_argument, "string") \
-    PARAM('I', "ignore-in-eof", "Do not terminate on incomming termination message.", no_argument, "none")
+	PARAM('I', "ignore-in-eof", "Do not terminate on incomming termination message.", no_argument, "none")
 
 static int g_stop = 0;
 
@@ -72,7 +93,7 @@ int main(int argc, char *argv[])
 	int opt;
 	int verbose = 0;
 	string directory = ".";
-    int ignore_eof = 0; // Ignore EOF input parameter flag
+	int ignore_eof = 0; // Ignore EOF input parameter flag
 
 	INIT_MODULE_INFO_STRUCT(MODULE_BASIC_INFO, MODULE_PARAMS)
 	TRAP_DEFAULT_INITIALIZATION(argc, argv, *module_info);
@@ -84,9 +105,9 @@ int main(int argc, char *argv[])
 			case 'd':
 				directory = optarg;
 				break;
-            case 'I':
-                ignore_eof = 1;
-                break;
+			case 'I':
+				ignore_eof = 1;
+				break;
 			default:
 				cerr << "Invalid argument." << endl;
 				TRAP_DEFAULT_FINALIZATION();
@@ -113,21 +134,21 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	in_template = ur_create_input_template(0, "HCI_DEV_MAC, TIMESTAMP, DATA_DIRECTION, PACKET_TYPE, PACKET", NULL);
+	in_template = ur_create_input_template(0, INPUT_TEMPLATE, NULL);
 	if (in_template == NULL) {
 		cerr << "Error: input template could not be created." << endl;
 		cleanup();
 		return 1;
 	}
 
-	alert_template = ur_create_output_template(0, "HCI_DEV_MAC, DEVICE_MAC, TIMESTAMP, SUCCESS, REPEATED, VERSION, METHOD", NULL);
+	alert_template = ur_create_output_template(0, ALERT_TEMPLATE, NULL);
 	if (alert_template == NULL) {
 		cerr << "Error: alert template could not be created." << endl;
 		cleanup();
 		return 1;
 	}
 
-	alert_record = ur_create_record(alert_template, 0);
+	alert_record = ur_create_record(alert_template, UR_MAX_SIZE);
 	if (alert_record == NULL) {
 		cerr << "Error: Memory allocation problem (output record).";
 		cleanup();
@@ -158,17 +179,14 @@ int main(int argc, char *argv[])
 			}
 		}
 
-
-
 		detector.processPacket(
-			ur_get_ptr(in_template, in_record, F_HCI_DEV_MAC),
-			ur_get_ptr(in_template, in_record, F_TIMESTAMP),
-			ur_get_ptr(in_template, in_record, F_PACKET_TYPE),
+			ur_get(in_template, in_record, F_HCI_DEV_ADDR),
+			ur_get(in_template, in_record, F_TIMESTAMP),
+			ur_get(in_template, in_record, F_PACKET_TYPE),
 			ur_get_var_len(in_template, in_record, F_PACKET),
 			(uint8_t *) ur_get_ptr(in_template, in_record, F_PACKET)
 		);
 	}
-
 
 	cleanup();
 	return 0;
@@ -187,13 +205,13 @@ BLEPairingDetector::BLEPairingDetector(
 }
 
 void BLEPairingDetector::processPacket(
-	mac_addr_t *hciDevMac,
-	ur_time_t *timestamp,
-	uint8_t *packetType,
+	mac_addr_t hciDevMac,
+	ur_time_t timestamp,
+	uint8_t packetType,
 	uint16_t packetSize,
 	uint8_t *packet)
 {
-	switch (*packetType) {
+	switch (packetType) {
 		case HCI_EVENT_PKT:
 			processEvent(hciDevMac, timestamp, packet, packetSize);
 			break;
@@ -209,8 +227,8 @@ void BLEPairingDetector::processPacket(
 }
 
 void BLEPairingDetector::processEvent(
-	mac_addr_t *hciDevMac,
-	ur_time_t *timestamp,
+	mac_addr_t hciDevMac,
+	ur_time_t timestamp,
 	uint8_t *packet,
 	uint16_t packetSize)
 {
@@ -294,8 +312,8 @@ void BLEPairingDetector::processEvent(
 }
 
 void BLEPairingDetector::processACLData(
-	mac_addr_t *hciDevMac,
-	ur_time_t *timestamp,
+	mac_addr_t hciDevMac,
+	ur_time_t timestamp,
 	uint8_t *packet,
 	uint16_t packetSize)
 {
@@ -320,8 +338,8 @@ void BLEPairingDetector::processACLData(
 }
 
 void BLEPairingDetector::processSMP(
-	mac_addr_t *hciDevMac,
-	ur_time_t *timestamp,
+	mac_addr_t hciDevMac,
+	ur_time_t timestamp,
 	uint8_t *packet,
 	uint16_t packetSize,
 	uint16_t connectionHandle)
@@ -456,15 +474,15 @@ BLEPairingMethod BLEPairingDetector::findPairingMethod(
 }
 
 void BLEPairingDetector::generatePairingAlert(
-	mac_addr_t *hciDevMac,
-	ur_time_t *timestamp,
+	mac_addr_t hciDevMac,
+	ur_time_t timestamp,
 	const Connection &connection,
 	bool success)
 {
 	char hciDevMacStr[18];
 	char deviceMacStr[18];
 
-	mac_to_str(hciDevMac, hciDevMacStr);
+	mac_to_str(&hciDevMac, hciDevMacStr);
 	mac_to_str(&(connection.address), deviceMacStr);
 
 	bool isRepeated = isRepeatedPairing(hciDevMacStr, deviceMacStr);
@@ -475,7 +493,7 @@ void BLEPairingDetector::generatePairingAlert(
 	if (m_verbose > 0) {
 		cout << "pairing of device: " << deviceMacStr
 			 << " on hci dev: " << hciDevMacStr
-			 << ", timestamp: " << ur_time_get_sec(*timestamp) << "." << ur_time_get_msec(*timestamp)
+			 << ", timestamp: " << ur_time_get_sec(timestamp) << "." << ur_time_get_msec(timestamp)
 			 << ", success: " << success
 			 << ", repeated: " << isRepeated
 			 << ", version: " << (int) connection.pairingVersion
@@ -483,11 +501,15 @@ void BLEPairingDetector::generatePairingAlert(
 			 << endl;
 	}
 
-	ur_set(m_alert_template, m_alert_record, F_HCI_DEV_MAC,*hciDevMac);
-	ur_set(m_alert_template, m_alert_record, F_DEVICE_MAC, connection.address);
-	ur_set(m_alert_template, m_alert_record, F_TIMESTAMP, *timestamp);
+	std::string caption = (isRepeated) ? "Repeated pairing " : "First pairing ";
+	caption += "of device " + string(deviceMacStr) + " on hci dev " + string(hciDevMacStr);
+
+	ur_set(m_alert_template, m_alert_record, F_TIMESTAMP, timestamp);
+	ur_set(m_alert_template, m_alert_record, F_INCIDENT_DEV_ADDR, connection.address);
+	ur_set(m_alert_template, m_alert_record, F_ALERT_CODE, isRepeated);
+	ur_set_string(m_alert_template, m_alert_record, F_CAPTION, caption.c_str());
+	ur_set(m_alert_template, m_alert_record, F_HCI_DEV_ADDR,hciDevMac);
 	ur_set(m_alert_template, m_alert_record, F_SUCCESS, success);
-	ur_set(m_alert_template, m_alert_record, F_REPEATED, isRepeated);
 	ur_set(m_alert_template, m_alert_record, F_VERSION, connection.pairingVersion);
 	ur_set(m_alert_template, m_alert_record, F_METHOD, connection.pairingMethod);
 

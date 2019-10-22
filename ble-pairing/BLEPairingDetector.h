@@ -138,9 +138,9 @@ public:
 	 * @param[in] packet Packet data
 	 */
 	void processPacket(
-		mac_addr_t *hciDevMac,
-		ur_time_t *timestamp,
-		uint8_t *packetType,
+		mac_addr_t hciDevMac,
+		ur_time_t timestamp,
+		uint8_t packetType,
 		uint16_t packetSize,
 		uint8_t *packet);
 
@@ -158,8 +158,8 @@ private:
 	 * @param[in] packetSize Size of packet
 	 */
 	void processEvent(
-		mac_addr_t *hciDevMac,
-		ur_time_t *timestamp,
+		mac_addr_t hciDevMac,
+		ur_time_t timestamp,
 		uint8_t *packet,
 		uint16_t packetSize);
 
@@ -171,8 +171,8 @@ private:
 	 * @param[in] packetSize Size of packet
 	 */
 	void processACLData(
-		mac_addr_t *hciDevMac,
-		ur_time_t *timestamp,
+		mac_addr_t hciDevMac,
+		ur_time_t timestamp,
 		uint8_t *packet,
 		uint16_t packetSize);
 
@@ -191,8 +191,8 @@ private:
 	 * @param[in] connectionHandle Identification of the connection
 	 */
 	void processSMP(
-		mac_addr_t *hciDevMac,
-		ur_time_t *timestamp,
+		mac_addr_t hciDevMac,
+		ur_time_t timestamp,
 		uint8_t *packet,
 		uint16_t packetSize,
 		uint16_t connectionHandle);
@@ -225,8 +225,8 @@ private:
 	 * @param[in] success
 	 */
 	void generatePairingAlert(
-		mac_addr_t *hciDevMac,
-		ur_time_t *timestamp,
+		mac_addr_t hciDevMac,
+		ur_time_t timestamp,
 		const Connection &connection,
 		bool success);
 
