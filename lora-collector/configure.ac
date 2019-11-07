@@ -16,6 +16,9 @@ AX_NEMEACOMMON_CHECK
 # Checks for programs.
 AC_PROG_CC
 
+# Install libloragw
+$(PRE_INSTALL)  make -C libloragw
+
 # Checks for libraries.
 TRAPLIB=""
 PKG_CHECK_MODULES([libtrap], [libtrap], [TRAPLIB="yes"])
