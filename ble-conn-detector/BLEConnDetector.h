@@ -6,6 +6,7 @@
 #include <unirec/unirec.h>
 
 #include "BLEConnModel.h"
+#include "SimpleStatisticModel.h"
 
 typedef struct {
 	ur_time_t  timestamp;
@@ -65,10 +66,19 @@ public:
 
     mac_to_str(&report->bdaddr, buf);
     
-    auto element = models.find(id);
-    if (element == models.end()) {
-      models[id] = NULL;
+    auto elem = models.find(id);
+    if (elem == models.end()) {
+      models[id] = new SimpleStatisticModel();
       std::cout << "Created model for device " << buf << std::endl;
+    } else {
+      auto model = elem->second;
+      try {
+        model->receivedAdvAt(report->timestamp);
+      } catch (SSMInitialised evt) {
+        std::cout << "Model for " << buf << " initialised." << std::endl;
+        std::cout << "\t(Midpoint: " << evt.midpoint << "us;";
+        std::cout << " Threshold: " << evt.threshold << "us)" << std::endl;
+      }
     }
 
   }

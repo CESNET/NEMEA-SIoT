@@ -3,17 +3,23 @@
 
 #include <unirec/ur_time.h>
 
+/* Events (Exceptions) */
+struct ModelInitialised : public std::exception
+{
+  const char * what() const throw ()
+  {
+    return "The model has been successfully initialised.";
+  }
+
+};
+
+/* Model interface */
 class BLEConnModel
 {
 public:
   virtual void receivedAdvAt(ur_time_t time) = 0;
   
-  bool isReady(void) {
-    return ready;
-  }
-
-protected:
-  bool ready;
+  virtual bool isReady(void) = 0;
 };
 
 #endif
