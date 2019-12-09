@@ -1,13 +1,16 @@
 # Nemea Secured IoT 
 
 This repository contains [Nemea system](https://github.com/CESNET/Nemea) modules for a threat detection in IoT networks. The modules and their functionality/purposes are:
- * [ble-adv-collector](ble-adv-collector) -- provide ble devices which are in proximity
  * [ble-pairing](ble-pairing) -- detect unexpected ble pairing
- * [hci-collector](hci-collector) -- exports ble packet date from hci interface
  * [lora-airtime](lora-airtime) -- detect unexpected frequency of lora messages
  * [lora-replay](lora-replay) -- detect replay attack in lora networks
  * [lora-distance](lora-distance) -- detect unexpected sensor location change
  * [wsn-anomaly](wsn-anomaly-testable) -- universal anomaly detector for wireless sensor networks
+
+To enable more advanced threat detection we create specialized collectors using dedicated HW interfaces to collect more detailed data. These modules provide collected data to NEMEA detectors. The modules and their functionality/purposes are:
+ * [SIoTpot](SIoTpot) -- universal honeypot for IoT networks
+ * [ble-adv-collector](ble-adv-collector) -- provide ble devices which are in proximity
+ * [hci-collector](hci-collector) -- exports ble packet date from hci interface
 
 Also, there are [datasets](#iot-datasets) of IoT devices communication.
 

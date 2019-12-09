@@ -2,7 +2,7 @@ SIoTpot
 ***************************
 IoT honeypot
 ============================
-This project is the implementation of my Master's Thesis. SIoTpot is the IoT honeypot
+This project is the implementation of Simon Stefunko's Master Thesis. SIoTpot is the IoT honeypot
 for the Z-Wave protocol.
 
 - records legitimate communication in order to create system of decoys
