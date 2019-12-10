@@ -11,6 +11,7 @@ To enable more advanced threat detection we create specialized collectors using 
  * [SIoTpot](SIoTpot) -- universal honeypot for IoT networks
  * [ble-adv-collector](ble-adv-collector) -- provide ble devices which are in proximity
  * [hci-collector](hci-collector) -- exports ble packet date from hci interface
+ * [zwave-sdr-sniffer](zwave-sdr-sniffer) -- sniff and exports z-wave frames using RTL-SDR
 
 Also, there are [datasets](#iot-datasets) of IoT devices communication.
 
