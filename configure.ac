@@ -26,7 +26,7 @@ AX_UNIREC_CHECK()
 
 
 # Checks for header files.
-AC_CHECK_HEADERS([sys/ioctl.h sys/socket.h unistd.h])
+AC_CHECK_HEADERS([sys/ioctl.h sys/socket.h unistd.h sys/time.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_CHECK_HEADER_STDBOOL
@@ -46,6 +46,8 @@ wsn-anomaly
 lora-airtime
 lora-replay
 lora-distance
-ble-adv-collector])
+ble-adv-collector
+zwave-sdr-sniffer
+zwave-collector])
 
 AC_OUTPUT

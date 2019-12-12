@@ -6,5 +6,7 @@ wsn-anomaly \
 lora-airtime \
 lora-replay \
 lora-distance \
-ble-adv-collector
+ble-adv-collector \
+zwave-sdr-sniffer \
+zwave-collector
 
