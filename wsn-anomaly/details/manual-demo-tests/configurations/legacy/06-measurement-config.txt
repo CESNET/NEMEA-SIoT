@@ -8,41 +8,41 @@
 #******************************** TEST11: Measurement **********************************
 #***************************************************************************************
 
-#SOFCount: 1;1;11;delta;-;-;-;profile(moving_average,moving_variance,moving_median,average,);moving_average(-,-,-,-,-,5,0.2,0,0,);moving_variance(-,-,-,-,-,5,0.2,0,0,);average(-,-,-,-,-,5,0.2,0,0,);moving_median(-,-,-,-,-,5,0.2,0,0,);export(-,);
+#SOF_COUNT: 1;1;11;delta;-;-;-;profile(MOVING_AVERAGE,MOVING_VARIANCE,MOVING_MEDIAN,AVERAGE,);MOVING_AVERAGE(-,-,-,-,-,5,0.2,0,0,);MOVING_VARIANCE(-,-,-,-,-,5,0.2,0,0,);AVERAGE(-,-,-,-,-,5,0.2,0,0,);MOVING_MEDIAN(-,-,-,-,-,5,0.2,0,0,);export(-,);
 
 #***************************************************************************************
 #******************************** TEST12: Measurement **********************************
 #***************************************************************************************
 
-#SOFCount: 3;3;11;delta;-;-;-;profile(moving_average,moving_variance,moving_median,average,);moving_average(-,-,-,-,-,5,0.2,0,0,);moving_variance(-,-,-,-,-,5,0.2,0,0,);average(-,-,-,-,-,5,0.2,0,0,);moving_median(-,-,-,-,-,5,0.2,0,0,);export(-,);
+#SOF_COUNT: 3;3;11;delta;-;-;-;profile(MOVING_AVERAGE,MOVING_VARIANCE,MOVING_MEDIAN,AVERAGE,);MOVING_AVERAGE(-,-,-,-,-,5,0.2,0,0,);MOVING_VARIANCE(-,-,-,-,-,5,0.2,0,0,);AVERAGE(-,-,-,-,-,5,0.2,0,0,);MOVING_MEDIAN(-,-,-,-,-,5,0.2,0,0,);export(-,);
 
 #***************************************************************************************
 #******************************** TEST13: Measurement **********************************
 #***************************************************************************************
 
-#SOFCount: 5;5;11;delta;-;-;-;profile(moving_average,moving_variance,moving_median,average,);moving_average(-,-,-,-,-,5,0.2,0,0,);moving_variance(-,-,-,-,-,5,0.2,0,0,);average(-,-,-,-,-,5,0.2,0,0,);moving_median(-,-,-,-,-,5,0.2,0,0,);export(-,);
+#SOF_COUNT: 5;5;11;delta;-;-;-;profile(MOVING_AVERAGE,MOVING_VARIANCE,MOVING_MEDIAN,AVERAGE,);MOVING_AVERAGE(-,-,-,-,-,5,0.2,0,0,);MOVING_VARIANCE(-,-,-,-,-,5,0.2,0,0,);AVERAGE(-,-,-,-,-,5,0.2,0,0,);MOVING_MEDIAN(-,-,-,-,-,5,0.2,0,0,);export(-,);
 
 #***************************************************************************************
 #******************************** TEST14: Measurement **********************************
 #***************************************************************************************
 
-#SOFCount: 10;10;11;delta;-;-;-;profile(moving_average,moving_variance,moving_median,average,);moving_average(-,-,-,-,-,5,0.2,0,0,);moving_variance(-,-,-,-,-,5,0.2,0,0,);average(-,-,-,-,-,5,0.2,0,0,);moving_median(-,-,-,-,-,5,0.2,0,0,);export(-,);
+#SOF_COUNT: 10;10;11;delta;-;-;-;profile(MOVING_AVERAGE,MOVING_VARIANCE,MOVING_MEDIAN,AVERAGE,);MOVING_AVERAGE(-,-,-,-,-,5,0.2,0,0,);MOVING_VARIANCE(-,-,-,-,-,5,0.2,0,0,);AVERAGE(-,-,-,-,-,5,0.2,0,0,);MOVING_MEDIAN(-,-,-,-,-,5,0.2,0,0,);export(-,);
 
 #***************************************************************************************
 #******************************** TEST15: Measurement **********************************
 #***************************************************************************************
 
-#SOFCount: 15;15;11;delta;-;-;-;profile(moving_average,moving_variance,moving_median,average,);moving_average(-,-,-,-,-,5,0.2,0,0,);moving_variance(-,-,-,-,-,5,0.2,0,0,);average(-,-,-,-,-,5,0.2,0,0,);moving_median(-,-,-,-,-,5,0.2,0,0,);export(-,);
+#SOF_COUNT: 15;15;11;delta;-;-;-;profile(MOVING_AVERAGE,MOVING_VARIANCE,MOVING_MEDIAN,AVERAGE,);MOVING_AVERAGE(-,-,-,-,-,5,0.2,0,0,);MOVING_VARIANCE(-,-,-,-,-,5,0.2,0,0,);AVERAGE(-,-,-,-,-,5,0.2,0,0,);MOVING_MEDIAN(-,-,-,-,-,5,0.2,0,0,);export(-,);
 
 #***************************************************************************************
 #******************************** TEST16: Measurement **********************************
 #***************************************************************************************
 
-#SOFCount: 20;20;11;delta;-;-;-;profile(moving_average,moving_variance,moving_median,average,);moving_average(-,-,-,-,-,5,0.2,0,0,);moving_variance(-,-,-,-,-,5,0.2,0,0,);average(-,-,-,-,-,5,0.2,0,0,);moving_median(-,-,-,-,-,5,0.2,0,0,);export(-,);
+#SOF_COUNT: 20;20;11;delta;-;-;-;profile(MOVING_AVERAGE,MOVING_VARIANCE,MOVING_MEDIAN,AVERAGE,);MOVING_AVERAGE(-,-,-,-,-,5,0.2,0,0,);MOVING_VARIANCE(-,-,-,-,-,5,0.2,0,0,);AVERAGE(-,-,-,-,-,5,0.2,0,0,);MOVING_MEDIAN(-,-,-,-,-,5,0.2,0,0,);export(-,);
 
 #***************************************************************************************
 #******************************** TEST17: Measurement **********************************
 #***************************************************************************************
 
-#SOFCount: 30;30;11;delta;-;-;-;profile(moving_average,moving_variance,moving_median,average,);moving_average(-,-,-,-,-,5,0.2,0,0,);moving_variance(-,-,-,-,-,5,0.2,0,0,);average(-,-,-,-,-,5,0.2,0,0,);moving_median(-,-,-,-,-,5,0.2,0,0,);export(-,);
+#SOF_COUNT: 30;30;11;delta;-;-;-;profile(MOVING_AVERAGE,MOVING_VARIANCE,MOVING_MEDIAN,AVERAGE,);MOVING_AVERAGE(-,-,-,-,-,5,0.2,0,0,);MOVING_VARIANCE(-,-,-,-,-,5,0.2,0,0,);AVERAGE(-,-,-,-,-,5,0.2,0,0,);MOVING_MEDIAN(-,-,-,-,-,5,0.2,0,0,);export(-,);
 #=======================================================================================

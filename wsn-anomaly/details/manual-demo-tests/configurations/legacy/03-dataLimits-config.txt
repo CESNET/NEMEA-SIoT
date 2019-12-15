@@ -11,6 +11,6 @@
 # With this configurating you can use these recorded traffic files: onExport-dataLimit-virtual.log, onExport-dataLimit-virtual-time.log
 
 # CONFIGURATION #
-#VALUE: 8;8;0;simple;-;-;-;profile(moving_average,moving_variance,moving_median,average,);moving_average(4,10,2,12,5,-,-,0,0,);moving_variance(10,18,5,25,5,-,-,0,0,);average(4,10,2,12,5,-,-,0,0,);moving_median(4,10,2,12,5,-,-,0,0,);export(-,);
+#VALUE: 8;8;0;simple;-;-;-;profile(MOVING_AVERAGE,MOVING_VARIANCE,MOVING_MEDIAN,AVERAGE,);MOVING_AVERAGE(4,10,2,12,5,-,-,0,0,);MOVING_VARIANCE(10,18,5,25,5,-,-,0,0,);AVERAGE(4,10,2,12,5,-,-,0,0,);MOVING_MEDIAN(4,10,2,12,5,-,-,0,0,);export(-,);
 
 #=======================================================================================

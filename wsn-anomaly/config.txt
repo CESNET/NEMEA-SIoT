@@ -4,13 +4,13 @@
 #******************** TEST1: Profile Change Detection - BLE DoS ************************
 #***************************************************************************************
 
-rxBytes;1112: 5;8;0;delta;-;-;-;profile(moving_average,moving_variance,moving_median,average,);moving_average(-,-,-,-,-,2,0.5,0,0,);moving_variance(-,-,-,-,-,2,0.5,0,0,);average(-,-,-,-,-,2,0.5,0,0,);moving_median(-,-,-,-,-,2,0.5,0,0,);export(-,);
+RX_BYTES;1112: 5;8;0;delta;-;-;-;profile(MOVING_AVERAGE,MOVING_VARIANCE,MOVING_MEDIAN,AVERAGE,);MOVING_AVERAGE(-,-,-,-,-,2,0.5,0,0,);MOVING_VARIANCE(-,-,-,-,-,2,0.5,0,0,);AVERAGE(-,-,-,-,-,2,0.5,0,0,);MOVING_MEDIAN(-,-,-,-,-,2,0.5,0,0,);export(-,);
 
 #***************************************************************************************
 #********************* TEST2: Data Limit Violation - Sensor data ***********************
 #***************************************************************************************
 
-VALUE: 4;4;0;simple;-;-;-;profile(moving_average,moving_variance,moving_median,average,);moving_average(4,8,2,20,3,-,-,0,0,);moving_variance(4,8,2,20,3,-,-,0,0,);average(4,8,2,20,3,-,-,0,0,);moving_median(4,8,2,20,3,-,-,0,0,);export(-,);
+VALUE: 4;4;0;simple;-;-;-;profile(MOVING_AVERAGE,MOVING_VARIANCE,MOVING_MEDIAN,AVERAGE,);MOVING_AVERAGE(4,8,2,20,3,-,-,0,0,);MOVING_VARIANCE(4,8,2,20,3,-,-,0,0,);AVERAGE(4,8,2,20,3,-,-,0,0,);MOVING_MEDIAN(4,8,2,20,3,-,-,0,0,);export(-,);
 
 #=======================================================================================
 
@@ -18,7 +18,7 @@ VALUE: 4;4;0;simple;-;-;-;profile(moving_average,moving_variance,moving_median,a
 #*************** TEST3: Multiple Detection - Z-Wave Connection Quality *****************
 #***************************************************************************************
 
-lastResponseRTT;2: 5;7;5;simple;-;-;-;profile(moving_average,);moving_average(-,-,-,-,-,2,0.5,0,0,);export(-,);
-dropped;1113: 1;1;10;delta;-;-;-;profile(moving_median,);moving_median(-,-,-1,1,-,-,-,0,0,);export(-,);
+LAST_RESPONSE_RTT;2: 5;7;5;simple;-;-;-;profile(MOVING_AVERAGE,);MOVING_AVERAGE(-,-,-,-,-,2,0.5,0,0,);export(-,);
+DROPPED;1113: 1;1;10;delta;-;-;-;profile(MOVING_MEDIAN,);MOVING_MEDIAN(-,-,-1,1,-,-,-,0,0,);export(-,);
 #=======================================================================================
 ###################################### TESTS ###########################################

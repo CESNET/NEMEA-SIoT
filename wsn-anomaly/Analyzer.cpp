@@ -234,10 +234,10 @@ void Analyzer::modifyMetaData(string &ur_field, uint64_t *ur_id ,map<string, map
 
     // Determine profile values
     for (auto profile_values:  meta_it->second[getMetaID(meta_it,ur_id)]["profile"]){
-        if ( profile_values == "moving_median" ){
+        if ( profile_values == "MOVING_MEDIAN" ){
             // Moving median method
             meta_it->second[getMetaID(meta_it,ur_id)][meta_id][MOV_MEDIAN] = to_string(getMovingMedian(sensor_it,meta_it,ur_field,ur_id));
-        } else if (profile_values == "moving_average" || profile_values == "moving_variance") {
+        } else if (profile_values == "MOVING_AVERAGE" || profile_values == "MOVING_VARIANCE") {
             // Moving varinace and average method
             // Skip unnecessary calls
             if (flag == 1 ){
@@ -247,7 +247,7 @@ void Analyzer::modifyMetaData(string &ur_field, uint64_t *ur_id ,map<string, map
             meta_it->second[getMetaID(meta_it,ur_id)][meta_id][MOV_AVERAGE] = to_string(determine_values.first);
             meta_it->second[getMetaID(meta_it,ur_id)][meta_id][MOV_VARIANCE] = to_string(determine_values.second);
             flag = 1;
-        } else if (profile_values == "average"){
+        } else if (profile_values == "AVERAGE"){
             // Overall average method
             meta_it->second[getMetaID(meta_it,ur_id)][meta_id][AVERAGE] = to_string(getOverallAverage(sensor_it, meta_it,meta_id,ur_id));
         }
@@ -437,13 +437,13 @@ void Analyzer::printSeries(string &ur_field, uint64_t *ur_id){
 
 // Get field index for connected keyword
 int Analyzer::getIndex(string name){
-    if (name == "moving_median"){
+    if (name == "MOVING_MEDIAN"){
         return MOV_MEDIAN;
-    } else if (name == "moving_average"){
+    } else if (name == "MOVING_AVERAGE"){
         return MOV_AVERAGE;
-    } else if (name == "moving_variance"){
+    } else if (name == "MOVING_VARIANCE"){
         return MOV_VARIANCE;
-    } else if (name == "average"){
+    } else if (name == "AVERAGE"){
         return AVERAGE;
     } else if (name == "new_value"){
         return NEW_VALUE;
@@ -769,16 +769,16 @@ void Analyzer::periodicExport(int period, string ur_field, uint64_t *ur_id){
         for (auto elem: ur_export_fields){
             for (auto field: elem.second){
                 // Set unirec record
-                if (field == "moving_average"){
-                    ur_set(export_template[elem.first], data_export[elem.first], F_moving_average, stod(meta_it->second[getMetaID(meta_it,&data_id)]["metaData"][MOV_AVERAGE],nullptr));
-                } else if (field == "moving_variance") {
-                    ur_set(export_template[elem.first], data_export[elem.first], F_moving_variance, stod(meta_it->second[getMetaID(meta_it,&data_id)]["metaData"][MOV_VARIANCE],nullptr));
+                if (field == "MOVING_AVERAGE"){
+                    ur_set(export_template[elem.first], data_export[elem.first], F_MOVING_AVERAGE, stod(meta_it->second[getMetaID(meta_it,&data_id)]["metaData"][MOV_AVERAGE],nullptr));
+                } else if (field == "MOVING_VARIANCE") {
+                    ur_set(export_template[elem.first], data_export[elem.first], F_MOVING_VARIANCE, stod(meta_it->second[getMetaID(meta_it,&data_id)]["metaData"][MOV_VARIANCE],nullptr));
 
-                } else if (field == "moving_median"){
-                    ur_set(export_template[elem.first], data_export[elem.first], F_moving_median, stod(meta_it->second[getMetaID(meta_it,&data_id)]["metaData"][MOV_MEDIAN],nullptr));
+                } else if (field == "MOVING_MEDIAN"){
+                    ur_set(export_template[elem.first], data_export[elem.first], F_MOVING_MEDIAN, stod(meta_it->second[getMetaID(meta_it,&data_id)]["metaData"][MOV_MEDIAN],nullptr));
 
-                } else if (field == "average"){
-                    ur_set(export_template[elem.first], data_export[elem.first], F_average, stod(meta_it->second[getMetaID(meta_it,&data_id)]["metaData"][AVERAGE],nullptr));
+                } else if (field == "AVERAGE"){
+                    ur_set(export_template[elem.first], data_export[elem.first], F_AVERAGE, stod(meta_it->second[getMetaID(meta_it,&data_id)]["metaData"][AVERAGE],nullptr));
                 }
             }
             // Send data for periodic export
