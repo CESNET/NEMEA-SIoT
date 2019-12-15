@@ -453,7 +453,7 @@ int main (int argc, char** argv){
         TRAP_CTX_RECEIVE(ctx,0,data_nemea_input,memory_received,in_template);
 
         // Take ID and TIME field -> user for alert identification
-        ur_id = *(ur_get_ptr(in_template, data_nemea_input, F_INCIDENT_DEV_ADDR));
+        ur_id = *(ur_get_ptr(in_template, data_nemea_input, F_DEV_ADDR));
         ur_time = ur_time_get_sec(*(ur_get_ptr(in_template, data_nemea_input, F_TIME)));
 
         // Go through all unirec fields
