@@ -475,7 +475,7 @@ int main (int argc, char** argv){
             }
 
             if (verbose >= 2){
-                cout << "VERBOSE: Received UniRec message with the record name" << ur_id << endl;
+                cout << "VERBOSE: Received UniRec message with the record name " << ur_id << endl;
             }
             // Convert TIME into double
             if ( strcmp("TIME",(ur_get_name(id))) == 0 ){
