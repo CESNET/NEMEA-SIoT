@@ -20,7 +20,7 @@
 - ble-periodic-time: hints for generation periodic BLE traffic
 - onExport-z-wave-periodic: hints for generation periodic Z-Wave traffic
 - onExport-dataLimit-virtual: contain increase/decrease of sensor values
-- z-wave-connection: contain changes in communication channel quality stats
+- z-wave-connection: contain changes in communication channel QUALITY stats
 - z-wave-measurement: test traffic used for measurements profile items
 
 ### Configurations
@@ -30,7 +30,7 @@
 
 ### How To Run a Test (LEGACY Configuration)
 1. Prepare detector configuration file, i.e. 
-        SOFCount: 10;12;11;delta;-;-;-;profile(moving_average,moving_variance,moving_median,average,);moving_average(-,-,-,-,-,5,0.2,0,0,);moving_variance(-,-,-,-,-,5,0.2,0,0,);average(-,-,-,-,-,5,0.2,0,0,);moving_median(-,-,-,-,-,5,0.2,0,0,);export(-,);
+        SOF_COUNT: 10;12;11;delta;-;-;-;profile(MOVING_AVERAGE,MOVING_VARIANCE,MOVING_MEDIAN,AVERAGE,);MOVING_AVERAGE(-,-,-,-,-,5,0.2,0,0,);MOVING_VARIANCE(-,-,-,-,-,5,0.2,0,0,);AVERAGE(-,-,-,-,-,5,0.2,0,0,);MOVING_MEDIAN(-,-,-,-,-,5,0.2,0,0,);export(-,);
 
 2. Run logger for alert output interface
         logger -t -T -i u:alert

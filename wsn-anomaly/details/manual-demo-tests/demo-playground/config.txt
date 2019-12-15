@@ -4,34 +4,34 @@
 #********************************** TEST1: DoS *****************************************
 #***************************************************************************************
 
-SOFCount;1111: 10;12;11;delta;-;-;-;profile(moving_average,moving_variance,moving_median,average,);moving_average(-,-,-,-,-,5,0.2,0,0,);moving_variance(-,-,-,-,-,5,0.2,0,0,);average(-,-,-,-,-,5,0.2,0,0,);moving_median(-,-,-,-,-,5,0.2,0,0,);export(-,);
+SOF_COUNT;1111: 10;12;11;delta;-;-;-;profile(MOVING_AVERAGE,MOVING_VARIANCE,MOVING_MEDIAN,AVERAGE,);MOVING_AVERAGE(-,-,-,-,-,5,0.2,0,0,);MOVING_VARIANCE(-,-,-,-,-,5,0.2,0,0,);AVERAGE(-,-,-,-,-,5,0.2,0,0,);MOVING_MEDIAN(-,-,-,-,-,5,0.2,0,0,);export(-,);
 
 #***************************************************************************************
 #********************************** TEST2: DoS **************************************
 #***************************************************************************************
 
-receivedCount;2: 10;12;5;delta;-;-;-;profile(moving_average,moving_variance,moving_median,average,);moving_average(-,-,-,-,-,5,0.2,0,0,);moving_variance(-,-,-,-,-,5,0.2,0,0,);average(-,-,-,-,-,5,0.2,0,0,);moving_median(-,-,-,-,-,5,0.2,0,0,);export(-,);
+RECEIVED_COUNT;2: 10;12;5;delta;-;-;-;profile(MOVING_AVERAGE,MOVING_VARIANCE,MOVING_MEDIAN,AVERAGE,);MOVING_AVERAGE(-,-,-,-,-,5,0.2,0,0,);MOVING_VARIANCE(-,-,-,-,-,5,0.2,0,0,);AVERAGE(-,-,-,-,-,5,0.2,0,0,);MOVING_MEDIAN(-,-,-,-,-,5,0.2,0,0,);export(-,);
 
 #***************************************************************************************
 #********************************** TEST3: DoS **************************************
 #***************************************************************************************
 
-rxBytes;1112: 5;8;0;delta;-;-;-;profile(moving_average,moving_variance,moving_median,average,);moving_average(-,-,-,-,-,2,0.5,0,0,);moving_variance(-,-,-,-,-,2,0.5,0,0,);average(-,-,-,-,-,2,0.5,0,0,);moving_median(-,-,-,-,-,2,0.5,0,0,);export(-,);
+RX_BYTES;1112: 5;8;0;delta;-;-;-;profile(MOVING_AVERAGE,MOVING_VARIANCE,MOVING_MEDIAN,AVERAGE,);MOVING_AVERAGE(-,-,-,-,-,2,0.5,0,0,);MOVING_VARIANCE(-,-,-,-,-,2,0.5,0,0,);AVERAGE(-,-,-,-,-,2,0.5,0,0,);MOVING_MEDIAN(-,-,-,-,-,2,0.5,0,0,);export(-,);
 
 #***************************************************************************************
 #******************************** TEST4: Data Limits ***********************************
 #***************************************************************************************
 
-VALUE: 4;4;0;simple;-;-;-;profile(moving_average,moving_variance,moving_median,average,);moving_average(4,8,2,20,3,-,-,0,0,);moving_variance(4,8,2,20,3,-,-,0,0,);average(4,8,2,20,3,-,-,0,0,);moving_median(4,8,2,20,3,-,-,0,0,);export(-,);
+VALUE: 4;4;0;simple;-;-;-;profile(MOVING_AVERAGE,MOVING_VARIANCE,MOVING_MEDIAN,AVERAGE,);MOVING_AVERAGE(4,8,2,20,3,-,-,0,0,);MOVING_VARIANCE(4,8,2,20,3,-,-,0,0,);AVERAGE(4,8,2,20,3,-,-,0,0,);MOVING_MEDIAN(4,8,2,20,3,-,-,0,0,);export(-,);
 
 #=======================================================================================
 
 #***************************************************************************************
-#******************************* TEST5: Signal quality *********************************
+#******************************* TEST5: Signal QUALITY *********************************
 #***************************************************************************************
 
-lastResponseRTT;2: 5;7;5;simple;-;-;-;profile(moving_average,);moving_average(-,-,-,-,-,2,0.5,0,0,);export(-,);
-dropped;1113: 1;1;10;delta;-;-;-;profile(moving_median,);moving_median(-,-,-1,1,-,-,-,0,0,);export(-,);
+LAST_RESPONSE_RTT;2: 5;7;5;simple;-;-;-;profile(MOVING_AVERAGE,);MOVING_AVERAGE(-,-,-,-,-,2,0.5,0,0,);export(-,);
+DROPPED;1113: 1;1;10;delta;-;-;-;profile(MOVING_MEDIAN,);MOVING_MEDIAN(-,-,-1,1,-,-,-,0,0,);export(-,);
 
 #=======================================================================================
 
@@ -39,7 +39,7 @@ dropped;1113: 1;1;10;delta;-;-;-;profile(moving_median,);moving_median(-,-,-1,1,
 #******************************** TEST6: Measurement **********************************
 #***************************************************************************************
 
-SOFCount;1114: 10;10;11;delta;-;-;-;profile(moving_average,moving_variance,moving_median,average,);moving_average(-,-,-,-,-,5,0.2,0,0,);moving_variance(-,-,-,-,-,5,0.2,0,0,);average(-,-,-,-,-,5,0.2,0,0,);moving_median(-,-,-,-,-,5,0.2,0,0,);export(-,);
+SOF_COUNT;1114: 10;10;11;delta;-;-;-;profile(MOVING_AVERAGE,MOVING_VARIANCE,MOVING_MEDIAN,AVERAGE,);MOVING_AVERAGE(-,-,-,-,-,5,0.2,0,0,);MOVING_VARIANCE(-,-,-,-,-,5,0.2,0,0,);AVERAGE(-,-,-,-,-,5,0.2,0,0,);MOVING_MEDIAN(-,-,-,-,-,5,0.2,0,0,);export(-,);
 
 #=======================================================================================
 ###################################### TESTS ###########################################

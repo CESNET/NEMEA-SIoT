@@ -11,7 +11,7 @@
 # With this configurating you can use any recorded traffic files that contains defiend UniRec field.
 
 # CONFIGURATION #
-#rxBytes: 3;3;0;simple;-;-;5;profile(moving_average,moving_variance,moving_median,average,);moving_average(-,-,-,-,-,2,0.5,0,0,);moving_variance(-,-,-,-,-,2,0.5,0,0,);average(-,-,-,-,-,2,0.5,0,0,);moving_median(-,-,-,-,-,2,0.5,0,0,);export(moving_average,moving_variance,moving_median,average,);
+#RX_BYTES: 3;3;0;simple;-;-;5;profile(MOVING_AVERAGE,MOVING_VARIANCE,MOVING_MEDIAN,AVERAGE,);MOVING_AVERAGE(-,-,-,-,-,2,0.5,0,0,);MOVING_VARIANCE(-,-,-,-,-,2,0.5,0,0,);AVERAGE(-,-,-,-,-,2,0.5,0,0,);MOVING_MEDIAN(-,-,-,-,-,2,0.5,0,0,);export(MOVING_AVERAGE,MOVING_VARIANCE,MOVING_MEDIAN,AVERAGE,);
 
 #***************************************************************************************
 #****************************** TEST9: Periodic Export *********************************
@@ -21,7 +21,7 @@
 # With this configurating you can use any recorded traffic files that contains defiend UniRec field.
 
 # CONFIGURATION #
-#rxBytes: 3;3;0;simple;-;-;5;profile(moving_variance,);moving_average(-,-,-,-,-,2,0.5,0,0,);moving_variance(-,-,-,-,-,2,0.5,0,0,);average(-,-,-,-,-,2,0.5,0,0,);moving_median(-,-,-,-,-,2,0.5,0,0,);export(moving_variance,);
+#RX_BYTES: 3;3;0;simple;-;-;5;profile(MOVING_VARIANCE,);MOVING_AVERAGE(-,-,-,-,-,2,0.5,0,0,);MOVING_VARIANCE(-,-,-,-,-,2,0.5,0,0,);AVERAGE(-,-,-,-,-,2,0.5,0,0,);MOVING_MEDIAN(-,-,-,-,-,2,0.5,0,0,);export(MOVING_VARIANCE,);
 
 #***************************************************************************************
 #***************************** TEST10: Periodic Export *********************************
@@ -31,6 +31,6 @@
 # With this configurating you can use any recorded traffic files that contains defiend UniRec field.
 
 # CONFIGURATION #
-#receivedCount;2: 3;3;0;delta;-;-;5;profile(average,);average(-,-,-,-,-,5,0.2,0,0,);export(average,);
+#RECEIVED_COUNT;2: 3;3;0;delta;-;-;5;profile(AVERAGE,);AVERAGE(-,-,-,-,-,5,0.2,0,0,);export(AVERAGE,);
 
 #=======================================================================================

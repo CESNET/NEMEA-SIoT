@@ -9,22 +9,22 @@
 #***************************************************************************************
 
 # DESCRIPTION #
-# To simulate DoS attack in Z-Wave network we used two Z-Wave plugs with on/off button. By pressing this button high amout of messages were generated. Number of seen messages in Z-Wave network is represented by SOFCount value in UniRec message send by BeeeOn event collector. The aim of this configuration is to detect unexpected increase/decrease amount of traffic. This configuration contains all available profile fields. Limit for alerting an incident is set to five times exceeding of the base profile. The length of time series is set to ten items and first eleven received messages are ignored due to initialization phase. Learning period is twelve items.
+# To simulate DoS attack in Z-Wave network we used two Z-Wave plugs with on/off button. By pressing this button high amout of messages were generated. Number of seen messages in Z-Wave network is represented by SOF_COUNT value in UniRec message send by BeeeOn event collector. The aim of this configuration is to detect unexpected increase/decrease amount of traffic. This configuration contains all available profile fields. Limit for alerting an incident is set to five times exceeding of the base profile. The length of time series is set to ten items and first eleven received messages are ignored due to initialization phase. Learning period is twelve items.
 # With this configurating you can use these recorded traffic files: z-wave-dos-driver.log, z-wave-dos-driver-time.log  
 
 # CONFIGURATION #
-#SOFCount: 10;12;11;delta;-;-;-;profile(moving_average,moving_variance,moving_median,average,);moving_average(-,-,-,-,-,5,0.2,0,0,);moving_variance(-,-,-,-,-,5,0.2,0,0,);average(-,-,-,-,-,5,0.2,0,0,);moving_median(-,-,-,-,-,5,0.2,0,0,);export(-,);
+#SOF_COUNT: 10;12;11;delta;-;-;-;profile(MOVING_AVERAGE,MOVING_VARIANCE,MOVING_MEDIAN,AVERAGE,);MOVING_AVERAGE(-,-,-,-,-,5,0.2,0,0,);MOVING_VARIANCE(-,-,-,-,-,5,0.2,0,0,);AVERAGE(-,-,-,-,-,5,0.2,0,0,);MOVING_MEDIAN(-,-,-,-,-,5,0.2,0,0,);export(-,);
 
 #***************************************************************************************
 #********************************** TEST2: DoS **************************************
 #***************************************************************************************
 
 # DESCRIPTION #
-This scenarion is generated in the same way as the first one. Nevertheless, this configuration is focused one number of received messages from one specific Z-Wave sensor. Number of received messages from a sensor is reperesented by receivedCount field. Specific sensor is selected by ID number. In this case the ID is equal to two. The rest parameters are the same as in example above.
+This scenarion is generated in the same way as the first one. Nevertheless, this configuration is focused one number of received messages from one specific Z-Wave sensor. Number of received messages from a sensor is reperesented by RECEIVED_COUNT field. Specific sensor is selected by DEV_ADDR number. In this case the DEV_ADDR is equal to two. The rest parameters are the same as in example above.
 # With this configuration you can use these recorded traffic files: z-wave-dos-node.log, z-wave-dos-node-time.log  
 
 # CONFIGURATION #
-#receivedCount;2: 10;12;5;delta;-;-;-;profile(moving_average,moving_variance,moving_median,average,);moving_average(-,-,-,-,-,5,0.2,0,0,);moving_variance(-,-,-,-,-,5,0.2,0,0,);average(-,-,-,-,-,5,0.2,0,0,);moving_median(-,-,-,-,-,5,0.2,0,0,);export(-,);
+#RECEIVED_COUNT;2: 10;12;5;delta;-;-;-;profile(MOVING_AVERAGE,MOVING_VARIANCE,MOVING_MEDIAN,AVERAGE,);MOVING_AVERAGE(-,-,-,-,-,5,0.2,0,0,);MOVING_VARIANCE(-,-,-,-,-,5,0.2,0,0,);AVERAGE(-,-,-,-,-,5,0.2,0,0,);MOVING_MEDIAN(-,-,-,-,-,5,0.2,0,0,);export(-,);
 
 #***************************************************************************************
 #********************************** TEST3: DoS **************************************
@@ -35,10 +35,10 @@ This scenarion is generated in the same way as the first one. Nevertheless, this
 # With this configuration you can use these recorded traffic files: ble-dos.log, ble-dos-time.log 
 
 # CONFIGURATION #
-#rxBytes: 5;8;0;delta;-;-;-;profile(moving_average,moving_variance,moving_median,average,);moving_average(-,-,-,-,-,2,0.5,0,0,);moving_variance(-,-,-,-,-,2,0.5,0,0,);average(-,-,-,-,-,2,0.5,0,0,);moving_median(-,-,-,-,-,2,0.5,0,0,);export(-,);
+#RX_BYTES: 5;8;0;delta;-;-;-;profile(MOVING_AVERAGE,MOVING_VARIANCE,MOVING_MEDIAN,AVERAGE,);MOVING_AVERAGE(-,-,-,-,-,2,0.5,0,0,);MOVING_VARIANCE(-,-,-,-,-,2,0.5,0,0,);AVERAGE(-,-,-,-,-,2,0.5,0,0,);MOVING_MEDIAN(-,-,-,-,-,2,0.5,0,0,);export(-,);
 
 #=======================================================================================
 #***************************************************************************************
 #********************************** SUMMARY  **************************************
 #***************************************************************************************
-# All above experiments successfuly detected defined increase of received ammount of messages. Flow of all above experiments is very similar - at first base profile is learned from defined UniRec field, send by BeeeOn event collector, and then recorded data contains increase of the UniRec field value which cause generatig alert based on specified limits. Detection behavior of each profile item is very influenced by time series length which defines memory window. The most sensitive is moving variance and moving average. Less frequent changes were done for moving median. The least sesitivy has average profile item becase it contains overall data (even out of time series)   
+# All above experiments successfuly detected defined increase of received ammount of messages. Flow of all above experiments is very similar - at first base profile is learned from defined UniRec field, send by BeeeOn event collector, and then recorded data contains increase of the UniRec field value which cause generatig alert based on specified limits. Detection behavior of each profile item is very influenced by time series length which defines memory window. The most sensitive is moving variance and moving AVERAGE. Less frequent changes were done for moving median. The least sesitivy has AVERAGE profile item becase it contains overall data (even out of time series)   
