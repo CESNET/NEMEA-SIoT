@@ -57,6 +57,7 @@
 #include <unistd.h>
 #include "device_list.h"
 
+
 /** Define structure for DeviceList */
 struct dl_device {
     uint64_t DEV_ADDR;
@@ -71,12 +72,20 @@ struct dl_device {
  * PHY_PAYLOAD. This values are captured from LoRaWAN packet.
  */
 UR_FIELDS(
-        time TIMESTAMP,
+        // Input UniRec format
+        // TODO: change data type to uint64
         string DEV_ADDR,
         string PHY_PAYLOAD,
+        // Output UniRec format
+        //TODO: change TIMESTAMP to time datatype
+        uint64 TIMESTAMP,
+        uint64 INCIDENT_DEV_ADDR,
+        uint32 ALERT_CODE,
+        string CAPTION,
         double RSSI,
         double BASE_RSSI,
         double VARIANCE
+        // These values is possible to get from LoRa message
         //        string GW_ID,
         //        string NODE_MAC,
         //        uint32 US_COUNT,
@@ -214,7 +223,7 @@ int main(int argc, char **argv) {
     }
 
     /** Create Output UniRec templates */
-    ur_template_t *out_tmplt = ur_create_output_template(0, "DEV_ADDR,TIMESTAMP,BASE_RSSI,RSSI,VARIANCE", NULL);
+    ur_template_t *out_tmplt = ur_create_output_template(0, "INCIDENT_DEV_ADDR,TIMESTAMP,BASE_RSSI,RSSI,VARIANCE,CAPTION,ALERT_CODE", NULL);
     if (out_tmplt == NULL) {
         ur_free_template(in_tmplt);
         ur_free_template(out_tmplt);
@@ -301,8 +310,25 @@ int main(int argc, char **argv) {
 
             double variance = pre->BASE_RSSI * va;
             
+
             if (!(((pre->BASE_RSSI + variance) <= ur_get(in_tmplt, in_rec, F_RSSI)) && (ur_get(in_tmplt, in_rec, F_RSSI) <= (pre->BASE_RSSI - variance)))) {
+
+                // calculate alert value difference
+                double alert_value = 0;
+                if ( (pre->BASE_RSSI + variance) > ur_get(in_tmplt, in_rec, F_RSSI) ){
+                    alert_value = (pre->BASE_RSSI + variance) - ur_get(in_tmplt, in_rec, F_RSSI);
+                } else {
+                    alert_value = ur_get(in_tmplt, in_rec, F_RSSI) - (pre->BASE_RSSI - variance);
+                }
+                
                 ur_set(out_tmplt, out_rec, F_TIMESTAMP, ur_get(in_tmplt, in_rec, F_TIMESTAMP));
+                ur_set(out_tmplt, out_rec, F_INCIDENT_DEV_ADDR, dev_addr);
+                ur_set(out_tmplt, out_rec, F_ALERT_CODE, 0);
+                // Create Caption message from alert values
+                char alert_str[100]; 
+                sprintf(alert_str, "The device %ld exceeded allowed distance from gateway by %f dBm", dev_addr,-1*alert_value);
+                ur_set_string(out_tmplt, out_rec, F_CAPTION, alert_str);
+
                 ur_set(out_tmplt, out_rec, F_RSSI, ur_get(in_tmplt, in_rec, F_RSSI));
                 ur_set(out_tmplt, out_rec, F_BASE_RSSI, pre->BASE_RSSI);
                 ur_set(out_tmplt, out_rec, F_VARIANCE, va);
