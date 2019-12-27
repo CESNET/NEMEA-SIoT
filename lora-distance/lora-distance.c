@@ -85,7 +85,7 @@ UR_FIELDS(
         double RSSI,
         double BASE_RSSI,
         double VARIANCE
-        // These values is possible to get from LoRa message
+        // These values are possible to get from LoRa message
         //        string GW_ID,
         //        string NODE_MAC,
         //        uint32 US_COUNT,
@@ -326,7 +326,7 @@ int main(int argc, char **argv) {
                 ur_set(out_tmplt, out_rec, F_ALERT_CODE, 0);
                 // Create Caption message from alert values
                 char alert_str[100]; 
-                sprintf(alert_str, "The device %ld exceeded allowed distance from gateway by %f dBm", dev_addr,-1*alert_value);
+                sprintf(alert_str, "The device %ld exceeded allowed distance from gateway by %0.2f dBm", dev_addr,-1*alert_value);
                 ur_set_string(out_tmplt, out_rec, F_CAPTION, alert_str);
 
                 ur_set(out_tmplt, out_rec, F_RSSI, ur_get(in_tmplt, in_rec, F_RSSI));
