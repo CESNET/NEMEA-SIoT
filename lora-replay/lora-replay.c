@@ -305,6 +305,13 @@ int main(int argc, char **argv) {
                  */
                 if ((pre->RESTART == 1) && (pre->LAST_FCNT == counter) && (counter != 0)) {
                     ur_set(out_tmplt, out_rec, F_TIMESTAMP, ur_get(in_tmplt, in_rec, F_TIMESTAMP));
+                    ur_set(out_tmplt, out_rec, F_ALERT_CODE, 0);
+                    uint64_t dev_addr_id = atoi(DevAddr);
+                    ur_set(out_tmplt, out_rec, F_INCIDENT_DEV_ADDR, dev_addr_id);
+                    // Create caption message 
+                    char alert_str[100];
+                    sprintf(alert_str, "Replay attack has been detected for the device %ld",dev_addr_id);
+                    ur_set_string(out_tmplt, out_rec, F_CAPTION, alert_str);
                     ret = trap_send(0, out_rec, ur_rec_size(out_tmplt, out_rec));
                     TRAP_DEFAULT_SEND_ERROR_HANDLING(ret, continue, break);
 
