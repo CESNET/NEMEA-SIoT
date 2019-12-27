@@ -75,16 +75,25 @@ struct bl_device {
  * message PHY_PAYLOAD. This values are captured from LoRaWAN packet.
  */
 UR_FIELDS(
-        uint64 TIMESTAMP,
+        // Input UniRec format 
+        //TODO: change data type to uint64
+        string DEV_ADDR,
         uint32 SIZE,
         uint32 BAD_WIDTH,
         uint32 SF,
         uint32 CODE_RATE,
-        string DEV_ADDR,
         string PHY_PAYLOAD,
+        // Output UniRec format
+        //TODO: change TIMESTAMP to time datatype
+        uint64 TIMESTAMP,
+        uint64 INCIDENT_DEV_ADDR,
+        uint32 ALERT_CODE,
+        string CAPTION,
         uint64 AIR_TIME,
-        string NWK_SKEY,
-        string APP_SKEY
+                
+
+        //        string NWK_SKEY,
+        //        string APP_SKEY
         //        uint8 ENABLE,
         //        string GW_ID,
         //        string NODE_MAC,
