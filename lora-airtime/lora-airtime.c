@@ -91,7 +91,7 @@ UR_FIELDS(
         string CAPTION,
         uint64 AIR_TIME,
                 
-
+        // Possbile values in payload
         //        string NWK_SKEY,
         //        string APP_SKEY
         //        uint8 ENABLE,
@@ -256,7 +256,7 @@ int main(int argc, char **argv) {
     }
 
     /** Create Output UniRec templates */
-    ur_template_t *out_tmplt = ur_create_output_template(0, "DEV_ADDR,TIMESTAMP,AIR_TIME,PHY_PAYLOAD", NULL);
+    ur_template_t *out_tmplt = ur_create_output_template(0, "INCIDENT_DEV_ADDR,TIMESTAMP,AIR_TIME,PHY_PAYLOAD,CAPTION,ALERT_CODE", NULL);
     if (out_tmplt == NULL) {
         ur_free_template(in_tmplt);
         ur_free_template(out_tmplt);
@@ -342,6 +342,7 @@ int main(int argc, char **argv) {
          */
         double airtime = lr_airtime_calculate(ur_get(in_tmplt, in_rec, F_SIZE), hd, dr, ur_get(in_tmplt, in_rec, F_SF)
                 , ur_get(in_tmplt, in_rec, F_CODE_RATE), ps, ur_get(in_tmplt, in_rec, F_BAD_WIDTH), dt);
+        // TOOD: create timestamp form Unirec TIME data type
         uint64_t timestamp = ur_get(in_tmplt, in_rec, F_TIMESTAMP);
 
         /** 
@@ -367,6 +368,14 @@ int main(int argc, char **argv) {
                 if ((module_info->num_ifc_out == 1) && (timestamp != 0)) {
                     ur_set(out_tmplt, out_rec, F_AIR_TIME, pre->AIR_TIME);
                     ur_set(out_tmplt, out_rec, F_TIMESTAMP, pre->TIMESTAMP);
+                    ur_set(out_tmplt, out_rec, F_ALERT_CODE, 0);
+                    uint64_t dev_addr = atoi(DevAddr);
+                    ur_set(out_tmplt, out_rec, F_INCIDENT_DEV_ADDR, dev_addr);
+                    // Create caption message
+                    char alert_str[100];
+                    sprintf(alert_str, "The device %ld exceeded the transmission time by %0.2f second.",dev_addr, (pre->TIMESTAMP + pre->AIR_TIME) - timestamp );
+                    ur_set_string(out_tmplt, out_rec, F_CAPTION, alert_str);
+                    
 
                     ret = trap_send(0, out_rec, ur_rec_size(out_tmplt, out_rec));
                     TRAP_DEFAULT_SEND_ERROR_HANDLING(ret, continue, break);
