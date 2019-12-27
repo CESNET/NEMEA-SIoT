@@ -71,10 +71,18 @@ struct dl_device {
  * are captured from LoRaWAN packet.
  */
 UR_FIELDS(
+        // Input UniRec format
+        //TODO: change data type to uint64
         time TIMESTAMP,
         string DEV_ADDR,
-        string FCNT,
         string PHY_PAYLOAD,
+        // Output UniRec format
+        uint64 INCIDENT_DEV_ADDR,
+        uint32 ALERT_CODE,
+        string CAPTION,
+        string FCNT
+
+        // These values are possible to get from LoRa message
         //        string GW_ID,
         //        string NODE_MAC,
         //        uint32 US_COUNT,
@@ -203,7 +211,7 @@ int main(int argc, char **argv) {
     }
 
     /** Create Output UniRec templates */
-    ur_template_t *out_tmplt = ur_create_output_template(0, "DEV_ADDR,TIMESTAMP,FCNT", NULL);
+    ur_template_t *out_tmplt = ur_create_output_template(0, "INCIDENT_DEV_ADDR,TIMESTAMP,FCNT", NULL);
     if (out_tmplt == NULL) {
         ur_free_template(in_tmplt);
         ur_free_template(out_tmplt);
