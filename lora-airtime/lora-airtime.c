@@ -76,16 +76,13 @@ struct bl_device {
  */
 UR_FIELDS(
         // Input UniRec format 
-        //TODO: change data type to uint64
-        string DEV_ADDR,
+        uint64 DEV_ADDR,
         uint32 SIZE,
         uint32 BAD_WIDTH,
         uint32 SF,
         uint32 CODE_RATE,
         string PHY_PAYLOAD,
-        // Output UniRec format
-        //TODO: change TIMESTAMP to time datatype
-        uint64 TIMESTAMP,
+        time TIMESTAMP,
         uint64 INCIDENT_DEV_ADDR,
         uint32 ALERT_CODE,
         string CAPTION,
@@ -248,7 +245,7 @@ int main(int argc, char **argv) {
     }
 
     /** Create Input UniRec templates */
-    ur_template_t *in_tmplt = ur_create_input_template(0, "SIZE,SF,BAD_WIDTH,CODE_RATE,TIMESTAMP,PHY_PAYLOAD", NULL);
+    ur_template_t *in_tmplt = ur_create_input_template(0, "SIZE,SF,BAD_WIDTH,CODE_RATE,TIMESTAMP,PHY_PAYLOAD,DEV_ADDR", NULL);
     if (in_tmplt == NULL) {
         ur_free_template(in_tmplt);
         fprintf(stderr, "Error: Input template could not be created.\n");
@@ -342,9 +339,9 @@ int main(int argc, char **argv) {
          */
         double airtime = lr_airtime_calculate(ur_get(in_tmplt, in_rec, F_SIZE), hd, dr, ur_get(in_tmplt, in_rec, F_SF)
                 , ur_get(in_tmplt, in_rec, F_CODE_RATE), ps, ur_get(in_tmplt, in_rec, F_BAD_WIDTH), dt);
-        // TOOD: create timestamp form Unirec TIME data type
-        uint64_t timestamp = ur_get(in_tmplt, in_rec, F_TIMESTAMP);
-
+        // Convert UniRec TIMESTAMP to unix timestamp in sec
+        uint64_t timestamp = ur_time_get_sec(ur_get(in_tmplt, in_rec, F_TIMESTAMP));
+        
         /** 
          * BlackList
          * Contain sensors list with identification field DevAddr. Blocking 
@@ -369,7 +366,7 @@ int main(int argc, char **argv) {
                     ur_set(out_tmplt, out_rec, F_AIR_TIME, pre->AIR_TIME);
                     ur_set(out_tmplt, out_rec, F_TIMESTAMP, pre->TIMESTAMP);
                     ur_set(out_tmplt, out_rec, F_ALERT_CODE, 0);
-                    uint64_t dev_addr_id = atoi(DevAddr);
+                    uint64_t dev_addr_id = ur_get(in_tmplt, in_rec, F_DEV_ADDR);;
                     ur_set(out_tmplt, out_rec, F_INCIDENT_DEV_ADDR, dev_addr_id);
                     // Create caption message
                     char alert_str[100];
