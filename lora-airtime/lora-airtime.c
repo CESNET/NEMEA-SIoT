@@ -319,11 +319,11 @@ int main(int argc, char **argv) {
          */
 
         /** Identity message type */
-        if (lr_is_join_accept_message()) {
+        /*if (lr_is_join_accept_message()) {
             ur_set_string(out_tmplt, out_rec, F_DEV_ADDR, DevAddr);
         } else if (lr_is_data_message()) {
             ur_set_string(out_tmplt, out_rec, F_DEV_ADDR, DevAddr);
-        }
+        }*/
 
         /** 
          * Method for calculate time between packet subsequent starts: 
@@ -390,7 +390,6 @@ int main(int argc, char **argv) {
          */
         lr_free();
     }
-
 
     /* **** Cleanup **** */
 

@@ -318,13 +318,14 @@ int main(int argc, char **argv) {
                 } else {
                     alert_value = ur_get(in_tmplt, in_rec, F_RSSI) - (pre->BASE_RSSI - variance);
                 }
-                
+               
+                uint64_t dev_addr_id = ur_get(in_tmplt, in_rec, F_DEV_ADDR);
                 ur_set(out_tmplt, out_rec, F_TIMESTAMP, ur_get(in_tmplt, in_rec, F_TIMESTAMP));
-                ur_set(out_tmplt, out_rec, F_INCIDENT_DEV_ADDR, ur_get(in_tmplt, in_rec, F_DEV_ADDR));
+                ur_set(out_tmplt, out_rec, F_INCIDENT_DEV_ADDR, dev_addr_id);
                 ur_set(out_tmplt, out_rec, F_ALERT_CODE, 0);
                 // Create Caption message from alert values
                 char alert_str[100]; 
-                sprintf(alert_str, "The device %ld exceeded allowed distance from gateway by %0.2f dBm", dev_addr,-1*alert_value);
+                sprintf(alert_str, "The device %ld exceeded allowed distance from gateway by %0.2f dBm", dev_addr_id,-1*alert_value);
                 ur_set_string(out_tmplt, out_rec, F_CAPTION, alert_str);
 
                 ur_set(out_tmplt, out_rec, F_RSSI, ur_get(in_tmplt, in_rec, F_RSSI));
