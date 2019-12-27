@@ -369,11 +369,11 @@ int main(int argc, char **argv) {
                     ur_set(out_tmplt, out_rec, F_AIR_TIME, pre->AIR_TIME);
                     ur_set(out_tmplt, out_rec, F_TIMESTAMP, pre->TIMESTAMP);
                     ur_set(out_tmplt, out_rec, F_ALERT_CODE, 0);
-                    uint64_t dev_addr = atoi(DevAddr);
-                    ur_set(out_tmplt, out_rec, F_INCIDENT_DEV_ADDR, dev_addr);
+                    uint64_t dev_addr_id = atoi(DevAddr);
+                    ur_set(out_tmplt, out_rec, F_INCIDENT_DEV_ADDR, dev_addr_id);
                     // Create caption message
                     char alert_str[100];
-                    sprintf(alert_str, "The device %ld exceeded the transmission time by %0.2f second.",dev_addr, (pre->TIMESTAMP + pre->AIR_TIME) - timestamp );
+                    sprintf(alert_str, "The device %ld exceeded the transmission time by %0.2f second.",dev_addr_id, (pre->TIMESTAMP + pre->AIR_TIME) - timestamp );
                     ur_set_string(out_tmplt, out_rec, F_CAPTION, alert_str);
                     
 
