@@ -3,29 +3,29 @@
 #include "fields.h"
 
 char *ur_field_names_static[] = {
+   "DEV_ADDR",
    "INCIDENT_DEV_ADDR",
    "TIMESTAMP",
    "ALERT_CODE",
    "CAPTION",
-   "DEV_ADDR",
    "FCNT",
    "PHY_PAYLOAD",
 };
 short ur_field_sizes_static[] = {
+   8, /* DEV_ADDR */
    8, /* INCIDENT_DEV_ADDR */
    8, /* TIMESTAMP */
    4, /* ALERT_CODE */
    -1, /* CAPTION */
-   -1, /* DEV_ADDR */
    -1, /* FCNT */
    -1, /* PHY_PAYLOAD */
 };
 ur_field_type_t ur_field_types_static[] = {
+   UR_TYPE_UINT64, /* DEV_ADDR */
    UR_TYPE_UINT64, /* INCIDENT_DEV_ADDR */
    UR_TYPE_TIME, /* TIMESTAMP */
    UR_TYPE_UINT32, /* ALERT_CODE */
    UR_TYPE_STRING, /* CAPTION */
-   UR_TYPE_STRING, /* DEV_ADDR */
    UR_TYPE_STRING, /* FCNT */
    UR_TYPE_STRING, /* PHY_PAYLOAD */
 };
