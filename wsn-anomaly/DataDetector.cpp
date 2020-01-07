@@ -56,7 +56,7 @@
 using namespace std;
 
 UR_FIELDS(
-    time TIME,
+    time TIMESTAMP,
     double TYPE,
     uint64 INCIDENT_DEV_ADDR,
     uint64 DEV_ADDR,
@@ -412,7 +412,7 @@ int main (int argc, char** argv){
         goto cleanup;
     }
     // Create alert template
-    alert_template = ur_ctx_create_output_template(ctx, 0, "TIME,INCIDENT_DEV_ADDR,ALERT_CODE,CAPTION,ERR_VALUE,PROFILE_KEY,PROFILE_VALUE,UR_KEY", NULL);
+    alert_template = ur_ctx_create_output_template(ctx, 0, "TIMESTAMP,INCIDENT_DEV_ADDR,ALERT_CODE,CAPTION,ERR_VALUE,PROFILE_KEY,PROFILE_VALUE,UR_KEY", NULL);
 
     if (alert_template == NULL) {
         cerr <<  "ERROR: unirec alert template create fail" << endl;
@@ -454,7 +454,7 @@ int main (int argc, char** argv){
 
         // Take ID and TIME field -> user for alert identification
         ur_id = *(ur_get_ptr(in_template, data_nemea_input, F_DEV_ADDR));
-        ur_time = ur_time_get_sec(*(ur_get_ptr(in_template, data_nemea_input, F_TIME)));
+        ur_time = ur_time_get_sec(*(ur_get_ptr(in_template, data_nemea_input, F_TIMESTAMP)));
 
         // Go through all unirec fields
         ur_field_id_t id = UR_ITER_BEGIN;
@@ -478,8 +478,8 @@ int main (int argc, char** argv){
                 cout << "VERBOSE: Received UniRec message with the record name " << ur_id << endl;
             }
             // Convert TIME into double
-            if ( strcmp("TIME",(ur_get_name(id))) == 0 ){
-                ur_data = ur_time_get_sec(*(ur_get_ptr(in_template, data_nemea_input, F_TIME)));
+            if ( strcmp("TIMESTAMP",(ur_get_name(id))) == 0 ){
+                ur_data = ur_time_get_sec(*(ur_get_ptr(in_template, data_nemea_input, F_TIMESTAMP)));
             } else {
                 ur_data = *((double*) ur_get_ptr_by_id(in_template, data_nemea_input,id));
             }

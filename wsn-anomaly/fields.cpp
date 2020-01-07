@@ -51,6 +51,7 @@ char *ur_field_names_static[] = {
 (char *)   "RECEIVE_UNSOLICITED",
 (char *)   "RETRIES",
 (char *)   "ROUTED_BUSY",
+(char *)   "RSSI",
 (char *)   "RX_ACLS",
 (char *)   "RX_BYTES",
 (char *)   "RX_ERRORS",
@@ -62,7 +63,7 @@ char *ur_field_names_static[] = {
 (char *)   "SENT_FAILED",
 (char *)   "SIZE",
 (char *)   "SOF_COUNT",
-(char *)   "TIME",
+(char *)   "TIMESTAMP",
 (char *)   "TX_ACLS",
 (char *)   "TX_BYTES",
 (char *)   "TX_CMDS",
@@ -74,9 +75,14 @@ char *ur_field_names_static[] = {
 (char *)   "ALERT_CODE",
 (char *)   "ALERT_DESC",
 (char *)   "CAPTION",
+(char *)   "CHANNELS",
 (char *)   "CMD",
+(char *)   "EVENT",
+(char *)   "MSG_TYPE",
 (char *)   "PAYLOAD",
 (char *)   "PROFILE_KEY",
+(char *)   "PROT_STATE",
+(char *)   "RAW_PAYLOAD",
 (char *)   "UR_KEY",
 };
 short ur_field_sizes_static[] = {
@@ -128,6 +134,7 @@ short ur_field_sizes_static[] = {
    8, /* RECEIVE_UNSOLICITED */
    8, /* RETRIES */
    8, /* ROUTED_BUSY */
+   8, /* RSSI */
    8, /* RX_ACLS */
    8, /* RX_BYTES */
    8, /* RX_ERRORS */
@@ -139,7 +146,7 @@ short ur_field_sizes_static[] = {
    8, /* SENT_FAILED */
    8, /* SIZE */
    8, /* SOF_COUNT */
-   8, /* TIME */
+   8, /* TIMESTAMP */
    8, /* TX_ACLS */
    8, /* TX_BYTES */
    8, /* TX_CMDS */
@@ -151,9 +158,14 @@ short ur_field_sizes_static[] = {
    4, /* ALERT_CODE */
    -1, /* ALERT_DESC */
    -1, /* CAPTION */
+   -1, /* CHANNELS */
    -1, /* CMD */
+   -1, /* EVENT */
+   -1, /* MSG_TYPE */
    -1, /* PAYLOAD */
    -1, /* PROFILE_KEY */
+   -1, /* PROT_STATE */
+   -1, /* RAW_PAYLOAD */
    -1, /* UR_KEY */
 };
 ur_field_type_t ur_field_types_static[] = {
@@ -205,6 +217,7 @@ ur_field_type_t ur_field_types_static[] = {
    UR_TYPE_DOUBLE, /* RECEIVE_UNSOLICITED */
    UR_TYPE_DOUBLE, /* RETRIES */
    UR_TYPE_DOUBLE, /* ROUTED_BUSY */
+   UR_TYPE_DOUBLE, /* RSSI */
    UR_TYPE_DOUBLE, /* RX_ACLS */
    UR_TYPE_DOUBLE, /* RX_BYTES */
    UR_TYPE_DOUBLE, /* RX_ERRORS */
@@ -216,7 +229,7 @@ ur_field_type_t ur_field_types_static[] = {
    UR_TYPE_DOUBLE, /* SENT_FAILED */
    UR_TYPE_DOUBLE, /* SIZE */
    UR_TYPE_DOUBLE, /* SOF_COUNT */
-   UR_TYPE_TIME, /* TIME */
+   UR_TYPE_TIME, /* TIMESTAMP */
    UR_TYPE_DOUBLE, /* TX_ACLS */
    UR_TYPE_DOUBLE, /* TX_BYTES */
    UR_TYPE_DOUBLE, /* TX_CMDS */
@@ -228,10 +241,15 @@ ur_field_type_t ur_field_types_static[] = {
    UR_TYPE_UINT32, /* ALERT_CODE */
    UR_TYPE_STRING, /* ALERT_DESC */
    UR_TYPE_STRING, /* CAPTION */
+   UR_TYPE_STRING, /* CHANNELS */
    UR_TYPE_STRING, /* CMD */
+   UR_TYPE_STRING, /* EVENT */
+   UR_TYPE_STRING, /* MSG_TYPE */
    UR_TYPE_BYTES, /* PAYLOAD */
    UR_TYPE_STRING, /* PROFILE_KEY */
+   UR_TYPE_STRING, /* PROT_STATE */
+   UR_TYPE_BYTES, /* RAW_PAYLOAD */
    UR_TYPE_STRING, /* UR_KEY */
 };
-ur_static_field_specs_t UR_FIELD_SPECS_STATIC = {ur_field_names_static, ur_field_sizes_static, ur_field_types_static, 75};
-ur_field_specs_t ur_field_specs = {ur_field_names_static, ur_field_sizes_static, ur_field_types_static, 75, 75, 75, NULL, UR_UNINITIALIZED};
+ur_static_field_specs_t UR_FIELD_SPECS_STATIC = {ur_field_names_static, ur_field_sizes_static, ur_field_types_static, 81};
+ur_field_specs_t ur_field_specs = {ur_field_names_static, ur_field_sizes_static, ur_field_types_static, 81, 81, 81, NULL, UR_UNINITIALIZED};
