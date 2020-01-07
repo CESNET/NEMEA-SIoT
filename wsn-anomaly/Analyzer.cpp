@@ -681,7 +681,7 @@ void Analyzer::sendAlert(map<string, vector<string> > &alert_str, string &ur_fie
             ur_clear_varlen(alert_template, data_alert);
             // Set UniRec message values
             ur_set(alert_template, data_alert, F_INCIDENT_DEV_ADDR, *ur_id);
-            ur_set(alert_template, data_alert, F_TIME, timestamp);
+            ur_set(alert_template, data_alert, F_TIMESTAMP, timestamp);
             ur_set(alert_template, data_alert, F_ALERT_CODE, stod(alert_code));
             ur_set(alert_template, data_alert, F_ERR_VALUE, err_value);
             ur_set(alert_template, data_alert, F_PROFILE_VALUE, profile_value);
