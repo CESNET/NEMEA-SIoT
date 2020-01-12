@@ -443,7 +443,7 @@ UR_FIELDS(
         time TIMESTAMP,
         string PHY_PAYLOAD,
         double RSSI,
-        string DEV_ADDR,
+        uint64 DEV_ADDR,
         uint32 US_COUNT,
         uint32 FRQ,
         uint32 RF_CHAIN,
@@ -756,11 +756,13 @@ int main(int argc, char **argv) {
             if (DevAddr == NULL)
                 continue;
             
+            uint64_t dev_addr = lr_uint8_to_uint64(lr_arr_to_uint8(DevAddr));
+            
             /** Identity message type */
             if (lr_is_join_accept_message()) {
-                ur_set_string(out_tmplt, out_rec, F_DEV_ADDR, DevAddr);
+                ur_set(out_tmplt, out_rec, F_DEV_ADDR, dev_addr);
             } else if (lr_is_data_message()) {
-                ur_set_string(out_tmplt, out_rec, F_DEV_ADDR, DevAddr);
+                ur_set(out_tmplt, out_rec, F_DEV_ADDR, dev_addr);
             }
 
             /* Set value of UniRec fields */

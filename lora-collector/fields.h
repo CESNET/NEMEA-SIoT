@@ -23,7 +23,7 @@
 #define F_SNR   8
 #define F_SNR_T double
 #define F_DEV_ADDR  9
-#define F_DEV_ADDR_T char
+#define F_DEV_ADDR_T uint64_t
 #define F_APP_EUI   10
 #define F_APP_EUI_T char
 #define F_DEV_EUI   11

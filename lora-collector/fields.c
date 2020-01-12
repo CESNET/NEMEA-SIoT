@@ -39,7 +39,7 @@ short ur_field_sizes_static[] = {
    -1, /* PHY_PAYLOAD */
    4, /* RF_CHAIN */
    8, /* SNR */
-   -1, /* DEV_ADDR */
+   8, /* DEV_ADDR */
    -1, /* APP_EUI */
    -1, /* DEV_EUI */
    -1, /* FOPTS */
@@ -66,7 +66,7 @@ ur_field_type_t ur_field_types_static[] = {
    UR_TYPE_STRING, /* PHY_PAYLOAD */
    UR_TYPE_UINT32, /* RF_CHAIN */
    UR_TYPE_DOUBLE, /* SNR */
-   UR_TYPE_STRING, /* DEV_ADDR */
+   UR_TYPE_UINT64, /* DEV_ADDR */
    UR_TYPE_STRING, /* APP_EUI */
    UR_TYPE_STRING, /* DEV_EUI */
    UR_TYPE_STRING, /* FOPTS */

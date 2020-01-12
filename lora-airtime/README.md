@@ -1,7 +1,3 @@
-## THIS MODULE IS CURRENTLY UNDER DEVELOPMENT
----
-
----
 # README
 # LoRaWAN Detection - Airtime regulations
 
@@ -10,11 +6,23 @@ This detector is intended for LoRaWAN monitoring of airtime for individual senso
 
 The inputs of this detector are fields containing size payload SIZE, spreading factor SF, bandwidth BAD_WIDTH, code rate CODE_RATE, time stamp record TIMESTAMP and payload from message PHY_PAYLOAD. These values are captured from LoRaWAN packet.
 
-## Interfaces
-- Input: One UniRec interface
-  - Template must contain fields SIZE, SF, BAD_WIDTH, CODE_RATE, TIMESTAMP and  PHY_PAYLOAD. Optional fields NWK_SKEY and APP_SKEY, which are enabling ABP decryption of the LoRaWAN payload.
-- Output: One UniRec interface
-  - Template contain this fields DEV_ADDR, TIMESTAMP, AIR_TIME, ENABLE and PHY_PAYLOAD. Where ENABLE indicates violation of regulatory conditions.
+## Input Unirec Interface
+	time    TIMESTAMP
+	uint64  DEV_ADDR       - device address
+        string  PHY_PAYLOAD    - payload from message
+        uint32  SIZE
+        uint32  SF
+        uint32  BAD_WIDTH
+        uint32  CODE_RATE
+
+## Output Unirec Interface
+	time    TIMESTAMP
+	macaddr INCIDENT_DEV_ADDR
+	uint32  ALERT_CODE
+	string  CAPTION
+	string  FCNT                - message counter
+        uint64  AIR_TIME
+        string  PHY_PAYLOAD         - payload from message
   
 ## Parameters
 ### Module specific parameters
