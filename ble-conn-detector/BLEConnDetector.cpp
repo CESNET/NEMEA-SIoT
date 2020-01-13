@@ -6,6 +6,7 @@
 #include <getopt.h>
 #include <iostream>
 #include <libtrap/trap.h>
+#include <sstream>
 #include <unirec/unirec.h>
 #include <unistd.h>
 
@@ -26,7 +27,8 @@ UR_FIELDS (
    // Output fields
    macaddr INCIDENT_DEV_ADDR,
    uint32  ALERT_CODE,
-   string  CAPTION
+   string  CAPTION,
+   uint32  DURATION
 )
 
 trap_module_info_t *module_info = NULL;
@@ -67,14 +69,14 @@ int main(int argc, char **argv)
 		goto unirec_cleanup;
 	}
 
-	out_tmplt = ur_create_output_template(0, "TIMESTAMP,INCIDENT_DEV_ADDR,ALERT_CODE,CAPTION,ATYPE", NULL);
+	out_tmplt = ur_create_output_template(0, "TIMESTAMP,INCIDENT_DEV_ADDR,ALERT_CODE,CAPTION,ATYPE,DURATION", NULL);
 	if (out_tmplt == NULL) {
 		std::cerr << "Error: Failed to create UniRec output template." << std::endl;
 		retval = 1;
 		goto unirec_cleanup;
 	}
 	
-  out_rec = ur_create_record(out_tmplt, 0);
+  out_rec = ur_create_record(out_tmplt, UR_MAX_SIZE);
 	if (out_rec == NULL) {
 		std::cerr << "Error: Failed to create UniRec record." << std::endl;
 		retval = 1;
@@ -114,8 +116,26 @@ int main(int argc, char **argv)
     try {
       detector->processAdvReport(&report);
     } catch (ConnectionFound evt) {
-      mac_to_str(&evt.bdaddr, buf);
 
+      mac_to_str(&evt.bdaddr, buf);
+      
+      std::stringstream caption_ss;
+      caption_ss << "The device " << buf << " was in use for " << evt.usage_duration << "us.";
+      
+      std::string caption = caption_ss.str();
+
+      std::cout << caption << std::endl;
+
+      ur_set(out_tmplt, out_rec, F_TIMESTAMP, evt.timestamp);
+      ur_set(out_tmplt, out_rec, F_INCIDENT_DEV_ADDR, evt.bdaddr);
+      ur_set(out_tmplt, out_rec, F_ALERT_CODE, 0x01); // In future if other alerts exist, change to enum
+      ur_set_string(out_tmplt, out_rec, F_CAPTION, caption.c_str());
+      ur_set(out_tmplt, out_rec, F_ATYPE, evt.bdaddr_type);
+      ur_set(out_tmplt, out_rec, F_DURATION, evt.usage_duration);
+
+			trap_send(0, out_rec, ur_rec_size(out_tmplt, out_rec));
+      TRAP_DEFAULT_SEND_ERROR_HANDLING(retval, continue, break);
+/*
       std::cout << "ConnectionFound(" << evt.timestamp;
       std::cout << ", " << buf;
       switch (evt.bdaddr_type) {
@@ -130,6 +150,7 @@ int main(int argc, char **argv)
           break;
       }
       std::cout << ", " << evt.usage_duration << ")" << std::endl;
+*/
     }
   }
 
@@ -137,12 +158,14 @@ int main(int argc, char **argv)
 
 unirec_cleanup:
 	/* UniRec Cleanup */
-	ur_free_record(out_rec);
+	TRAP_DEFAULT_FINALIZATION();
 	
   ur_free_template(in_tmplt);
 	ur_free_template(out_tmplt);
+	
+	ur_free_record(out_rec);
 
-	TRAP_DEFAULT_FINALIZATION();
+	ur_finalize();
 	
 	FREE_MODULE_INFO_STRUCT(MODULE_BASIC_INFO, MODULE_PARAMS)
 
