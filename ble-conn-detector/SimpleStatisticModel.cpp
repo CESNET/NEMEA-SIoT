@@ -14,30 +14,42 @@ bool SimpleStatisticModel::isReady(void) {
 }
 
 void SimpleStatisticModel::receivedAdvAt(ur_time_t time) {
-  if (time == 0)  // invalid parameter
+  if (time == 0)  // Invalid parameter
     return;
 
-  if (lastSeen != 0) {  // Model has been initialised
-    uint64_t silenceDuration = ur_timediff(time, lastSeen);
-    uint64_t silenceDelta;
-
-    if (silenceMidpoint == 0) // Initialise midpoint
-      silenceMidpoint = silenceDuration;
-
-    if (silenceDuration > silenceMidpoint)
-      silenceDelta = silenceDuration - silenceMidpoint;
-    else
-      silenceDelta = silenceMidpoint - silenceDuration;
-
-    // if (silenceDelta <= currThreshold)
-    currThreshold = (silenceDelta > currThreshold) ? silenceDelta : currThreshold;
+  if (lastSeen == 0) { // First occurence
+    lastSeen = time;
+    return;
   }
 
-  if (initElements > 0) {
-    initElements--;
+  uint64_t silenceDuration = ur_timediff(time, lastSeen);
 
-    if (initElements <= 0)
+  if (silenceMidpoint == 0) { // Second occurence -> initialise midpoint
+    silenceMidpoint = silenceDuration;
+    return;
+  }
+  
+  uint64_t silenceDelta;
+
+  // Calculate the delta od silenceDuration to the midpoint
+  if (silenceDuration > silenceMidpoint)
+    silenceDelta = silenceDuration - silenceMidpoint;
+  else
+    silenceDelta = silenceMidpoint - silenceDuration;
+
+
+  if (initElements > 0) {  // Model has not been initialised
+
+    // Update midpoint to the mean of silence durations
+    silenceMidpoint = (silenceMidpoint + silenceDuration) / 2;
+    
+    // Update threshold to the max of original threshold and current delta
+    currThreshold = (silenceDelta > currThreshold) ? silenceDelta : currThreshold;  
+
+    if (--initElements <= 0)
       throw SSMInitialised(silenceMidpoint, currThreshold);
+
+  } else {  // Model properly initialised, do checks
   }
 
   lastSeen = time;
