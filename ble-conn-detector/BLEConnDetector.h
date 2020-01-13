@@ -22,9 +22,9 @@ public:
   const ur_time_t  timestamp;
   const mac_addr_t bdaddr;
   const uint8_t    bdaddr_type;
-  const uint8_t    usage_duration;
+  const uint32_t    usage_duration;
 
-  ConnectionFound(ur_time_t timestamp, mac_addr_t bdaddr, uint8_t bdaddr_type, uint8_t usage_duration)
+  ConnectionFound(ur_time_t timestamp, mac_addr_t bdaddr, uint8_t bdaddr_type, uint32_t usage_duration)
     : timestamp(timestamp)
     , bdaddr(bdaddr)
     , bdaddr_type(bdaddr_type)
@@ -78,6 +78,8 @@ public:
         std::cout << "Model for " << buf << " initialised." << std::endl;
         std::cout << "\t(Midpoint: " << evt.midpoint << "us;";
         std::cout << " Threshold: " << evt.threshold << "us)" << std::endl;
+      } catch (ConnectionDetected evt) {
+        throw ConnectionFound(evt.timestamp, report->bdaddr, report->bdaddr_type, (uint32_t) evt.duration);
       }
     }
 

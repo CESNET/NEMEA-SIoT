@@ -46,10 +46,28 @@ void SimpleStatisticModel::receivedAdvAt(ur_time_t time) {
     // Update threshold to the max of original threshold and current delta
     currThreshold = (silenceDelta > currThreshold) ? silenceDelta : currThreshold;  
 
-    if (--initElements <= 0)
+    if (--initElements <= 0) {
+      lastSeen = time;
       throw SSMInitialised(silenceMidpoint, currThreshold);
+    }
 
   } else {  // Model properly initialised, do checks
+  
+    if (silenceDelta > 2*currThreshold) { // 2*threshold to eliminate smaller fluctuations
+      
+      lastSeen = time;
+      throw ConnectionDetected(time, silenceDuration);
+    
+    } else {  // Valid communication, update model
+    
+      // Update midpoint to the mean of silence durations
+      silenceMidpoint = (silenceMidpoint + silenceDuration) / 2;
+      
+      // Update threshold to the max of original threshold and current delta
+      currThreshold = (silenceDelta > currThreshold) ? silenceDelta : currThreshold;  
+    
+    }
+
   }
 
   lastSeen = time;

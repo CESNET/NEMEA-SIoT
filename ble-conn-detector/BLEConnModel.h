@@ -13,6 +13,23 @@ struct ModelInitialised : public std::exception
 
 };
 
+struct ConnectionDetected : public std::exception
+{
+  const ur_time_t timestamp;
+  const uint64_t  duration;
+  
+  ConnectionDetected(ur_time_t timestamp, uint64_t duration)
+    : timestamp(timestamp)
+    , duration(duration)
+  {}
+
+  const char * what() const throw ()
+  {
+    return "A connection has been detected.";
+  }
+
+};
+
 /* Model interface */
 class BLEConnModel
 {

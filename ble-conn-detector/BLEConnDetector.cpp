@@ -111,25 +111,26 @@ int main(int argc, char **argv)
     report.bdaddr_type = ur_get(in_tmplt, in_rec, F_ATYPE);
     report.rssi        = ur_get(in_tmplt, in_rec, F_RSSI);
 
-    detector->processAdvReport(&report);
-/*
-    mac_to_str(&report.bdaddr, buf);
+    try {
+      detector->processAdvReport(&report);
+    } catch (ConnectionFound evt) {
+      mac_to_str(&evt.bdaddr, buf);
 
-    std::cout << report.timestamp << " Received advertisement report" << std::endl;
-    std::cout << "\tFrom: " << buf;
-    switch (report.bdaddr_type) {
-      case 0x00:
-        std::cout << " (Public)" << std::endl;
-        break;
-      case 0x01:
-        std::cout << " (Random)" << std::endl;
-        break;
-      default:
-        std::cout << " (Unknown)" << std::endl;
-        break;
+      std::cout << "ConnectionFound(" << evt.timestamp;
+      std::cout << ", " << buf;
+      switch (evt.bdaddr_type) {
+        case 0x00:
+          std::cout << " (Public)";
+          break;
+        case 0x01:
+          std::cout << " (Random)";
+          break;
+        default:
+          std::cout << " (Unknown)";
+          break;
+      }
+      std::cout << ", " << evt.usage_duration << ")" << std::endl;
     }
-    std::cout << "\tRSSI: " << (int)report.rssi << std::endl;
-*/
   }
 
   delete detector;

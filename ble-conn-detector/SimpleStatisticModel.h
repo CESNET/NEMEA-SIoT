@@ -18,6 +18,8 @@ struct SSMInitialised : public ModelInitialised
   {}
 };
 
+
+/* Main model class */
 class SimpleStatisticModel: public BLEConnModel
 {
 public:
