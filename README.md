@@ -13,6 +13,7 @@ To enable more advanced threat detection we create specialized collectors using 
  * [hci-collector](hci-collector) -- exports ble packet date from hci interface
  * [zwave-sdr-sniffer](zwave-sdr-sniffer) -- sniff and exports z-wave frames using RTL-SDR
  * [zwave-collector](zwave-collector) -- parse frames from zwave-sdr-sniffer and exports them
+ * [zwave-detector](zwave-detector) -- detect network scanning and attacks on routing
 
 Also, there are [datasets](#iot-datasets) of IoT devices communication.
 
