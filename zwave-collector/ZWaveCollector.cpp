@@ -68,10 +68,12 @@ UR_FIELDS(
 trap_module_info_t *module_info = NULL;
 
 #define MODULE_BASIC_INFO(BASIC) \
-	BASIC("Parse Z-Wave frames, convert to human-readable form and send them out one by one.", \
-		"TODO HELP", 1, 1)
+	BASIC("zwave-collector", \
+		"Parse Z-Wave frames, convert to human-readable form and send them out one by one.", 1, 1)
 
-#define MODULE_PARAMS(PARAM)
+#define MODULE_PARAMS(PARAM) \
+	PARAM('I', "ignore-in-eof", "Do not terminate on incomming termination message.", no_argument, "none")
+
 
 static int g_stop = 0;
 TRAP_DEFAULT_SIGNAL_HANDLER(g_stop = 1)
@@ -213,7 +215,7 @@ int main(int argc, char *argv[])
 
 	out_record = ur_create_record(out_template, UR_MAX_SIZE);
 	if (out_record == NULL) {
-		std::cerr << "Error: Memory allocation problem (output network record)." << std::endl;
+		std::cerr << "Error: Memory allocation problem (output record)." << std::endl;
 		cleanup();
 		return 1;
 	}
