@@ -8,5 +8,5 @@ lora-replay \
 lora-distance \
 ble-adv-collector \
 zwave-sdr-sniffer \
-zwave-collector
-
+zwave-collector \
+zwave-detector

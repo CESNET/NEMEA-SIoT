@@ -196,6 +196,7 @@ std::string ZWave::systemCommandValToStr(uint8_t systemCommand)
 {
 	static const std::unordered_map<uint8_t, std::string> systemCMap {
 		{	 0x01	,	"Node Info"	 },
+		{	 0x02	,	"Get supported CC"	 },
 		{	 0x03	,	"Assign Id"	 },//? Assign Node Id
 		{	 0x04	,	"Do NL Test"	 },
 		{	 0x05	,	"Get NL"	 },
