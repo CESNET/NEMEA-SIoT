@@ -104,7 +104,7 @@ public:
 	{
 	}
 
-	void init(uint64_t home_id);
+	void init(uint32_t home_id);
 	bool isInitialized();
 
 	void nodeAdded(uint8_t node, ur_time_t timestamp);
@@ -124,6 +124,6 @@ private:
 	ur_template_t *alert_template_;
 	void *alert_record_;
 	std::atomic_bool is_initialized_ = { false };
-	uint64_t home_id_ = 0;
+	uint32_t home_id_ = 0;
 	std::vector<NodeInfo> nodes_;
 };
