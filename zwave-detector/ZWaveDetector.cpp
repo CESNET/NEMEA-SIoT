@@ -74,6 +74,7 @@ trap_module_info_t *module_info = NULL;
 
 #define MODULE_PARAMS(PARAM) \
 	PARAM('a', "alert-interval", "Interval to generate alerts in seconds", required_argument, "uint8") \
+	PARAM('n', "network", "HomeID of the network", required_argument, "string") \
 
 std::atomic_bool g_stop = { false };
 TRAP_DEFAULT_SIGNAL_HANDLER(g_stop = true)
@@ -91,17 +92,33 @@ int main(int argc, char *argv[])
 	void *alert_record = NULL;
 	int opt;
 	int alert_interval = 10; // in seconds
+	uint32_t home_id = 0;
 
 	while ((opt = getopt_long(argc, argv, module_getopt_string, long_options, NULL)) != -1) {
 		switch (opt) {
-			case 'a':
-				alert_interval = atoi(optarg);
-				break;
-			default:
-				std::cerr << "Invalid argument." << std::endl;
+		case 'a':
+			alert_interval = atoi(optarg);
+			break;
+		case 'n': {
+			std::string param(optarg);
+			if (param.size() != 8) {
+				std::cerr << "Error: HomeID must have 8 characters" << std::endl;
 				TRAP_DEFAULT_FINALIZATION();
 				FREE_MODULE_INFO_STRUCT(MODULE_BASIC_INFO, MODULE_PARAMS)
 				return 1;
+			}
+
+			std::stringstream ss;
+			ss << hex << param;
+			ss >> home_id;
+
+			break;
+		}
+		default:
+			std::cerr << "Error: Invalid argument." << std::endl;
+			TRAP_DEFAULT_FINALIZATION();
+			FREE_MODULE_INFO_STRUCT(MODULE_BASIC_INFO, MODULE_PARAMS)
+			return 1;
 		}
 	}
 
@@ -161,6 +178,10 @@ int main(int argc, char *argv[])
 	bool verbose = trap_get_verbose_level() > 0;
 
 	ZWaveDetector detector(alert_interval, verbose, out_alerts_template, alert_record);
+
+	if (home_id != 0) {
+		detector.init(home_id);
+	}
 
 	std::thread events_thread([&](){
 		while (!g_stop) {
@@ -225,7 +246,7 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
-void ZWaveDetector::init(uint64_t home_id)
+void ZWaveDetector::init(uint32_t home_id)
 {
 	std::lock_guard<std::mutex> lock(mutex_);
 

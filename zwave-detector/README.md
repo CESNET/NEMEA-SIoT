@@ -39,7 +39,8 @@ easy to detect network scanning.
 
 ## Parameters
 ### Module specific parameters
-- `-a  --alert_interval <uint8>`  Time window for reporting accumulated alerts.
+- `-a  --alert_interval <uint8>`  Time window for reporting alerts in seconds (default 10s).
+- `-n  --network <string>`  Home ID of the Z-Wave network (not needed, if gateway is capable to send events).
 
 ### Common TRAP parameters
 - `-h [trap,1]`      Print help message for this module / for libtrap specific parameters.
