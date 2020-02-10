@@ -175,7 +175,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	bool verbose = trap_get_verbose_level() > 0;
+	bool verbose = (trap_get_verbose_level() > 0);
 
 	ZWaveDetector detector(alert_interval, verbose, out_alerts_template, alert_record);
 
@@ -186,7 +186,7 @@ int main(int argc, char *argv[])
 	std::thread events_thread([&](){
 		while (!g_stop) {
 			const void *in_record;
-			u_int16_t in_record_size;
+			uint16_t in_record_size;
 
 			int ret = TRAP_RECEIVE(1, in_record, in_record_size, in_events_template);
 			TRAP_DEFAULT_RECV_ERROR_HANDLING(ret, continue, break);
@@ -194,12 +194,12 @@ int main(int argc, char *argv[])
 			//TODO
 			if (in_record_size <= 1) { break; }
 
-			auto timestamp = ur_get(in_events_template, in_record, F_TIME);
-			auto event_type = ur_get(in_events_template, in_record, F_EVENT_TYPE);
-			auto node_id = ur_get(in_events_template, in_record, F_NODE_ID);
+			ur_time_t timestamp = ur_get(in_events_template, in_record, F_TIME);
+			double event_type = ur_get(in_events_template, in_record, F_EVENT_TYPE);
+			double node_id = ur_get(in_events_template, in_record, F_NODE_ID);
 
 			if (event_type == EVENT_DRIVER_READY) {
-				auto home_id = ur_get(in_events_template, in_record, F_HOME_ID);
+				double home_id = ur_get(in_events_template, in_record, F_HOME_ID);
 				detector.init(home_id);
 			}
 			else if (event_type == EVENT_NODE_ADDED) {
@@ -214,7 +214,7 @@ int main(int argc, char *argv[])
 	std::thread frames_thread([&]() {
 		while (!g_stop) {
 			const void *in_record;
-			u_int16_t in_record_size;
+			uint16_t in_record_size;
 
 			int ret = TRAP_RECEIVE(0, in_record, in_record_size,
 				in_frames_template);
