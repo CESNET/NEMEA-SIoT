@@ -157,7 +157,7 @@ int main(int argc, char **argv)
 
       ur_set(out_tmplt, out_rec, F_TIMESTAMP, evt.timestamp);
       ur_set(out_tmplt, out_rec, F_INCIDENT_DEV_ADDR, evt.bdaddr);
-      ur_set(out_tmplt, out_rec, F_ALERT_CODE, 0x01); // In future if other alerts exist, change to enum
+      ur_set(out_tmplt, out_rec, F_ALERT_CODE, 0x00); // In future if other alerts exist, change to enum
       ur_set_string(out_tmplt, out_rec, F_CAPTION, caption.c_str());
       ur_set(out_tmplt, out_rec, F_ATYPE, evt.bdaddr_type);
       ur_set(out_tmplt, out_rec, F_DURATION, evt.usage_duration);
