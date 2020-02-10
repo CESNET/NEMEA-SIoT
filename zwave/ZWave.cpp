@@ -486,6 +486,89 @@ const uint8_t *FrameWrapper::networkHops() const
 	return bytes_ + NETWORK_HOPS_POS;
 }
 
+std::string FrameWrapper::constructRouteString() const
+{
+	auto header = networkHeader();
+
+	std::stringstream ss;
+
+	ss << std::hex << setfill('0') << setw(2) << (int) src();
+	ss << "->";
+	for (uint8_t i = 0; i < header->sr_len; ++i)
+	{
+		ss << std::hex << setfill('0') << setw(2) << (int) *(networkHops() + i);
+		ss << "->";
+	}
+	ss << std::hex << setfill('0') << setw(2) << (int) dst();
+
+	return ss.str();
+}
+
+bool FrameWrapper::getCommandClassAndCommand(uint8_t &cc, uint8_t &command) const
+{
+	const uint8_t payload_begin = payloadPos();
+	const uint8_t payload_len = checksumPos() - payload_begin;
+
+	if (payload_len < 2) { return false; }
+
+	cc = bytes_[payload_begin];
+	command = bytes_[payload_begin + 1];
+
+	return true;
+}
+
+bool FrameWrapper::getNodeIdsFromNL(std::set<uint8_t> &nodes) const
+{
+	nodes.clear();
+
+	const uint8_t payload_begin = payloadPos();
+	const uint8_t payload_len = checksumPos() - payload_begin;
+
+	if (payload_len < 4) { return false; }
+
+	const uint8_t nl_bitfield_len = bytes_[payload_begin + 2];
+	const uint8_t exp_payload_len = (uint8_t) (3 + nl_bitfield_len);
+
+	if (payload_len < exp_payload_len) { return false; }
+
+	for (uint8_t i = 0; i < nl_bitfield_len; ++i)
+	{
+		const uint8_t byte = bytes_[payload_begin + 3 + i];
+		for (uint8_t j = 0; j < 8; ++j)
+		{
+			const uint8_t node_id = (uint8_t) (8 * i + j + 1);
+
+			const bool is_set = (bool)((byte >> j) & 0b00000001);
+
+			if (is_set) { nodes.insert(node_id); }
+		}
+	}
+
+	return true;
+}
+
+bool FrameWrapper::getHopsFromSRCacheEntry(std::vector<uint8_t> &hops) const
+{
+	hops.clear();
+
+	const uint8_t payload_begin = payloadPos();
+	const uint8_t payload_len = checksumPos() - payload_begin;
+
+	if (payload_len < 6) { return false; }
+
+	const uint8_t sr_len = (uint8_t) (bytes_[payload_begin + 3] & 0b00001111);
+	const uint8_t exp_payload_len = (uint8_t) (5 + sr_len);
+
+	if (payload_len < exp_payload_len) { return false; }
+
+	for (uint8_t i = 0; i < sr_len; ++i)
+	{
+		hops.push_back(bytes_[payload_begin + 4 + i]);
+	}
+
+	return true;
+}
+
 void FrameWrapper::print(bool parse) const
 {
 	if (!sizeOK())

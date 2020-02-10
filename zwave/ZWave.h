@@ -32,6 +32,9 @@
 
 #pragma once
 
+#include <set>
+#include <vector>
+
 #include <unirec/unirec.h>
 
 namespace ZWave {
@@ -47,6 +50,11 @@ enum Channel : uint8_t {
 
 enum CC : uint8_t {
 	System = 0x01,
+	Basic = 0x20,
+	Configuration = 0x70,
+	ManufacturerSpecific = 0x72,
+	Version = 0x86,
+	//...
 };
 
 enum CCSystemCommand : uint8_t {
@@ -173,6 +181,12 @@ public:
 	uint8_t dstHopId() const;
 	uint8_t failedHopId() const;
 	const uint8_t *networkHops() const;
+	std::string constructRouteString() const;
+
+	bool getCommandClassAndCommand(uint8_t &cc, uint8_t &command) const;
+
+	bool getNodeIdsFromNL(std::set<uint8_t> &nodes) const;
+	bool getHopsFromSRCacheEntry(std::vector<uint8_t> &hops) const;
 
 	void print(bool parse = false) const;
 
@@ -182,7 +196,7 @@ private:
 
 public:
 	const Transport_header *header_;
-	const uint8_t *bytes_;
+	const uint8_t *const bytes_;
 	const uint8_t size_;
 	const Channel channel_;
 
