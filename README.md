@@ -1,6 +1,7 @@
 # Nemea Secured IoT 
 
 This repository contains [Nemea system](https://github.com/CESNET/Nemea) modules for a threat detection in IoT networks. The modules and their functionality/purposes are:
+ * [ble-conn-detector](ble-conn-detector) -- detect usage of a ble device
  * [ble-pairing](ble-pairing) -- detect unexpected ble pairing
  * [lora-airtime](lora-airtime) -- detect unexpected frequency of lora messages
  * [lora-replay](lora-replay) -- detect replay attack in lora networks
