@@ -11,6 +11,16 @@ typedef struct {
 	int8_t   rssi;
 } adv_report;	
 
+/* Events (Exceptions) */
+struct BLEScannerError
+{
+public:
+  const char* desc;
+
+  BLEScannerError(const char *description) : desc(description) {}
+};
+
+/* Main scanner class */
 class BLEAdvScanner
 {
 public:

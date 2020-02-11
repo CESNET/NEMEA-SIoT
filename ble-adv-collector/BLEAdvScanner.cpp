@@ -18,7 +18,7 @@ BLEAdvScanner::BLEAdvScanner(void)
 {
 	hciDevID = hci_get_route(NULL);
 	if (hciDevID < 0) {
-		throw std::runtime_error("No Bluetooth device found.");
+		throw BLEScannerError("No Bluetooth device found.");
 	}
 
 	this->openHCISocket();
@@ -47,7 +47,7 @@ void BLEAdvScanner::openHCISocket(void)
 	// SOCK_CLOEXEC = Security feature, socket will ble closed on the use of exec functions
 	sock = socket(AF_BLUETOOTH, SOCK_RAW | SOCK_CLOEXEC, BTPROTO_HCI);
 	if (sock < 0) {
-		throw std::runtime_error("Failed to open HCI socket.");
+		throw BLEScannerError("Failed to open HCI socket.");
 	}
 
 	// Discover BD Address
@@ -55,7 +55,7 @@ void BLEAdvScanner::openHCISocket(void)
 	info.dev_id = hciDevID;
 	
 	if (ioctl(sock, HCIGETDEVINFO, (void *) &info) < 0) {
-		throw std::runtime_error("Failed to get bluetooth address.");
+		throw BLEScannerError("Failed to get bluetooth address.");
 	}
 
 	bacpy(&bdaddr, &info.bdaddr);
@@ -66,12 +66,12 @@ void BLEAdvScanner::openHCISocket(void)
 	hci_filter_set_event(EVT_LE_META_EVENT, &filt);
 
 	if (setsockopt(sock, SOL_HCI, HCI_FILTER, &filt, sizeof(filt)) < 0) {
-		throw std::runtime_error("Failed to set HCI filter.");
+		throw BLEScannerError("Failed to set HCI filter.");
 	}
 
 	// Add time info to the HCI messages (1 = enable)
 	if (setsockopt(sock, SOL_HCI, HCI_TIME_STAMP, &enable, sizeof(enable)) < 0) {
-		throw std::runtime_error("Failed to enable HCI timestamps.");
+		throw BLEScannerError("Failed to enable HCI timestamps.");
 	}
 
 	// Bind the socket
@@ -82,7 +82,7 @@ void BLEAdvScanner::openHCISocket(void)
 
 	if (bind(sock, (struct sockaddr *) &addr, sizeof(addr)) < 0) {
 		close(sock);
-		throw std::runtime_error("Failed to bind HCI socket.");
+		throw BLEScannerError("Failed to bind HCI socket.");
 	}
 
 }
@@ -125,10 +125,10 @@ void BLEAdvScanner::setPassiveMode(void)
 
 	err = hci_send_req(sock, &req, 0);
 	if (err != 0)
-		throw std::runtime_error("Failed to set up passive mode.");
+		throw BLEScannerError("Failed to set up passive mode.");
 	
 	if (status != 0)
-		throw std::runtime_error("LE_Set_Scan_Parameters command failed.");
+		throw BLEScannerError("LE_Set_Scan_Parameters command failed.");
 }
 
 void BLEAdvScanner::start(bool filter_dup)
@@ -153,10 +153,10 @@ void BLEAdvScanner::start(bool filter_dup)
 
 	err = hci_send_req(sock, &req, 0);
 	if (err != 0)
-		throw std::runtime_error("Failed to start scanning.");
+		throw BLEScannerError("Failed to start scanning.");
 	
 	if (status != 0)
-		throw std::runtime_error("LE_Set_Scan_Enable command failed.");
+		throw BLEScannerError("LE_Set_Scan_Enable command failed.");
 	
 	this->running = true;
 }
@@ -183,10 +183,10 @@ void BLEAdvScanner::stop(void)
 
 	err = hci_send_req(sock, &req, 0);
 	if (err != 0)
-		throw std::runtime_error("Failed to stop scanning.");
+		throw BLEScannerError("Failed to stop scanning.");
 	
 	if (status != 0)
-		throw std::runtime_error("LE_Set_Scan_Enable(0) command failed.");
+		throw BLEScannerError("LE_Set_Scan_Enable(0) command failed.");
 	
 	this->running = false;
 }
@@ -218,7 +218,7 @@ adv_report BLEAdvScanner::getAdvReport(void)
 			if (errno == EAGAIN || errno == EINTR)
 				continue;
 
-			throw std::runtime_error("Bluetooth socket failed.");
+			throw BLEScannerError("Bluetooth socket failed.");
 		}
 
 		if (buf[0] == HCI_EVENT_PKT) {

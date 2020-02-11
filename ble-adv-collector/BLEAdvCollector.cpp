@@ -104,8 +104,8 @@ int main(int argc, char **argv)
 		} else {
 			scanner = new BLEAdvScanner();
 		}
-	} catch (std::runtime_error& e) {
-		std::cerr << "Error: " << e.what() << std::endl;
+	} catch (BLEScannerError& e) {
+		std::cerr << "Error: " << e.desc << std::endl;
 		retval = 1;
 		goto unirec_cleanup;
 	}
@@ -142,8 +142,8 @@ int main(int argc, char **argv)
 			trap_send(0, record, ur_rec_size(out_template, record));
 		}
 		scanner->stop();
-	} catch (std::runtime_error& e) {
-		std::cerr << "Error: " << e.what() << std::endl;
+	} catch (BLEScannerError& e) {
+		std::cerr << "Error: " << e.desc << std::endl;
 		retval = 2;
 	}
 
