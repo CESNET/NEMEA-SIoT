@@ -7,6 +7,7 @@ lora-airtime \
 lora-replay \
 lora-distance \
 ble-adv-collector \
+ble-conn-detector \
 zwave-sdr-sniffer \
 zwave-collector \
 zwave-detector

@@ -1,0 +1,11 @@
+Naming convention:
+  YYYYMMDD_Device_UseCase.csv
+
+20191001
+  BeeWi (SmartLight)
+    ON = 5 sec calm, switch on bulb, 5 sec calm
+    ON + OFF = 5 sec calm, switch on bulb, 5 sec calm, switch off bulb, 5 sec calm
+    COLOUR = 5 sec calm, turn on detailed settings, switch to RGB, change colour, turn off detailed settings, 5 sec calm
+    PASSIVE = 10 sec calm
+    OFF = 5 sec calm, switch off bulb, 5 sec calm
+    LongConn = 5 sec calm, turn on detailed settings, keep changing settings for about 40 sec, turn off detailed settings, 5 sec calm
