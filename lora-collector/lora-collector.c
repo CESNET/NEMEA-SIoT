@@ -436,28 +436,28 @@ struct dl_device {
  * PHY_PAYLOAD. This values are captured from LoRaWAN packet.
  */
 UR_FIELDS(
-        uint32 SIZE,
-        uint32 SF,
+        double RSSI,
+        time TIMESTAMP,
         uint32 BAD_WIDTH,
         uint32 CODE_RATE,
-        time TIMESTAMP,
-        string PHY_PAYLOAD,
-        double RSSI,
-        uint64 DEV_ADDR,
-        uint32 US_COUNT,
-        uint32 FRQ,
+        uint32 SF,        
+        uint32 SIZE,
         uint32 RF_CHAIN,
+        double SNR,
+        uint64 DEV_ADDR,
+        uint32 FRQ,
+        uint32 US_COUNT,
         string STATUS,
         string MOD,
-        double SNR,
+        string PHY_PAYLOAD,
         string APP_EUI,
-        string APP_NONCE,
         string DEV_EUI,
+        string FOPTS,
+        string FPORT,
         string DEV_NONCE,
         string FCTRL,
         string FHDR,
-        string FOPTS,
-        string FPORT,
+        string APP_NONCE,
         string MHDR,
         string MIC,
         string NET_ID
@@ -513,7 +513,7 @@ int main(int argc, char **argv) {
     struct timespec sleep_time = {0, 3000000}; /* 3 ms */
 
     char buff[3];
-    char payload[10000];
+    char payload[256];
 
     /* clock and log rotation management */
     int log_rotate_interval = 3600; /* by default, rotation every hour */
@@ -732,11 +732,16 @@ int main(int argc, char **argv) {
                 default: code_rate = -1;
             }
 
+            if (p->status != 16)
+                continue;
+            
             /* writing payload to char */
             for (g = 0; g < p->size; ++g) {
-                sprintf(buff, "%02X", p->payload[g]);
-                buff[2] = '\0';
-                strcat(payload, buff);
+		if (g > 0){
+                	sprintf(buff, "%02X", p->payload[g]);
+                	buff[2] = '\0';
+                	strcat(payload, buff);
+		}
             }
 
             /* end of log file line */

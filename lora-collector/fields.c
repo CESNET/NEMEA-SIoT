@@ -9,10 +9,14 @@ char *ur_field_names_static[] = {
    "CODE_RATE",
    "SF",
    "SIZE",
-   "PHY_PAYLOAD",
    "RF_CHAIN",
    "SNR",
    "DEV_ADDR",
+   "FRQ",
+   "US_COUNT",
+   "STATUS",
+   "MOD",
+   "PHY_PAYLOAD",
    "APP_EUI",
    "DEV_EUI",
    "FOPTS",
@@ -24,10 +28,6 @@ char *ur_field_names_static[] = {
    "MHDR",
    "MIC",
    "NET_ID",
-   "FRQ",
-   "US_COUNT",
-   "STATUS",
-   "MOD",
 };
 short ur_field_sizes_static[] = {
    8, /* RSSI */
@@ -36,10 +36,14 @@ short ur_field_sizes_static[] = {
    4, /* CODE_RATE */
    4, /* SF */
    4, /* SIZE */
-   -1, /* PHY_PAYLOAD */
    4, /* RF_CHAIN */
    8, /* SNR */
    8, /* DEV_ADDR */
+   4, /* FRQ */
+   4, /* US_COUNT */
+   1, /* STATUS */
+   1, /* MOD */
+   -1, /* PHY_PAYLOAD */
    -1, /* APP_EUI */
    -1, /* DEV_EUI */
    -1, /* FOPTS */
@@ -51,10 +55,6 @@ short ur_field_sizes_static[] = {
    -1, /* MHDR */
    -1, /* MIC */
    -1, /* NET_ID */
-   4, /* FRQ */
-   4, /* US_COUNT */
-   2, /* STATUS */
-   2, /* MOD */
 };
 ur_field_type_t ur_field_types_static[] = {
    UR_TYPE_DOUBLE, /* RSSI */
@@ -62,11 +62,15 @@ ur_field_type_t ur_field_types_static[] = {
    UR_TYPE_UINT32, /* BAD_WIDTH */
    UR_TYPE_UINT32, /* CODE_RATE */
    UR_TYPE_UINT32, /* SF */
-   UR_TYPE_UINT32, /* SIZE */
-   UR_TYPE_STRING, /* PHY_PAYLOAD */
-   UR_TYPE_UINT32, /* RF_CHAIN */
+   UR_TYPE_UINT16, /* SIZE */
+   UR_TYPE_UINT8, /* RF_CHAIN */
    UR_TYPE_DOUBLE, /* SNR */
    UR_TYPE_UINT64, /* DEV_ADDR */
+   UR_TYPE_UINT32, /* FRQ */
+   UR_TYPE_UINT32, /* US_COUNT */
+   UR_TYPE_UINT8, /* STATUS */
+   UR_TYPE_UINT8, /* MOD */
+   UR_TYPE_STRING, /* PHY_PAYLOAD */
    UR_TYPE_STRING, /* APP_EUI */
    UR_TYPE_STRING, /* DEV_EUI */
    UR_TYPE_STRING, /* FOPTS */
@@ -78,10 +82,6 @@ ur_field_type_t ur_field_types_static[] = {
    UR_TYPE_STRING, /* MHDR */
    UR_TYPE_STRING, /* MIC */
    UR_TYPE_STRING, /* NET_ID */
-   UR_TYPE_UINT32, /* FRQ */
-   UR_TYPE_UINT32, /* US_COUNT */
-   UR_TYPE_UINT8, /* STATUS */
-   UR_TYPE_UINT8, /* MOD */
 };
 ur_static_field_specs_t UR_FIELD_SPECS_STATIC = {ur_field_names_static, ur_field_sizes_static, ur_field_types_static, 25};
 ur_field_specs_t ur_field_specs = {ur_field_names_static, ur_field_sizes_static, ur_field_types_static, 25, 25, 25, NULL, UR_UNINITIALIZED};

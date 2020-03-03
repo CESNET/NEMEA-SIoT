@@ -73,45 +73,15 @@ struct dl_device {
  */
 UR_FIELDS(
         // Input UniRec format
-        uint64 DEV_ADDR,
-        string PHY_PAYLOAD,
         time TIMESTAMP,
+        uint64 DEV_ADDR,
         uint64 INCIDENT_DEV_ADDR,
         uint32 ALERT_CODE,
-        string CAPTION,
+        uint8 STATUS,
         double RSSI,
         double BASE_RSSI,
-        double VARIANCE
-
-        // These values are possible to get from LoRa message
-        //        string GW_ID,
-        //        string NODE_MAC,
-        //        uint32 US_COUNT,
-        //        uint32 FRQ,
-        //        uint32 RF_CHAIN,
-        //        uint32 RX_CHAIN,
-        //        string STATUS,
-        //        uint32 SIZE,
-        //        string MOD,
-        //        uint32 BAD_WIDTH,
-        //        uint32 SF,
-        //        uint32 CODE_RATE,
-        //        double SNR,
-        //        string APP_EUI,
-        //        string APP_NONCE,
-        //        string DEV_EUI,
-        //        string DEV_NONCE,
-        //        string FCTRL,
-        //        string FHDR,
-        //        string F_OPTS,
-        //        string F_PORT,
-        //        string FRM_PAYLOAD,
-        //        string LORA_PACKET,
-        //        string MAC_PAYLOAD,
-        //        string MHDR,
-        //        string MIC,
-        //        string NET_ID,
-        //        uint64 AIR_TIME
+        double VARIANCE,
+        string CAPTION
         )
 
 trap_module_info_t *module_info = NULL;
@@ -213,7 +183,7 @@ int main(int argc, char **argv) {
     }
 
     /** Create Input UniRec templates */
-    ur_template_t *in_tmplt = ur_create_input_template(0, "TIMESTAMP,RSSI,PHY_PAYLOAD,DEV_ADDR", NULL);
+    ur_template_t *in_tmplt = ur_create_input_template(0, "TIMESTAMP,RSSI,DEV_ADDR", NULL);
     if (in_tmplt == NULL) {
         ur_free_template(in_tmplt);
         fprintf(stderr, "Error: Input template could not be created.\n");
@@ -264,24 +234,10 @@ int main(int argc, char **argv) {
             if (!ignore_eof)
                 break;
         }
-
-        /** Check size payload min/max */
-        uint32_t size = ur_get_len(in_tmplt, in_rec, F_PHY_PAYLOAD);
-        if(size < 14 || size > 512)
-            continue;
         
-        /** Initialization physical payload for parsing and reversing octet fields. */
-        lr_initialization(ur_get_ptr(in_tmplt, in_rec, F_PHY_PAYLOAD));
-
-        if (DevAddr == NULL)
+        /** Check status message */
+        if (ur_get(in_tmplt, in_rec, F_STATUS) != 16)
             continue;
-        
-        /** Identity message type */
-        /*if (lr_is_join_accept_message()) {
-            ur_set_string(out_tmplt, out_rec, F_DEV_ADDR, DevAddr);
-        } else if (lr_is_data_message()) {
-            ur_set_string(out_tmplt, out_rec, F_DEV_ADDR, DevAddr);
-        }*/
 
         /** 
          * DeviceList
@@ -293,7 +249,7 @@ int main(int argc, char **argv) {
         /** 
          * Load last data from Device
          */
-        uint64_t dev_addr = lr_uint8_to_uint64(lr_arr_to_uint8(DevAddr));
+        uint64_t dev_addr = ur_get(in_tmplt, in_rec, F_DEV_ADDR);
         
         struct dl_device *pre = dl_get_device(dev_addr);
 
@@ -307,16 +263,17 @@ int main(int argc, char **argv) {
              */
 
             double variance = pre->BASE_RSSI * va;
+            double rssi = ur_get(in_tmplt, in_rec, F_RSSI);
             
 
-            if (!(((pre->BASE_RSSI + variance) <= ur_get(in_tmplt, in_rec, F_RSSI)) && (ur_get(in_tmplt, in_rec, F_RSSI) <= (pre->BASE_RSSI - variance)))) {
+            if (!(((pre->BASE_RSSI + variance) <= rssi) && (rssi <= (pre->BASE_RSSI - variance)))) {
 
                 // calculate alert value difference
                 double alert_value = 0;
-                if ( (pre->BASE_RSSI + variance) > ur_get(in_tmplt, in_rec, F_RSSI) ){
-                    alert_value = (pre->BASE_RSSI + variance) - ur_get(in_tmplt, in_rec, F_RSSI);
+                if ( (pre->BASE_RSSI + variance) > rssi ){
+                    alert_value = (pre->BASE_RSSI + variance) - rssi;
                 } else {
-                    alert_value = ur_get(in_tmplt, in_rec, F_RSSI) - (pre->BASE_RSSI - variance);
+                    alert_value = rssi - (pre->BASE_RSSI - variance);
                 }
                
                 uint64_t dev_addr_id = ur_get(in_tmplt, in_rec, F_DEV_ADDR);
@@ -328,7 +285,7 @@ int main(int argc, char **argv) {
                 sprintf(alert_str, "The device %ld exceeded allowed distance from gateway by %0.2f dBm", dev_addr_id,-1*alert_value);
                 ur_set_string(out_tmplt, out_rec, F_CAPTION, alert_str);
 
-                ur_set(out_tmplt, out_rec, F_RSSI, ur_get(in_tmplt, in_rec, F_RSSI));
+                ur_set(out_tmplt, out_rec, F_RSSI, rssi);
                 ur_set(out_tmplt, out_rec, F_BASE_RSSI, pre->BASE_RSSI);
                 ur_set(out_tmplt, out_rec, F_VARIANCE, va);
                 ret = trap_send(0, out_rec, ur_rec_size(out_tmplt, out_rec));
@@ -343,10 +300,6 @@ int main(int argc, char **argv) {
             dl_insert_device(dev_addr, ur_get(in_tmplt, in_rec, F_RSSI));
         }
 
-        /** 
-         * Free lora_packet and output record
-         */
-        lr_free();
     }
 
 

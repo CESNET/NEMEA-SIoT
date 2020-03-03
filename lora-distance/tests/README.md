@@ -2,29 +2,22 @@
     All test input datasets contains UniRec records which simulates LoRaWAN
     traffic captured by [LoRa Collector](https://github.com/CESNET/NEMEA-SIoT/tree/master/lora-collector).
 
-## device-moved
+##  Device moved - device-move
 
-Set default value on 10% (0.1).
-
-### input: 
-    Test input dataset simulates traffic produced by a single LoRaWAN node. 
-    First 5 messages contain simular RSSI values. Following 5 messages contain 
-    significantly different RSSI value.
-
-### expected output:
-    An allert message containing information, that the device has probably changed
-    its position.
-
-## device-did-not-move
-
-Set default value on 10% (0.1).
+Set variance on 5% (0.05) [-a --variance <double>].
 
 ### input: 
-    Test input dataset simulates traffic between LoRa Gateway and a single LoRa
-    end-device captured by LoRa Collector (for more information see 
-    [https://github.com/CESNET/NEMEA-SIoT/tree/lora-test/lora-distance]). 
-    First 5 messages contain simular RSSI values. Following 5 messages contain 
-    significantly different RSSI value.
+    Test input dataset from traffic produced by a single LoRaWAN gateway. File contain 118 network packet records.
 
 ### expected output:
-    Empty.
+    An alert messages containing 5 messages, that the device has probably changed its position.
+
+## Device did not move - device-move
+
+Set default value on 10% (0.1) [-a --variance <double>].
+
+### input: 
+    Test input dataset from traffic produced by a single LoRaWAN gateway. File contain 118 network packet records.
+
+### expected output:
+    Output is empty, devices not detected.

@@ -18,10 +18,10 @@
 #define F_VARIANCE_T   double
 #define F_ALERT_CODE   6
 #define F_ALERT_CODE_T   uint32_t
-#define F_CAPTION   7
+#define F_STATUS   7
+#define F_STATUS_T   uint8_t
+#define F_CAPTION   8
 #define F_CAPTION_T   char
-#define F_PHY_PAYLOAD   8
-#define F_PHY_PAYLOAD_T   char
 
 extern uint16_t ur_last_id;
 extern ur_static_field_specs_t UR_FIELD_SPECS_STATIC;
