@@ -171,8 +171,8 @@ uint16_t lr_arr_to_uint16(char* arr) {
 uint64_t lr_uint8_to_uint64(uint8_t* var) {
     if (var == NULL)
         return 0;
-    if (strlen(var) != 4)
-        return 0;
+    //if (strlen(var) != 4)
+    //    return 0;
     return (((uint64_t) var[7]) << 56) |
             (((uint64_t) var[6]) << 48) |
             (((uint64_t) var[5]) << 40) |
@@ -362,6 +362,23 @@ void lr_initialization(char* packet) {
     NetID = (char*) malloc(6);
     CFList = (char*) malloc(0);
 
+	
+	FCtrl = NULL;
+	FCnt = NULL;
+	FRMPayload = NULL;
+	FPort = NULL;
+	AppEUI = NULL;
+	DevEUI = NULL;
+	DevNonce = NULL;
+	DevAddr = NULL;
+	MIC = NULL;
+	AppNonce = NULL;
+	NetID = NULL;
+	CFList = NULL;
+	MACPayload = NULL;
+	FOpts = NULL;
+	FHDR = NULL;
+
     PHYPayload = packet;
     MHDR = lr_slice(_packet, 0, 2);
 
@@ -371,7 +388,7 @@ void lr_initialization(char* packet) {
         DevNonce = lr_revers_array(lr_slice(_packet, 34, 4));
         MIC = lr_slice(_packet, _strl - 8, 8);
         DevAddr = NULL;
-        free(DevAddr);
+        //free(DevAddr);
     } else if (lr_is_join_accept_message()) {
         AppNonce = lr_revers_array(lr_slice(_packet, 2, 6));
         NetID = lr_revers_array(lr_slice(_packet, 8, 6));

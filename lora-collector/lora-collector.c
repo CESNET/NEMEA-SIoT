@@ -73,13 +73,16 @@
 #include "libloragw/inc/loragw_hal.h"
 
 /** Maximum message size */
-#define MAX_MSG_SIZE 10000
+#define MAX_MSG_SIZE 1000
 
 /** Private Macros */
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
-#define MSG(args...) fprintf(stderr,"cesnet_pkt_analyzer: " args)
+#define MSG(args...) if(debug) fprintf(stderr, args)
 
-/* signal handling variables */
+/** Default fields for calculate variance */
+static int debug = 0; /* 1 -> application starting debugging */
+
+/** signal handling variables */
 struct sigaction sigact; /* SIGQUIT&SIGINT&SIGTERM signal handling */
 static int exit_sig = 0; /* 1 -> application terminates cleanly (shut down hardware, close open files, etc) */
 static int quit_sig = 0; /* 1 -> application terminates without shutting down the hardware */
@@ -95,11 +98,9 @@ char lgwm_str[17];
 /* clock and log file management */
 time_t now_time;
 time_t log_start_time;
-FILE * log_file = NULL;
 char log_file_name[64];
 
 /* Default variables for count logger */
-FILE * log_count = NULL;
 struct counterLOG st_counter;
 int cl = 0;
 
@@ -377,43 +378,6 @@ int parse_gateway_configuration(const char * conf_file) {
     return 0;
 }
 
-void start_log(void){
-    /* Check module parameter argument for append count logger */
-    if (cl != 1)
-        return;
-    
-    /* Check exist count log file */
-    if ((log_count = fopen("count.log", "rb+")) == NULL) {
-        if ((log_count = fopen("count.log", "wb+")) == NULL) {
-            printf("ERROR: failed to create file 'count.log'\n");
-            exit(EXIT_FAILURE);
-        } else
-            printf("INFO: creating count log binary file 'count.log'\n");
-    }
-    
-    /* Read binary file */
-    fread(&st_counter, sizeof (struct counterLOG), 1, log_count);
-
-    printf("INFO: cnt_pkt_log: %d\tcnt_bad_pkt_log: %d\tcnt_all_pkt_log: %d\n", st_counter.cnt_pkt_log, st_counter.cnt_bad_pkt_log, st_counter.cnt_all_pkt_log);
-
-    /* Moves the cursor to the start of the file */
-    fseek(log_count, -sizeof (struct counterLOG), SEEK_CUR);
-    
-    return;
-}
-
-void change_log(void) {
-    /* Check module parameter argument for append count logger */
-    if (cl != 1)
-        return;
-    
-    /* Write data to binary file */
-    fwrite(&st_counter, sizeof (struct counterLOG), 1, log_count);
-    fflush(log_count);
-    
-    return;
-}
-
 /* describe command line options */
 void usage(void) {
     printf("*** Library version information ***\n%s\n\n", lgw_version_info());
@@ -440,15 +404,17 @@ UR_FIELDS(
         time TIMESTAMP,
         uint32 BAD_WIDTH,
         uint32 CODE_RATE,
-        uint32 SF,        
-        uint32 SIZE,
-        uint32 RF_CHAIN,
+        uint32 SF,
+        uint16 SIZE,
+        uint8 RF_CHAIN,
         double SNR,
         uint64 DEV_ADDR,
         uint32 FRQ,
         uint32 US_COUNT,
-        string STATUS,
-        string MOD,
+        uint8 STATUS,
+        uint8 MOD,
+        uint16 FCNT,
+        uint8 MS_TYPE,
         string PHY_PAYLOAD,
         string APP_EUI,
         string DEV_EUI,
@@ -483,7 +449,8 @@ trap_module_info_t *module_info = NULL;
  * Module parameter argument types: int8, int16, int32, int64, uint8, uint16, uint32, uint64, float, string
  */
 #define MODULE_PARAMS(PARAM) \
-    PARAM('l', "countl", "Defines start log count 1/0 (true/false), default value 0 (false).", required_argument, "int")
+    PARAM('d', "debug", "Set debugging", no_argument, "none")
+    
 /**
  * To define positional parameter ("param" instead of "-m param" or "--mult param"), use the following definition:
  * PARAM('-', "", "Parameter description", required_argument, "string")
@@ -513,12 +480,11 @@ int main(int argc, char **argv) {
     struct timespec sleep_time = {0, 3000000}; /* 3 ms */
 
     char buff[3];
-    char payload[256];
+    char payload[512]; /** Maximale payload size */
 
     /* clock and log rotation management */
     int log_rotate_interval = 3600; /* by default, rotation every hour */
     int time_check = 0; /* variable used to limit the number of calls to time() function */
-    unsigned long pkt_in_log = 0; /* count the number of packet written in each log file */
 
     /* configuration file related */
     const char global_conf_fname[] = "global_conf.json"; /* contain global (typ. network-wide) configuration */
@@ -535,7 +501,64 @@ int main(int argc, char **argv) {
     char fetch_timestamp[30];
     struct tm * x;
 
+    int ret;
+    signed char opt;
     /** endSection */
+    
+    
+    /* **** TRAP initialization **** */
+
+    /*
+     * Macro allocates and initializes module_info structure according to MODULE_BASIC_INFO and MODULE_PARAMS
+     * definitions on the lines 470 and 478 of this file. It also creates a string with short_opt letters for getopt
+     * function called "module_getopt_string" and long_options field for getopt_long function in variable "long_options"
+     */
+    INIT_MODULE_INFO_STRUCT(MODULE_BASIC_INFO, MODULE_PARAMS)
+
+    /*
+     * Let TRAP library parse program arguments, extract its parameters and initialize module interfaces
+     */
+    TRAP_DEFAULT_INITIALIZATION(argc, argv, *module_info);
+
+    /*
+     * Register signal handler.
+     */
+    TRAP_REGISTER_DEFAULT_SIGNAL_HANDLER();
+
+    /*
+     * Parse program arguments defined by MODULE_PARAMS macro with getopt() function (getopt_long() if available)
+     * This macro is defined in config.h file generated by configure script
+     */
+    while ((opt = TRAP_GETOPT(argc, argv, module_getopt_string, long_options)) != -1) {
+        switch (opt) {
+            case 'd':
+                debug = 1;
+                break;
+            default:
+                trap_fin("Invalid arguments.\n");
+                FREE_MODULE_INFO_STRUCT(MODULE_BASIC_INFO, MODULE_PARAMS);
+                return -1;
+        }
+    }
+
+    /** Create Output UniRec templates */
+    ur_template_t *out_tmplt = ur_create_output_template(0, "RSSI,TIMESTAMP,BAD_WIDTH,CODE_RATE,SF,SIZE,RF_CHAIN,SNR,DEV_ADDR,FRQ,US_COUNT,STATUS,MOD,FCNT,MS_TYPE,PHY_PAYLOAD,APP_EUI,DEV_EUI,FOPTS,FPORT,DEV_NONCE,FCTRL,FHDR,APP_NONCE,MHDR,MIC,NET_ID", NULL);
+    if (out_tmplt == NULL) {
+        ur_free_template(out_tmplt);
+        fprintf(stderr, "Error: Output template could not be created.\n");
+        return -1;
+    }
+
+    /** Allocate memory for output record */
+    void *out_rec = ur_create_record(out_tmplt, MAX_MSG_SIZE);
+    if (out_rec == NULL) {
+        //        ur_free_template(in_tmplt);
+        ur_free_template(out_tmplt);
+        ur_free_record(out_rec);
+        fprintf(stderr, "Error: Memory allocation problem (output record).\n");
+        return -1;
+    }
+    
 
     /* configure signal handling */
     sigemptyset(&sigact.sa_mask);
@@ -583,68 +606,8 @@ int main(int argc, char **argv) {
     /* transform the MAC address into a string */
     sprintf(lgwm_str, "%08X%08X", (uint32_t) (lgwm >> 32), (uint32_t) (lgwm & 0xFFFFFFFF));
 
-    int ret;
-    signed char opt;
-
-    /* **** TRAP initialization **** */
-
-    /*
-     * Macro allocates and initializes module_info structure according to MODULE_BASIC_INFO and MODULE_PARAMS
-     * definitions on the lines 118 and 131 of this file. It also creates a string with short_opt letters for getopt
-     * function called "module_getopt_string" and long_options field for getopt_long function in variable "long_options"
-     */
-    INIT_MODULE_INFO_STRUCT(MODULE_BASIC_INFO, MODULE_PARAMS)
-
-    /*
-     * Let TRAP library parse program arguments, extract its parameters and initialize module interfaces
-     */
-    TRAP_DEFAULT_INITIALIZATION(argc, argv, *module_info);
-
-    /*
-     * Register signal handler.
-     */
-    TRAP_REGISTER_DEFAULT_SIGNAL_HANDLER();
-
-    /*
-     * Parse program arguments defined by MODULE_PARAMS macro with getopt() function (getopt_long() if available)
-     * This macro is defined in config.h file generated by configure script
-     */
-    while ((opt = TRAP_GETOPT(argc, argv, module_getopt_string, long_options)) != -1) {
-        switch (opt) {
-            case 'l':
-                sscanf(optarg, "%d", &cl);
-                if ((cl == 0) || (cl == 1))
-                    break;
-                trap_fin("Invalid arguments log count 0 - 1\n");
-                FREE_MODULE_INFO_STRUCT(MODULE_BASIC_INFO, MODULE_PARAMS);
-                return -1;
-            default:
-                trap_fin("Invalid arguments.\n");
-                FREE_MODULE_INFO_STRUCT(MODULE_BASIC_INFO, MODULE_PARAMS);
-                return -1;
-        }
-    }
-
-    /** Create Output UniRec templates */
-    ur_template_t *out_tmplt = ur_create_output_template(0, "SIZE,SF,BAD_WIDTH,CODE_RATE,TIMESTAMP,PHY_PAYLOAD,RSSI,RF_CHAIN,SNR,DEV_ADDR,APP_EUI,DEV_EUI,FOPTS,FPORT,DEV_NONCE,FCTRL,FHDR,APP_NONCE,MHDR,MIC,NET_ID,FRQ,US_COUNT,STATUS,MOD", NULL);
-    if (out_tmplt == NULL) {
-        //        ur_free_template(in_tmplt);
-        ur_free_template(out_tmplt);
-        fprintf(stderr, "Error: Output template could not be created.\n");
-        return -1;
-    }
-
-    /** Allocate memory for output record */
-    void *out_rec = ur_create_record(out_tmplt, MAX_MSG_SIZE);
-    if (out_rec == NULL) {
-        //        ur_free_template(in_tmplt);
-        ur_free_template(out_tmplt);
-        ur_free_record(out_rec);
-        fprintf(stderr, "Error: Memory allocation problem (output record).\n");
-        return -1;
-    }
-
-
+ 
+    payload[0] = '\0';
     while ((quit_sig != 1) && (exit_sig != 1) && (!stop)) {
         /* fetch packets */
         nb_pkt = lgw_receive(ARRAY_SIZE(rxpkt), rxpkt);
@@ -663,12 +626,6 @@ int main(int argc, char **argv) {
         /* log packets */
         for (i = 0; i < nb_pkt; ++i) {
             p = &rxpkt[i];
-
-            /* log counter number */
-            start_log();
-            (p->status == 16) ? st_counter.cnt_pkt_log++ : st_counter.cnt_bad_pkt_log++;
-            st_counter.cnt_all_pkt_log = st_counter.cnt_pkt_log + st_counter.cnt_bad_pkt_log;
-            change_log();
 
             /* writing bandwidth */
             uint32_t band_width = -1;
@@ -732,77 +689,101 @@ int main(int argc, char **argv) {
                 default: code_rate = -1;
             }
 
-            if (p->status != 16)
-                continue;
-            
             /* writing payload to char */
             for (g = 0; g < p->size; ++g) {
-		if (g > 0){
-                	sprintf(buff, "%02X", p->payload[g]);
+                if (g > 0){
+			sprintf(buff, "%02X", p->payload[g]);
                 	buff[2] = '\0';
                 	strcat(payload, buff);
 		}
             }
 
-            /* end of log file line */
-            ++pkt_in_log;
-
-	    /* TIMESTAMP time */
+	    /** Timestamp time */
 	    time_t t = time(0);
 	    ur_time_t timestamp = ur_time_from_sec_msec(t, t/1000);
             
             /** Check size payload min/max */
-            if (p->size < 14 || p->size > 512)
+            if (p->size < 14 || p->size > 512){
+                payload[0] = '\0';
+                lr_free();
                 continue;
-
-            /** Initialization physical payload for parsing and reversing octet fields. */
-            lr_initialization(payload);
-
-            if (DevAddr == NULL)
-                continue;
-            
-            uint64_t dev_addr = lr_uint8_to_uint64(lr_arr_to_uint8(DevAddr));
-            
-            /** Identity message type */
-            if (lr_is_join_accept_message()) {
-                ur_set(out_tmplt, out_rec, F_DEV_ADDR, dev_addr);
-            } else if (lr_is_data_message()) {
-                ur_set(out_tmplt, out_rec, F_DEV_ADDR, dev_addr);
             }
 
-            /* Set value of UniRec fields */
-            ur_set(out_tmplt, out_rec, F_BAD_WIDTH, band_width);
-            ur_set(out_tmplt, out_rec, F_SIZE, p->size);
-            ur_set(out_tmplt, out_rec, F_RSSI, (double) p->rssi);
-            ur_set(out_tmplt, out_rec, F_CODE_RATE, code_rate);
-            ur_set(out_tmplt, out_rec, F_SF, sf);
-            ur_set(out_tmplt, out_rec, F_TIMESTAMP, timestamp);
-            ur_set(out_tmplt, out_rec, F_RF_CHAIN, p->rf_chain);
-            ur_set(out_tmplt, out_rec, F_SNR, p->snr);
-            ur_set_string(out_tmplt, out_rec, F_PHY_PAYLOAD, payload);
-            
-            ur_set_string(out_tmplt, out_rec, F_APP_EUI, AppEUI);
-            ur_set_string(out_tmplt, out_rec, F_DEV_EUI, DevEUI);
-            ur_set_string(out_tmplt, out_rec, F_FOPTS, FOpts);
-            ur_set_string(out_tmplt, out_rec, F_FPORT, FPort);
-            ur_set_string(out_tmplt, out_rec, F_DEV_NONCE, DevNonce);
-            ur_set_string(out_tmplt, out_rec, F_FCTRL, FCtrl);
-            ur_set_string(out_tmplt, out_rec, F_FHDR, FHDR);
-            ur_set_string(out_tmplt, out_rec, F_APP_NONCE, AppNonce);
-            ur_set_string(out_tmplt, out_rec, F_MHDR, MHDR);
-            ur_set_string(out_tmplt, out_rec, F_MIC, MIC);
-            ur_set_string(out_tmplt, out_rec, F_NET_ID, NetID);
-            ur_set(out_tmplt, out_rec, F_FRQ, p->freq_hz);
-            ur_set(out_tmplt, out_rec, F_US_COUNT, p->count_us);
-            ur_set(out_tmplt, out_rec, F_STATUS, p->status);
-            ur_set(out_tmplt, out_rec, F_MOD, p->modulation);
-            
-            //free(payload);
-            //payload = NULL;
-            payload[0] = '\0';
+	    /** Initialization physical payload for parsing and reversing octet fields. */
+            lr_initialization(payload);
+	    
+	    if (DevAddr != NULL){
+		uint64_t dev_addr = lr_uint8_to_uint64(lr_arr_to_uint8(lr_revers_array(DevAddr)));
+		ur_set(out_tmplt, out_rec, F_DEV_ADDR, dev_addr);
+	    }
 
+            /* Set value to UniRec fields */
+            ur_set(out_tmplt, out_rec, F_RSSI, (double) p->rssi);
+            ur_set(out_tmplt, out_rec, F_TIMESTAMP, timestamp);
+	    ur_set(out_tmplt, out_rec, F_BAD_WIDTH, band_width);
+	    ur_set(out_tmplt, out_rec, F_CODE_RATE, code_rate);
+            ur_set(out_tmplt, out_rec, F_SF, sf);
+	    ur_set(out_tmplt, out_rec, F_SIZE, p->size);
+            ur_set(out_tmplt, out_rec, F_RF_CHAIN, p->rf_chain);
+            ur_set(out_tmplt, out_rec, F_SNR, (double) p->snr);
+	    ur_set(out_tmplt, out_rec, F_FRQ, p->freq_hz);
+	    ur_set(out_tmplt, out_rec, F_US_COUNT, p->count_us);
+	    ur_set(out_tmplt, out_rec, F_STATUS, p->status);
+	    ur_set(out_tmplt, out_rec, F_MOD, p->modulation);
+	    ur_set_string(out_tmplt, out_rec, F_PHY_PAYLOAD, payload);
+
+            
+            /* Set parsing value to UniRec fields */
+            if(AppEUI != NULL)
+ 	    	ur_set_string(out_tmplt, out_rec, F_APP_EUI, AppEUI);
+            if(DevEUI != NULL)
+	    	ur_set_string(out_tmplt, out_rec, F_DEV_EUI, DevEUI);
+    	    if(FOpts != NULL)
+            	ur_set_string(out_tmplt, out_rec, F_FOPTS, FOpts);
+            if(FPort != NULL)
+	    	ur_set_string(out_tmplt, out_rec, F_FPORT, FPort);
+            if(DevNonce != NULL)
+	    	ur_set_string(out_tmplt, out_rec, F_DEV_NONCE, DevNonce);
+            if(FCtrl != NULL)
+	    	ur_set_string(out_tmplt, out_rec, F_FCTRL, FCtrl);
+            if(FHDR != NULL)
+	    	ur_set_string(out_tmplt, out_rec, F_FHDR, FHDR);
+            if(AppNonce != NULL)
+	    	ur_set_string(out_tmplt, out_rec, F_APP_NONCE, AppNonce);
+            if(MHDR != NULL){
+	    	ur_set_string(out_tmplt, out_rec, F_MHDR, MHDR);
+                ur_set(out_tmplt, out_rec, F_MS_TYPE, lr_get_message_type());
+            };
+            if(MIC != NULL)
+	    	ur_set_string(out_tmplt, out_rec, F_MIC, MIC);
+            if(NetID != NULL)
+	    	ur_set_string(out_tmplt, out_rec, F_NET_ID, NetID);
+            if(FCnt != NULL){
+                uint16_t fcnt = lr_arr_to_uint16(FCnt);
+                ur_set(out_tmplt, out_rec, F_FCNT, fcnt);
+            };
+
+            /** Counter for status packet */
+            if(debug){
+                (p->status == 16) ? st_counter.cnt_pkt_log++ : st_counter.cnt_bad_pkt_log++;
+                st_counter.cnt_all_pkt_log = st_counter.cnt_pkt_log + st_counter.cnt_bad_pkt_log;
+            }
+            
+            /** Debugging message */
+            MSG("------------------------------\n");
+            MSG("MESSAGE: Status packet -> %s\n", (p->status == 16) ? "OK" : "BAD");
+            MSG("MESSAGE: Size unirec template -> %d\n", ur_rec_size(out_tmplt, out_rec));
+            MSG("MESSAGE: Device address -> %s\n", DevAddr);
+            MSG("MESSAGE: Physical payload -> %s\n", payload);
+            MSG("MESSGAE: Total status packet OK -> %d, BAD -> %d, ALL -> %d\n", st_counter.cnt_pkt_log, st_counter.cnt_bad_pkt_log, st_counter.cnt_all_pkt_log);
+            MSG("------------------------------\n");
+
+            
             /* send data */
-            ret = trap_send(0, out_rec, MAX_MSG_SIZE);
+            ret = trap_send(0, out_rec, ur_rec_size(out_tmplt, out_rec));
+            payload[0] = '\0';
+	    lr_free();
+            
             TRAP_DEFAULT_SEND_ERROR_HANDLING(ret, continue, break);
         }
     }
@@ -831,7 +812,7 @@ int main(int argc, char **argv) {
      * Free logger 
      */
     i = lgw_stop();
-    fclose(log_count);
 
     return 0;
 }
+
