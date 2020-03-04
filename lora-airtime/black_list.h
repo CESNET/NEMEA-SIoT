@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <unirec/unirec.h>
 #include <math.h>
 
 #ifndef BLACK_LIST_H
@@ -19,10 +20,11 @@
 extern "C" {
 #endif
 
-    void bl_insert_device(char* dev_addr, uint64_t time_stamp, double air_time, uint8_t enable);
-    struct bl_device* bl_get_device(char* dev_addr);
+    void bl_insert_device(uint64_t dev_addr, uint64_t time_stamp, double air_time, uint8_t enable);
+    struct bl_device* bl_get_device(uint64_t dev_addr);
     uint8_t bl_is_empty();
     uint8_t bl_compare(char* a, char* b, uint8_t len);
+    double bl_get_time(ur_time_t time);
 
 #ifdef __cplusplus
 }

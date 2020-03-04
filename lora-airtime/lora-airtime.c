@@ -58,7 +58,7 @@
 
 /** Define structure for BlackList */
 struct bl_device {
-    char DEV_ADDR[8];
+    uint64_t DEV_ADDR;
     double AIR_TIME;
     uint8_t ENABLE;
     uint64_t TIMESTAMP;
@@ -76,46 +76,18 @@ struct bl_device {
  */
 UR_FIELDS(
         // Input UniRec format 
+        time TIMESTAMP,
         uint64 DEV_ADDR,
-        uint32 SIZE,
+        uint64 INCIDENT_DEV_ADDR,
+        double AIR_TIME,
         uint32 BAD_WIDTH,
         uint32 SF,
         uint32 CODE_RATE,
-        string PHY_PAYLOAD,
-        time TIMESTAMP,
-        uint64 INCIDENT_DEV_ADDR,
         uint32 ALERT_CODE,
+        uint16 SIZE,
+        uint8 STATUS,
+        uint8 MS_TYPE,
         string CAPTION,
-        uint64 AIR_TIME,
-                
-        // Possbile values in payload
-        //        string NWK_SKEY,
-        //        string APP_SKEY
-        //        uint8 ENABLE,
-        //        string GW_ID,
-        //        string NODE_MAC,
-        //        uint32 US_COUNT,
-        //        uint32 FRQ,
-        //        uint32 RF_CHAIN,
-        //        uint32 RX_CHAIN,
-        //        string STATUS,
-        //        string MOD,
-        //        double RSSI,
-        //        double SNR,
-        //        string APP_EUI,
-        //        string APP_NONCE,
-        //        string DEV_EUI,
-        //        string DEV_NONCE,
-        //        string FCTRL,
-        //        string FHDR,
-        //        string F_OPTS,
-        //        string F_PORT,
-        //        string FRM_PAYLOAD,
-        //        string LORA_PACKET,
-        //        string MAC_PAYLOAD,
-        //        string MHDR,
-        //        string MIC,
-        //        string NET_ID
         )
 
 trap_module_info_t *module_info = NULL;
@@ -245,7 +217,7 @@ int main(int argc, char **argv) {
     }
 
     /** Create Input UniRec templates */
-    ur_template_t *in_tmplt = ur_create_input_template(0, "SIZE,SF,BAD_WIDTH,CODE_RATE,TIMESTAMP,PHY_PAYLOAD,DEV_ADDR", NULL);
+    ur_template_t *in_tmplt = ur_create_input_template(0, "TIMESTAMP,DEV_ADDR,BAD_WIDTH,SF,CODE_RATE,SIZE,STATUS,MS_TYPE", NULL);
     if (in_tmplt == NULL) {
         ur_free_template(in_tmplt);
         fprintf(stderr, "Error: Input template could not be created.\n");
@@ -253,7 +225,7 @@ int main(int argc, char **argv) {
     }
 
     /** Create Output UniRec templates */
-    ur_template_t *out_tmplt = ur_create_output_template(0, "INCIDENT_DEV_ADDR,TIMESTAMP,AIR_TIME,PHY_PAYLOAD,CAPTION,ALERT_CODE", NULL);
+    ur_template_t *out_tmplt = ur_create_output_template(0, "INCIDENT_DEV_ADDR,TIMESTAMP,AIR_TIME,CAPTION,ALERT_CODE", NULL);
     if (out_tmplt == NULL) {
         ur_free_template(in_tmplt);
         ur_free_template(out_tmplt);
@@ -297,18 +269,15 @@ int main(int argc, char **argv) {
                 break;
         }
 
-        /** Check size payload min/max */
-        uint32_t size = ur_get(in_tmplt, in_rec, F_SIZE);
-        if (size < 14 || size > 512)
+        /** Check status message */
+        if (ur_get(in_tmplt, in_rec, F_STATUS) != 16)
             continue;
 
-        /** Initialization physical payload for parsing and reversing octet fields. */
-        lr_initialization(ur_get_ptr(in_tmplt, in_rec, F_PHY_PAYLOAD));
-
-        if (DevAddr == NULL)
+        uint64_t dev_addr = ur_get(in_tmplt, in_rec, F_DEV_ADDR);
+        
+        if (dev_addr == 0)
             continue;
 
-        ur_set_string(out_tmplt, out_rec, F_PHY_PAYLOAD, PHYPayload);
 
         /** Example code for decode LoRaWAN packet.
          *  if ((ur_get_len(in_tmplt, in_rec, F_NWK_SKEY) == 32) && (ur_get_len(in_tmplt, in_rec, F_APP_SKEY) == 32)) {
@@ -317,13 +286,6 @@ int main(int argc, char **argv) {
          *      lr_arr_to_uint8(ur_get_var_as_str(in_tmplt, in_rec, F_APP_SKEY)))));
          *  }
          */
-
-        /** Identity message type */
-        /*if (lr_is_join_accept_message()) {
-            ur_set_string(out_tmplt, out_rec, F_DEV_ADDR, DevAddr);
-        } else if (lr_is_data_message()) {
-            ur_set_string(out_tmplt, out_rec, F_DEV_ADDR, DevAddr);
-        }*/
 
         /** 
          * Method for calculate time between packet subsequent starts: 
@@ -339,26 +301,31 @@ int main(int argc, char **argv) {
          */
         double airtime = lr_airtime_calculate(ur_get(in_tmplt, in_rec, F_SIZE), hd, dr, ur_get(in_tmplt, in_rec, F_SF)
                 , ur_get(in_tmplt, in_rec, F_CODE_RATE), ps, ur_get(in_tmplt, in_rec, F_BAD_WIDTH), dt);
-        // Convert UniRec TIMESTAMP to unix timestamp in sec
-        uint64_t timestamp = ur_time_get_sec(ur_get(in_tmplt, in_rec, F_TIMESTAMP));
-        
+        uint64_t timestamp = ur_get(in_tmplt, in_rec, F_TIMESTAMP);
+
         /** 
          * BlackList
          * Contain sensors list with identification field DevAddr. Blocking 
          * list that allow block messages from LoRaWAN infrastructure that 
          * have a information of history and actual air-time.
          */
-        struct bl_device *pre = bl_get_device(DevAddr);
+        struct bl_device *pre = bl_get_device(dev_addr);
 
         if (pre != NULL) {
             /** 
              * Edit fields from exists device 
              */
-            if ((pre->TIMESTAMP + pre->AIR_TIME) <= timestamp)
+            if ((bl_get_time(pre->TIMESTAMP) + pre->AIR_TIME) <= bl_get_time(timestamp)){
                 pre->ENABLE = 0;
+                pre->TIMESTAMP = timestamp;
+            }
             else {
                 pre->ENABLE = 1;
 
+                /** Create caption message */
+                char alert_str[100];
+                sprintf(alert_str, "The device %ld exceeded the transmission time by %0.2f second.", dev_addr, (ur_time_get_sec(pre->TIMESTAMP) + pre->AIR_TIME) - ur_time_get_sec(timestamp));
+                
                 pre->AIR_TIME = airtime;
                 pre->TIMESTAMP = timestamp;
 
@@ -366,13 +333,8 @@ int main(int argc, char **argv) {
                     ur_set(out_tmplt, out_rec, F_AIR_TIME, pre->AIR_TIME);
                     ur_set(out_tmplt, out_rec, F_TIMESTAMP, pre->TIMESTAMP);
                     ur_set(out_tmplt, out_rec, F_ALERT_CODE, 0);
-                    uint64_t dev_addr_id = ur_get(in_tmplt, in_rec, F_DEV_ADDR);;
-                    ur_set(out_tmplt, out_rec, F_INCIDENT_DEV_ADDR, dev_addr_id);
-                    // Create caption message
-                    char alert_str[100];
-                    sprintf(alert_str, "The device %ld exceeded the transmission time by %0.2f second.",dev_addr_id, (pre->TIMESTAMP + pre->AIR_TIME) - timestamp );
+                    ur_set(out_tmplt, out_rec, F_INCIDENT_DEV_ADDR, dev_addr); 
                     ur_set_string(out_tmplt, out_rec, F_CAPTION, alert_str);
-                    
 
                     ret = trap_send(0, out_rec, ur_rec_size(out_tmplt, out_rec));
                     TRAP_DEFAULT_SEND_ERROR_HANDLING(ret, continue, break);
@@ -382,13 +344,8 @@ int main(int argc, char **argv) {
             /** 
              * Insert new device to BlackList
              */
-            bl_insert_device(DevAddr, timestamp, airtime, 1);
+            bl_insert_device(dev_addr, timestamp, airtime, 1);
         }
-
-        /** 
-         * Free lora_packet and output record
-         */
-        lr_free();
     }
 
     /* **** Cleanup **** */
