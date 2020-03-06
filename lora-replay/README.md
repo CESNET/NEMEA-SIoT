@@ -1,5 +1,4 @@
-# README
-# LoRaWAN Detection - Replay attack ABP
+# LoRaWAN Detection - Replay attack ABP module
 
 ## Description
 This detector serves for detection replay attack in LoRaWAN infrastructure of ABP authentication method.
@@ -13,16 +12,16 @@ Attack detection is performed by saving data to the list (DeviceList). Informati
 In the first part of the algorithm depicted in the diagram in figure, a packet is inserted into the input, which is then the input parameter for the (Packet decoder). The decoder will parse and reverse octets to retrieve packet information. The information we obtained from the decoder is then the input parameters for the next algorithm processing. The GetDeviceObject (DevAddr) command obtains an object from the worksheet list if the object is not found to return NULL. Under the following condition, the object is checked whether it is empty, ie NULL. If the object was not found and the condition was FALSE, the next step is to define the variables for the new object and insert object by using the Insert statement to DeviceList. This will bring the algorithm to an end. Otherwise, when the object is not empty (TRUE), it follows the compound condition (RESTART == 1) && (LAST_FCNT == FCnt) && (FCnt! = 0), if this condition is true, it is probably the attacker ATTACK DETECTION. Subsequently, the reset command is called RESTART = 0 and also if compound conditions are not followed by the exit command. The algorithm continues to check the size of the current packet message (FCnt> 0), if the FCnt is greater than zero, then the values of the found object (Device) are set where the current values for LAST_FCNT = FCnt. Otherwise, the original values of the object remain. The last check is to determine whether this is a restart using the condition FCnt == 0. If this is a restart, which means that the message counter has been reset and set to 0, the RESTART indicator will be set to state 1, using RESTART = 1. This is the end of the algorithm, it is called again when the packet arrives from the network again.
 
 ## Input Unirec Interface
-	time    TIMESTAMP
-	uint64  DEV_ADDR       - device address
-        string  PHY_PAYLOAD    - payload from message
+	time    TIMESTAMP	- timestamp receive frame
+	uint64  DEV_ADDR	- device address
+	string  PHY_PAYLOAD	- payload from message
 
 ## Output Unirec Interface
-	time    TIMESTAMP
-	macaddr INCIDENT_DEV_ADDR
-	uint32  ALERT_CODE
-	string  CAPTION
-	string  FCNT           - message counter
+	time    TIMESTAMP		- timestamp receive frame
+	macaddr INCIDENT_DEV_ADDR	- incident device address
+	uint32  ALERT_CODE		- alert code
+	string  CAPTION			- caption message
+	string  FCNT			- message counter
   
 ## Parameters
 ### Common TRAP parameters

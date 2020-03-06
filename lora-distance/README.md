@@ -1,4 +1,3 @@
-# README
 # LoRaWAN Detection - Change distance
 
 ## Description
@@ -9,19 +8,19 @@ This detector serves for detection changing distance between device and gateway.
 The example shows the attacker's identification where the detector is set to 10% variance. This means that for -119 dBm is variance -11.9 dBm. The minimum value is -130.9 dBm and maximum -107.1 dBm. An attacker is therefore detected because it does not fall within the range.
 
 ## Input Unirec Interface
-	time    TIMESTAMP
-	uint64  DEV_ADDR       - device address
-	double  RSSI           - received signal strength sndication
-        string  PHY_PAYLOAD    - payload from message
+	time    TIMESTAMP	- timestamp receive frame
+	uint64  DEV_ADDR	- device address
+	double  RSSI		- received signal strength sndication
+	string  PHY_PAYLOAD	- payload from message
 
 ## Output Unirec Interface
-	time    TIMESTAMP
-	macaddr INCIDENT_DEV_ADDR
-	uint32  ALERT_CODE
-	string  CAPTION
-	double  RSSI                 - received signal strength sndication
-	double  BASE_RSSI            - base RSSI value is defined by the first received message from device to detector
-        double  VARIANCE
+	time    TIMESTAMP		- timestamp receive frame
+	macaddr INCIDENT_DEV_ADDR	- device address
+	uint32  ALERT_CODE		- alert code
+	string  CAPTION			- caption message
+	double  RSSI			- received signal strength sndication
+	double  BASE_RSSI		- base RSSI value is defined by the first received message from device to detector
+	double  VARIANCE		- define variance, default value 10% (0.1).
 
 ## Parameters
 ### Module specific parameters
