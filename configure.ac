@@ -43,6 +43,7 @@ AC_CONFIG_FILES([Makefile])
 AC_CONFIG_SUBDIRS([hci-collector
 ble-pairing
 wsn-anomaly
+lora-collector
 lora-airtime
 lora-replay
 lora-distance
