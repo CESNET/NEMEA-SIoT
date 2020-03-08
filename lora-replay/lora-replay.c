@@ -72,38 +72,13 @@ struct dl_device {
  */
 UR_FIELDS(
         time TIMESTAMP,
-        string DEV_ADDR,
-        string FCNT,
-        string PHY_PAYLOAD,
-        //        string GW_ID,
-        //        string NODE_MAC,
-        //        uint32 US_COUNT,
-        //        uint32 FRQ,
-        //        uint32 RF_CHAIN,
-        //        uint32 RX_CHAIN,
-        //        string STATUS,
-        //        uint32 SIZE,
-        //        string MOD,
-        //        uint32 BAD_WIDTH,
-        //        uint32 SF,
-        //        uint32 CODE_RATE,
-        //        double RSSI,
-        //        double SNR,
-        //        string APP_EUI,
-        //        string APP_NONCE,
-        //        string DEV_EUI,
-        //        string DEV_NONCE,
-        //        string FCTRL,
-        //        string FHDR,
-        //        string F_OPTS,
-        //        string F_PORT,
-        //        string FRM_PAYLOAD,
-        //        string LORA_PACKET,
-        //        string MAC_PAYLOAD,
-        //        string MHDR,
-        //        string MIC,
-        //        string NET_ID,
-        //        uint64 AIR_TIME
+        uint64 DEV_ADDR,
+        uint64 INCIDENT_DEV_ADDR,
+        uint32 ALERT_CODE,
+        uint16 FCNT,
+        uint8 STATUS,
+        uint8 MS_TYPE,
+        string CAPTION
         )
 
 trap_module_info_t *module_info = NULL;
@@ -195,7 +170,7 @@ int main(int argc, char **argv) {
     }
 
     /** Create Input UniRec templates */
-    ur_template_t *in_tmplt = ur_create_input_template(0, "TIMESTAMP,PHY_PAYLOAD", NULL);
+    ur_template_t *in_tmplt = ur_create_input_template(0, "TIMESTAMP,DEV_ADDR,FCNT,STATUS,MS_TYPE", NULL);
     if (in_tmplt == NULL) {
         ur_free_template(in_tmplt);
         fprintf(stderr, "Error: Input template could not be created.\n");
@@ -203,7 +178,7 @@ int main(int argc, char **argv) {
     }
 
     /** Create Output UniRec templates */
-    ur_template_t *out_tmplt = ur_create_output_template(0, "DEV_ADDR,TIMESTAMP,FCNT", NULL);
+    ur_template_t *out_tmplt = ur_create_output_template(0, "INCIDENT_DEV_ADDR,TIMESTAMP,FCNT,ALERT_CODE,CAPTION", NULL);
     if (out_tmplt == NULL) {
         ur_free_template(in_tmplt);
         ur_free_template(out_tmplt);
@@ -246,14 +221,10 @@ int main(int argc, char **argv) {
             if (!ignore_eof)
                 break;
         }
-
-        /** Check size payload min/max */
-        uint32_t size = ur_get_var_len(in_tmplt, in_rec, F_PHY_PAYLOAD);
-        if (size < 14 || size > 512)
+        
+        /** Check status message */
+        if (ur_get(in_tmplt, in_rec, F_STATUS) != 16)
             continue;
-
-        /** Initialization physical payload for parsing and reversing octet fields. */
-        lr_initialization(ur_get_ptr(in_tmplt, in_rec, F_PHY_PAYLOAD));
 
         /** 
          * DeviceList
@@ -264,22 +235,23 @@ int main(int argc, char **argv) {
          * value is set to 1. The device address (DevAddr) is used as the row 
          * index.
          */
+        
+        uint64_t dev_addr = ur_get(in_tmplt, in_rec, F_DEV_ADDR);
+        uint16_t counter = ur_get(in_tmplt, in_rec, F_FCNT);
+        uint8_t ms_type = ur_get(in_tmplt, in_rec, F_MS_TYPE);
 
-        if (DevAddr == NULL || FCnt == NULL)
+        if (dev_addr == 0)
             continue;
         
         /** Identity message type */
-        if (lr_is_data_message()) {
-            ur_set_string(out_tmplt, out_rec, F_DEV_ADDR, DevAddr);
-            ur_set_string(out_tmplt, out_rec, F_FCNT, FCnt);
+        if ((ms_type >= 2) && (ms_type <= 5)) {
+            ur_set(out_tmplt, out_rec, F_FCNT, counter);
 
             /** 
              * Load last data from Device
              */
-            uint64_t dev_addr = lr_uint8_to_uint64(lr_arr_to_uint8(DevAddr));
             
             struct dl_device *pre = dl_get_device(dev_addr);
-            uint16_t counter = lr_arr_to_uint16(FCnt);
 
             if (pre != NULL) {
                 /**
@@ -296,7 +268,16 @@ int main(int argc, char **argv) {
                  * 
                  */
                 if ((pre->RESTART == 1) && (pre->LAST_FCNT == counter) && (counter != 0)) {
+                    // Create alert message
                     ur_set(out_tmplt, out_rec, F_TIMESTAMP, ur_get(in_tmplt, in_rec, F_TIMESTAMP));
+                    ur_set(out_tmplt, out_rec, F_ALERT_CODE, 0);
+                    uint64_t dev_addr_id = ur_get(in_tmplt, in_rec, F_DEV_ADDR);
+                    ur_set(out_tmplt, out_rec, F_INCIDENT_DEV_ADDR, dev_addr_id);
+                    // Create caption message 
+                    char alert_str[100];
+                    sprintf(alert_str, "Replay attack has been detected for the device %ld",dev_addr_id);
+                    ur_set_string(out_tmplt, out_rec, F_CAPTION, alert_str);
+                    
                     ret = trap_send(0, out_rec, ur_rec_size(out_tmplt, out_rec));
                     TRAP_DEFAULT_SEND_ERROR_HANDLING(ret, continue, break);
 
@@ -321,10 +302,6 @@ int main(int argc, char **argv) {
             }
 
         }
-        /** 
-         * Free lora_packet and output record
-         */
-        lr_free();
     }
 
 
