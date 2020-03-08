@@ -1,2 +1,1 @@
-time TIMESTAMP,macaddr INCIDENT_DEV_ADDR,uint32 ALERT_CODE,uint32 DURATION,uint8 ATYPE,string CAPTION
-2019-09-25T10:26:02.998,6d:73:5a:f3:7b:98,1,17163,0,"The device 6d:73:5a:f3:7b:98 was in use for 17163us."
+2019-09-25T10:26:02.998,6d:73:5a:f3:7b:98,0,17163,0,"The device 6d:73:5a:f3:7b:98 was in use for 17163us."
