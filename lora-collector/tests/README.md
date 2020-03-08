@@ -2,7 +2,7 @@
 All test input datasets contain UniRec records which simulates traffic statistics traffic captured by lora-collector.
 
 ## LoRaWAN packet parser - PKT Data 01 GW01
-Use Case: This test verifies the correct decoding of information from the incoming payloud. For data simulation we used real captured data from the traffic of the campus gateway GW01.
+Use Case: This test verifies the correct decoding of information from the incoming payload. For data simulation we used real captured data from the traffic of the campus gateway GW01.
 
 Test: LoRaWAN parser test - it must contain the required correct values.
 

@@ -1,4 +1,3 @@
-# README
 # LoRaWAN Collector
 
 ## Description
