@@ -47,6 +47,7 @@ lora-airtime
 lora-replay
 lora-distance
 lora-collector
-ble-adv-collector])
+ble-adv-collector
+ble-conn-detector])
 
 AC_OUTPUT
