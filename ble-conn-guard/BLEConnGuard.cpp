@@ -11,6 +11,7 @@
 #include <unistd.h>
 
 #include "Configuration.h"
+#include "fields.h"
 
 #define DEFAULT_CONFIG "ble-conn-guard.ini"
 
@@ -78,6 +79,27 @@ int main(int argc, char **argv)
 				goto unirec_cleanup;
 		}
 	}
+	
+  in_tmplt = ur_create_input_template(0, "TIMESTAMP,INCIDENT_DEV_ADDR,ALERT_CODE,CAPTION,ATYPE,DURATION", NULL);
+	if (in_tmplt == NULL) {
+		std::cerr << "Error: Failed to create UniRec input template." << std::endl;
+		retval = 2;
+		goto unirec_cleanup;
+	}
+
+	out_tmplt = ur_create_output_template(0, "TIMESTAMP,INCIDENT_DEV_ADDR,ALERT_CODE,CAPTION,ATYPE,DURATION", NULL);
+	if (out_tmplt == NULL) {
+		std::cerr << "Error: Failed to create UniRec output template." << std::endl;
+		retval = 2;
+		goto unirec_cleanup;
+	}
+	
+  out_rec = ur_create_record(out_tmplt, UR_MAX_SIZE);
+	if (out_rec == NULL) {
+		std::cerr << "Error: Failed to create UniRec record." << std::endl;
+		retval = 2;
+		goto unirec_cleanup;
+	}
   
   try {
     if (confFile == NULL)
@@ -85,13 +107,59 @@ int main(int argc, char **argv)
     else
       config = new Configuration(confFile);
   } catch (IOError& e) {
+    retval = 3;
     std::cerr << e.what() << std::endl;
     goto unirec_cleanup;
   } catch (ParseError& e) {
+    retval = 3;
     std::cerr << e.what() << std::endl;
     goto unirec_cleanup;
   }
 
+	/* Main loop */
+	while (BLEConnGuard_run) {
+		const void *in_rec;
+		uint16_t    in_rec_size;
+
+    ur_time_t  timestamp;
+    mac_addr_t bdaddr;
+		char bdaddrStr[MAC_STR_LEN];
+
+		retval = TRAP_RECEIVE(0, in_rec, in_rec_size, in_tmplt);
+
+		TRAP_DEFAULT_RECV_ERROR_HANDLING(retval, continue, break);
+
+		// Check size of received data
+		if (in_rec_size < ur_rec_fixlen_size(in_tmplt)) {
+
+			if (in_rec_size == 1) { // EOF
+				char dummy[1] = {0};
+				trap_send(0, dummy, 1);
+				trap_send_flush(0);
+				if (ignore_eof)
+					continue;
+				break;
+			} else if (in_rec_size < 1) { // Read error
+        retval = 4;
+				std::cerr << "Error: Read error occured." << std::endl;
+				break;
+			} else {
+        retval = 4;
+				std::cerr << "Error: Data with wrong size received." << std::endl;
+				break;
+			}
+		}
+
+    timestamp = ur_get(in_tmplt, in_rec, F_TIMESTAMP);
+    bdaddr    = ur_get(in_tmplt, in_rec, F_INCIDENT_DEV_ADDR);
+    mac_to_str(&bdaddr, bdaddrStr);
+
+    ur_copy_fields(out_tmplt, out_rec, in_tmplt, in_rec);
+			
+    trap_send(0, out_rec, ur_rec_size(out_tmplt, out_rec));
+    TRAP_DEFAULT_SEND_ERROR_HANDLING(retval, continue, break);
+
+	}
 
   delete config;
 
