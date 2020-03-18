@@ -154,11 +154,12 @@ int main(int argc, char **argv)
     bdaddr    = ur_get(in_tmplt, in_rec, F_INCIDENT_DEV_ADDR);
     mac_to_str(&bdaddr, bdaddrStr);
 
-    ur_copy_fields(out_tmplt, out_rec, in_tmplt, in_rec);
-			
-    trap_send(0, out_rec, ur_rec_size(out_tmplt, out_rec));
-    TRAP_DEFAULT_SEND_ERROR_HANDLING(retval, continue, break);
-
+    if (!config->allowedConnection(bdaddrStr)) {
+      ur_copy_fields(out_tmplt, out_rec, in_tmplt, in_rec);
+        
+      trap_send(0, out_rec, ur_rec_size(out_tmplt, out_rec));
+      TRAP_DEFAULT_SEND_ERROR_HANDLING(retval, continue, break);
+    }
 	}
 
   delete config;

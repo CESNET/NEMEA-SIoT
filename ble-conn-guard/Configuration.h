@@ -115,6 +115,15 @@ public:
       return getDefaultConf();
   }
 
+  const bool allowedConnection(const std::string device) {
+    const DeviceConf *conf = getConf(device);
+    
+    if (conf->getReportMode() == never)
+      return true;
+
+    return false;
+  }
+
 private:
   const std::string configFile;
   DeviceConf *general = NULL;
