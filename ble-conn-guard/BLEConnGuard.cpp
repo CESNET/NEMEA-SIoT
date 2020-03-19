@@ -39,9 +39,35 @@ trap_module_info_t *module_info = NULL;
 	PARAM('I', "ignore-in-eof", "Do not terminate on incomming termination message.", no_argument, "none") \
 	PARAM('c', "config", "Use this configuration file. (Default is ./ble-conn-guard.ini)", required_argument, "string")
 
-static bool BLEConnGuard_run = true;
+std::sig_atomic_t BLEConnGuard_run = true;
+
+Configuration* config = nullptr;
+
+/* Signals */
 
 TRAP_DEFAULT_SIGNAL_HANDLER(BLEConnGuard_run = false)
+
+void setTrigger(int sig)
+{
+  config->setTrigger();
+
+  std::time_t time = std::time(nullptr);
+  char mbstr[100];
+  std::strftime(mbstr, sizeof(mbstr), "%FT%TZ", std::localtime(&time));
+  std::cout << "[" << mbstr << "] ";
+  std::cout << "Alert trigger has been set." << std::endl;
+}
+
+void unsetTrigger(int sig)
+{
+  config->unsetTrigger();
+
+  std::time_t time = std::time(nullptr);
+  char mbstr[100];
+  std::strftime(mbstr, sizeof(mbstr), "%FT%TZ", std::localtime(&time));
+  std::cout << "[" << mbstr << "] ";
+  std::cout << "Alert trigger has been disabled." << std::endl;
+}
 
 int main(int argc, char **argv)
 {
@@ -49,7 +75,6 @@ int main(int argc, char **argv)
 	signed char opt;
 	bool ignore_eof = 0; // Ignore EOF input parameter flag
   char *confFile = NULL;
-  Configuration* config = NULL;
 	
   /* UniRec variables */
 	ur_template_t *in_tmplt = NULL, *out_tmplt = NULL;
@@ -61,6 +86,10 @@ int main(int argc, char **argv)
 	TRAP_DEFAULT_INITIALIZATION(argc, argv, *module_info);
 
 	TRAP_REGISTER_DEFAULT_SIGNAL_HANDLER();
+
+  /* Trigger signal initialization */
+  signal(SIGUSR1, setTrigger);
+  signal(SIGUSR2, unsetTrigger);
 	
   /*
 	 * Parse program arguments defined by MODULE_PARAMS macro with getopt() function (getopt_long() if available)

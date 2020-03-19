@@ -11,6 +11,7 @@
 
 #define NULL_BDADDR "00:00:00:00:00:00"
 
+
 /*
  * Holds from and to dates for timed reports.
  */
@@ -54,7 +55,7 @@ struct ParseError
  *  timed = report between start and stop times
  *  always = report always
  */
-enum ReportMode { never, timed, always };
+enum ReportMode { never, timed, trigger, always };
 
 /*
  * Converts string with ReportMode to enum, default value is "always"
@@ -64,6 +65,8 @@ inline const enum ReportMode stringToReportMode(const std::string report) {
     return never;
   else if (report == "timed")
     return timed;
+  else if (report == "trigger")
+    return trigger;
   else // always is default
     return always;
 }
@@ -230,13 +233,28 @@ public:
       }
     }
 
+    if (*(conf->getReportMode()) == trigger) {
+      return !_trigger;
+    }
+
     return false;
+  }
+
+  bool setTrigger() {
+    _trigger = true;
+    return _trigger;
+  }
+
+  bool unsetTrigger() {
+    _trigger = false;
+    return !_trigger;
   }
 
 private:
   const std::string configFile;
   DeviceConf *general = NULL;
   std::map<std::string, DeviceConf*> devices;
+  bool _trigger = false;
 };
 
 #endif

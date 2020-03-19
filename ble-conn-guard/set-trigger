@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+process_id=`ps -o pid= -C siot-ble-conn-guard`
+kill -s SIGUSR1 $process_id
