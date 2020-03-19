@@ -3,6 +3,7 @@
 #endif
 
 #include <csignal>
+#include <ctime>
 #include <getopt.h>
 #include <iostream>
 #include <libtrap/trap.h>
@@ -122,6 +123,9 @@ int main(int argc, char **argv)
 		uint16_t    in_rec_size;
 
     ur_time_t  timestamp;
+    std::time_t sec;
+    std::tm *time;
+
     mac_addr_t bdaddr;
 		char bdaddrStr[MAC_STR_LEN];
 
@@ -151,10 +155,17 @@ int main(int argc, char **argv)
 		}
 
     timestamp = ur_get(in_tmplt, in_rec, F_TIMESTAMP);
+    sec = ur_time_get_sec(timestamp);
+    time = std::localtime(&sec);
+    if (time == NULL) {
+      std::cerr << "Error: Received data with invalid timestamp." << std::endl;
+      continue;
+    }
+
     bdaddr    = ur_get(in_tmplt, in_rec, F_INCIDENT_DEV_ADDR);
     mac_to_str(&bdaddr, bdaddrStr);
 
-    if (!config->allowedConnection(bdaddrStr)) {
+    if (!config->allowedConnection(bdaddrStr, time)) {
       ur_copy_fields(out_tmplt, out_rec, in_tmplt, in_rec);
         
       trap_send(0, out_rec, ur_rec_size(out_tmplt, out_rec));
