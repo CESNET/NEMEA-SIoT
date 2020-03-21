@@ -218,7 +218,7 @@ public:
         if (time->tm_hour < ts->from_hour && time->tm_hour > ts->to_hour)
           return true;
 
-        if (time->tm_hour > ts->from_hour && time->tm_hour < ts->to_hour)
+        if (time->tm_hour > ts->from_hour || time->tm_hour < ts->to_hour)
           return false;
 
         if (time->tm_hour == ts->from_hour)

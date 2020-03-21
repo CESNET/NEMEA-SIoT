@@ -53,7 +53,7 @@ void setTrigger(int sig)
 
   std::time_t time = std::time(nullptr);
   char mbstr[100];
-  std::strftime(mbstr, sizeof(mbstr), "%FT%TZ", std::localtime(&time));
+  std::strftime(mbstr, sizeof(mbstr), "%FT%TZ", std::gmtime(&time));
   std::cout << "[" << mbstr << "] ";
   std::cout << "Alert trigger has been set." << std::endl;
 }
@@ -64,7 +64,7 @@ void unsetTrigger(int sig)
 
   std::time_t time = std::time(nullptr);
   char mbstr[100];
-  std::strftime(mbstr, sizeof(mbstr), "%FT%TZ", std::localtime(&time));
+  std::strftime(mbstr, sizeof(mbstr), "%FT%TZ", std::gmtime(&time));
   std::cout << "[" << mbstr << "] ";
   std::cout << "Alert trigger has been disabled." << std::endl;
 }
@@ -185,7 +185,7 @@ int main(int argc, char **argv)
 
     timestamp = ur_get(in_tmplt, in_rec, F_TIMESTAMP);
     sec = ur_time_get_sec(timestamp);
-    time = std::localtime(&sec);
+    time = std::gmtime(&sec);
     if (time == NULL) {
       std::cerr << "Error: Received data with invalid timestamp." << std::endl;
       continue;
