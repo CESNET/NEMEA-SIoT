@@ -15,16 +15,31 @@ class SIoTNemeaTester(Namespace):
         return 'tests'
 
     @staticmethod
-    def __get_test_in_path__(m: str, t: str) -> str:
-        return './{}/{}/{}.csv'.format(m, SIoTNemeaTester.__get_module_tests_dir(), t)
+    def __get_test_in_paths__(m: str, t: (str, {str, })) -> [str]:
+        name, ifcs = t
+        paths = []
+        for i in ifcs['in']:
+            path = './{}/{}/{}.{}.csv'.format(m, SIoTNemeaTester.__get_module_tests_dir(), name, i)
+            paths.append(path)
+        return paths
 
     @staticmethod
-    def __get_test_expected_out_path__(m: str, t: str) -> str:
-        return './{}/{}/{}.out'.format(m, SIoTNemeaTester.__get_module_tests_dir(), t)
+    def __get_test_expected_out_paths__(m: str, t: (str, {str, })) -> [str]:
+        name, ifcs = t
+        paths = []
+        for i in ifcs['out']:
+            path = './{}/{}/{}.{}.out'.format(m, SIoTNemeaTester.__get_module_tests_dir(), name, i)
+            paths.append(path)
+        return paths
 
     @staticmethod
-    def __get_test_out_path__(m: str, t: str) -> str:
-        return './{}/{}/{}.realout'.format(SIoTNemeaTester.__get_tests_output_dir(), m, t)
+    def __get_test_out_paths__(m: str, t: (str, {str, })) -> [str]:
+        name, ifcs = t
+        paths = []
+        for i in ifcs['out']:
+            path = './{}/{}/{}.{}.realout'.format(SIoTNemeaTester.__get_tests_output_dir(), m, name, i)
+            paths.append(path)
+        return paths
 
     @staticmethod
     def __prepare_test_output_directories__(modules: []):
@@ -78,40 +93,71 @@ class SIoTNemeaTester(Namespace):
         self.module_being_tested = None
         self.current_test = None
 
-    def __inject_and_capture__(self, ifc_in: str, f_in: str, ifc_out: str, f_out: str, timeout: int = 10):
-        logger = subprocess.Popen([self.L, '-i', ifc_out, '-w', f_out])
-        logreplay = subprocess.Popen([self.R, '-i', ifc_in, '-f', f_in])
+    def __inject_and_capture__(self, ifcs_in: [str], files_in: [str], ifcs_out: [str], files_out: [str], timeout: int = 10):
+        if len(ifcs_in) != len(files_in):
+            raise RuntimeError('logreplays: count of input interfaces differ from count of input files')
 
-        try:
-            logreplay.communicate(timeout=timeout)
-        except subprocess.TimeoutExpired:
-            logreplay.kill()
-            logger.kill()
-            raise RuntimeError('logreplay timeout expired')
+        if len(ifcs_out) != len(files_out):
+            raise RuntimeError('loggers: count of output interfaces differ from count of output files')
 
-        try:
-            logger.communicate(timeout=timeout)
-        except subprocess.TimeoutExpired:
-            logger.kill()
-            raise RuntimeError('logger timeout expired')
+        loggers = []
+        zipped_output = zip(ifcs_out, files_out)
+        for ifc, file in zipped_output:
+            logger = subprocess.Popen([self.L, '-i', 'u:out{}'.format(ifc), '-w', file])
+            loggers.append(logger)
+
+        logreplays = []
+        zipped_input = zip(ifcs_in, files_in)
+        for ifc, file in zipped_input:
+            logreplay = subprocess.Popen([self.R, '-i', 'u:in{}'.format(ifc), '-f', file])
+            logreplays.append(logreplay)
+
+        killed = False
+        for logreplay in logreplays:
+            if killed:
+                logreplay.kill()
+
+            try:
+                logreplay.communicate(timeout=timeout)
+            except subprocess.TimeoutExpired:
+                logreplay.kill()
+                killed = True
+
+        for logger in loggers:
+            if killed:
+                logger.kill()
+
+            try:
+                logger.communicate(timeout=timeout)
+            except subprocess.TimeoutExpired:
+                logger.kill()
+                killed = True
+
+        if killed:
+            raise RuntimeError('logreplay/logger timeout expired')
 
 
-    def __compare_files__(self, expected: str, to_compare: str) -> bool:
-        diff = subprocess.Popen(['diff', '-s', expected, to_compare], stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE)
-        diff.communicate()
+    def __compare_files__(self, expected_files: [str], to_compare_files: [str]) -> bool:
+        if len(expected_files) != len(to_compare_files):
+            raise RuntimeError('count of expected files differ from count of output files')
 
-        if diff.returncode != 0:
-            return False
+        zipped = zip(expected_files, to_compare_files)
+        for expected, to_compare in zipped:
+            diff = subprocess.Popen(['diff', '-s', expected, to_compare], stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE)
+            diff.communicate()
+
+            if diff.returncode != 0:
+                return False
 
         return True
 
-    def __test_started__(self, m: str, t: str):
+    def __test_started__(self, m: str, t: (str, {str, })):
         if not m == self.module_being_tested:
             self.module_being_tested = m
             self.__new_module_tests_started__()
 
-        self.current_test = t
+        self.current_test, _ = t
         self.__new_test_started__()
 
     def __test_ended__(self, r: bool):
