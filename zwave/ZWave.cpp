@@ -256,7 +256,7 @@ void FrameWrapper::setTimestampNow()
 {
 	timeval tv = {};
 	::gettimeofday(&tv, nullptr);
-	timestamp_ = ur_time_from_sec_msec(tv.tv_sec, tv.tv_usec / 1000);
+	timestamp_ = ur_time_from_sec_usec(tv.tv_sec, tv.tv_usec);
 }
 
 bool FrameWrapper::isOK() const
