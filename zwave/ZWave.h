@@ -45,6 +45,25 @@ enum Channel : uint8_t {
 	C3 = 3
 };
 
+enum CC : uint8_t {
+	System = 0x01,
+};
+
+enum CCSystemCommand : uint8_t {
+	NodeInfo = 0x01,
+	GetSupportedCC = 0x02,
+	AssignNodeId = 0x03,
+	DoNLTest = 0x04,
+	GetNL = 0x05,
+	ReportNL = 0x06,
+	NLTestDone = 0x07,
+	TransferPresentation = 0x08,
+	SRCacheAssignment = 0x0C,
+	BackboneCacheAssignment = 0x14,
+	SRRequest = 0x15,
+	NLTest = 0x18,
+};
+
 struct Transport_header {
 	uint8_t home_id3;
 	uint8_t home_id2;

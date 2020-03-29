@@ -139,7 +139,7 @@ void processFrame(const ZWave::FrameWrapper &frame, ur_template_t *out_template,
 		: ""
 	);
 	ur_set_string(out_template, out_record, F_CMD_STR,
-		payloadLength >= 2 && frame.bytes_[begin] == 0x01 //CC System
+		payloadLength >= 2 && frame.bytes_[begin] == ZWave::CC::System
 		? ZWave::systemCommandValToStr(frame.bytes_[begin + 1]).c_str()
 		: ""
 	);
