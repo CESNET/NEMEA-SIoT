@@ -289,9 +289,9 @@ int main(int argc, char *argv[])
 			trap_send(1, dummy, 1);
 			trap_send_flush(1);
 			// if ignore_eof option is used -> forward eof message but keep this module running
-			if (!ignore_eof){
-				break;
-			}
+			if (ignore_eof) { continue; }
+
+			break;
 		}
 
 		ur_time_t timestamp = ur_get(in_frames_template, in_record, F_TIMESTAMP);
