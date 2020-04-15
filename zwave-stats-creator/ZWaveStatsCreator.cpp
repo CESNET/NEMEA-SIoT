@@ -30,10 +30,12 @@
  *
 */
 
+#include <atomic>
 #include <csignal>
 #include <chrono>
 #include <iostream>
 #include <mutex>
+#include <sstream>
 #include <thread>
 #include <getopt.h>
 #include <sys/time.h>
@@ -43,7 +45,6 @@
 
 #include "fields.h"
 #include "ZWaveStatistics.h"
-#include "../zwave/Conversion.h"
 
 UR_FIELDS(
 	time TIMESTAMP,
@@ -53,8 +54,8 @@ UR_FIELDS(
 	uint64 DEV_ADDR,
 
 	double CORRUPTED_C,
-	double CORRUPTED_CH2_C,
 	double CORRUPTED_CH1_C,
+	double CORRUPTED_CH2_C,
 	double CORRUPTED_CH3_C,
 	double TOTAL_OK_C,
 	double ROUTED_C,
@@ -96,10 +97,11 @@ trap_module_info_t *module_info = NULL;
 #define MODULE_PARAMS(PARAM) \
 	PARAM('s', "stats-interval", "Interval to generate statistics in seconds", required_argument, "uint8") \
 	PARAM('n', "network", "HomeID of the network", required_argument, "string") \
+	PARAM('t', "testing", "Testing mode (timestamp 0 in statistics)", no_argument, "none") \
 	PARAM('I', "ignore-in-eof", "Do not terminate on incomming termination message.", no_argument, "none")
 
-static int g_stop = 0;
-TRAP_DEFAULT_SIGNAL_HANDLER(g_stop = 1)
+std::atomic_bool g_stop = { false };
+TRAP_DEFAULT_SIGNAL_HANDLER(g_stop = true)
 
 int main(int argc, char *argv[])
 {
@@ -116,6 +118,8 @@ int main(int argc, char *argv[])
 	int opt;
 	int stats_interval = 10; // in seconds
 	uint32_t home_id = 0;
+	bool testing = false;
+	std::atomic_bool forward_eof = { false };
 	int ignore_eof = 0; // Ignore EOF input parameter flag
 
 	while ((opt = getopt_long(argc, argv, module_getopt_string, long_options, NULL)) != -1) {
@@ -133,11 +137,14 @@ int main(int argc, char *argv[])
 			}
 
 			std::stringstream ss;
-			ss << hex << param;
+			ss << std::hex << param;
 			ss >> home_id;
 
 			break;
 		}
+		case 't':
+			testing = true;
+			break;
 		case 'I':
 			ignore_eof = 1;
 			break;
@@ -177,7 +184,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	if (trap_ifcctl(TRAPIFC_OUTPUT, 0, TRAPCTL_SETTIMEOUT, TRAP_NO_WAIT) != TRAP_E_OK) {
+	if (trap_ifcctl(TRAPIFC_OUTPUT, 0, TRAPCTL_SETTIMEOUT, TRAP_WAIT) != TRAP_E_OK) {
 		std::cerr << "Error: could not set output network interface timeout." << std::endl;
 		cleanup();
 		return 1;
@@ -197,7 +204,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	if (trap_ifcctl(TRAPIFC_OUTPUT, 1, TRAPCTL_SETTIMEOUT, TRAP_NO_WAIT) != TRAP_E_OK) {
+	if (trap_ifcctl(TRAPIFC_OUTPUT, 1, TRAPCTL_SETTIMEOUT, TRAP_WAIT) != TRAP_E_OK) {
 		std::cerr << "Error: could not set output node interface timeout." << std::endl;
 		cleanup();
 		return 1;
@@ -219,16 +226,20 @@ int main(int argc, char *argv[])
 
 	ZWaveStatistics stats(home_id);
 
-	mutex mx;
-	thread t([&]() {
-		while (!g_stop) {
+	std::mutex mx;
+	std::thread t([&]() {
+		while (!g_stop)
+		{
 			std::this_thread::sleep_for(std::chrono::seconds(stats_interval));
 
-			lock_guard<mutex> lock(mx);
+			std::lock_guard<std::mutex> lock(mx);
 
 			timeval tv = {};
 			::gettimeofday(&tv, nullptr);
-			ur_time_t timestamp = ur_time_from_sec_usec(tv.tv_sec, tv.tv_usec);
+			ur_time_t timestamp = 0;
+			if (!testing) {
+				timestamp = ur_time_from_sec_usec(tv.tv_sec, tv.tv_usec);
+			}
 
 			ur_set(out_network_template, network_record, F_TIMESTAMP, timestamp);
 			ur_set(out_network_template, network_record, F_DEV_ADDR, home_id);
@@ -241,6 +252,7 @@ int main(int argc, char *argv[])
 			ur_set(out_network_template, network_record, F_ROUTED_ACK_C, stats.network_stats_.routed_ack_c);
 			ur_set(out_network_template, network_record, F_ROUTED_NACK_C, stats.network_stats_.routed_nack_c);
 			ur_set(out_network_template, network_record, F_ROUTED_APP_C, stats.network_stats_.routed_app_c);
+			ur_set(out_network_template, network_record, F_ACK_C, stats.network_stats_.ack_c);
 			ur_set(out_network_template, network_record, F_SINGLECAST_C, stats.network_stats_.singlecast_c);
 			ur_set(out_network_template, network_record, F_MULTICAST_C, stats.network_stats_.multicast_c);
 			ur_set(out_network_template, network_record, F_BROADCAST_C, stats.network_stats_.broadcast_c);
@@ -263,14 +275,22 @@ int main(int argc, char *argv[])
 				ur_set(out_node_template, node_record, F_DST_SINGL_C, node_stats.dst_singl_c);
 				ur_set(out_node_template, node_record, F_SRC_ACK_C, node_stats.src_ack_c);
 				ur_set(out_node_template, node_record, F_DST_ACK_C, node_stats.dst_ack_c);
-				ur_set(out_node_template, node_record, F_MULTICAST_C, node_stats.src_multicast_c);
-				ur_set(out_node_template, node_record, F_BROADCAST_C, node_stats.src_broadcast_c);
+				ur_set(out_node_template, node_record, F_SRC_MULTICAST_C, node_stats.src_multicast_c);
+				ur_set(out_node_template, node_record, F_SRC_BROADCAST_C, node_stats.src_broadcast_c);
 				ur_set(out_node_template, node_record, F_SRC_TOTAL_LM_T, node_stats.src_total_lm_t);
 				ur_set(out_node_template, node_record, F_DST_TOTAL_LM_T, node_stats.dst_total_lm_t);
 				ur_set(out_node_template, node_record, F_SRC_SINGL_LM_T, node_stats.src_singl_lm_t);
 				ur_set(out_node_template, node_record, F_DST_SINGL_LM_T, node_stats.dst_singl_lm_t);
 				trap_send(1, node_record, ur_rec_size(out_node_template, node_record));
 			}
+		}
+
+		if (forward_eof) {
+			char dummy[1] = {0};
+			trap_send(0, dummy, 1);
+			trap_send_flush(0);
+			trap_send(1, dummy, 1);
+			trap_send_flush(1);
 		}
 	});
 
@@ -283,12 +303,8 @@ int main(int argc, char *argv[])
 
 		// EOF close this module
 		if (in_record_size <= 1){
-			char dummy[1] = {0};
-			trap_send(0, dummy, 1);
-			trap_send_flush(0);
-			trap_send(1, dummy, 1);
-			trap_send_flush(1);
-			// if ignore_eof option is used -> forward eof message but keep this module running
+			forward_eof = true;
+			// if ignore_eof option is used keep this module running
 			if (ignore_eof) { continue; }
 
 			break;
@@ -302,8 +318,10 @@ int main(int argc, char *argv[])
 		ZWave::FrameWrapper frame(bytes, size, channel);
 		frame.setTimestamp(timestamp);
 
-		lock_guard<mutex> lock(mx);
-		stats.processFrame(frame);
+		{
+			std::lock_guard<std::mutex> lock(mx);
+			stats.processFrame(frame);
+		}
 	}
 
 	g_stop = true;

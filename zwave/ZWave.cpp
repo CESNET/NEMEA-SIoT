@@ -402,7 +402,7 @@ bool FrameWrapper::isNetworkHeaderOK() const
 	if (header->failed_hop > 5)
 		return false;
 
-	return (header->hop_index == 0xF) || (header->hop_index >= 0 && header->hop_index < header->sr_len);
+	return (header->hop_index == 0xF) || (header->hop_index >= 0 && header->hop_index <= header->sr_len);
 };
 
 const Network_header *FrameWrapper::networkHeader() const

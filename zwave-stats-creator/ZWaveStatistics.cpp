@@ -116,7 +116,9 @@ void ZWaveStatistics::processFrame(const ZWave::FrameWrapper &frame)
 					network_stats_.routed_nack_c++;
 					src_node.src_nack_c++;
 					dst_node.dst_nack_c++;
-					nodes_[frame.failedHopId()].failed_hop_nack_c++;
+					NodeStats &failed_hop_node = nodes_[frame.failedHopId()];
+					failed_hop_node.should_be_reported = true;
+					failed_hop_node.failed_hop_nack_c++;
 					break;
 			}
 		}
