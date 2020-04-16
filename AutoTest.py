@@ -39,17 +39,20 @@ class AutoTest(SIoTNemeaTester):
                 post_shell = data['post-shell']
                 run_args = data['run-args']
 
-            for t in tests:
+            for t in tests.items():
+                name, ifcs = t
+
                 if self.quit:
                     return 2
 
                 self.__test_started__(m, t)
 
-                f_in = self.__get_test_in_path__(m, t)
-                f_out = self.__get_test_out_path__(m, t)
-                f_exp = self.__get_test_expected_out_path__(m, t)
-                ifc_in = 'u:test-in'
-                ifc_out = 'u:test-out'
+                files_in = self.__get_test_in_paths__(m, t)
+                files_out = self.__get_test_out_paths__(m, t)
+                files_exp = self.__get_test_expected_out_paths__(m, t)
+
+                ifc_in = 'u:in{}'.format(',u:in'.join(ifcs['in']))
+                ifc_out = 'u:out{}'.format(',u:out'.join(ifcs['out']))
 
                 x = Shell(directory=m)
                 x.execute_array(pre_shell)
@@ -61,11 +64,11 @@ class AutoTest(SIoTNemeaTester):
                      '-i', '{},{}'.format(ifc_in, ifc_out)] + run_args,
                      stderr=PIPE, stdout=PIPE, cwd=m)
 
-                self.__inject_and_capture__(ifc_in, f_in, ifc_out, f_out)
+                self.__inject_and_capture__(ifcs['in'], files_in, ifcs['out'], files_out)
                 x = Shell(directory=m)
                 x.execute_array(post_shell)
 
-                self.__test_ended__(self.__compare_files__(f_exp, f_out))
+                self.__test_ended__(self.__compare_files__(files_exp, files_out))
                 out, err = module.communicate()
                 if module.returncode == 42 or (self.v and self.apvo):
                     print(err.decode())

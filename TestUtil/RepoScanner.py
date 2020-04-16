@@ -23,7 +23,7 @@ class RepoScanner:
 
                 if self.modules[d_info.name]['got-tests']:
                     test_files = FolderInfo('{}/{}'.format(d, 'tests')).files
-                    self.modules[d_info.name]['tests'] = self.__get_test_pairs__(test_files)
+                    self.modules[d_info.name]['tests'] = self.__get_tests_ins_outs__(test_files)
 
     def filter(self, modules: []):
         if not modules:
@@ -36,20 +36,30 @@ class RepoScanner:
                 raise RuntimeError('no such module: {}'.format(m))
 
     @staticmethod
-    def __get_test_pairs__(files):
-        pairs = []
-        file_re = re.compile(r'^(.*)\.(.*)$')
+    def __get_tests_ins_outs__(files):
+        tests = {}
+        file_re = re.compile(r'^(.*)\.([0-9])\.(csv|out)$')
 
         for f in files:
             match = file_re.match(f)
 
-            if match:
-                (name, ext) = match.groups()
+            if not match:
+                continue
 
-                if ext == 'out' and name + '.csv' in files:
-                    pairs.append(name)
+            (name, ifc, ext) = match.groups()
 
-        return pairs
+            if name not in tests.keys():
+                tests[name] = {}
+                tests[name]['in'] = []
+                tests[name]['out'] = []
+
+            if ext == 'csv':
+                tests[name]['in'].append(ifc)
+            else:
+                tests[name]['out'].append(ifc)
+
+        return tests
+
 
     # Returns information whether a module with the given name is present in
     # the repository.

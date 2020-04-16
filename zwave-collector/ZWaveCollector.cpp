@@ -139,7 +139,7 @@ void processFrame(const ZWave::FrameWrapper &frame, ur_template_t *out_template,
 		: ""
 	);
 	ur_set_string(out_template, out_record, F_CMD_STR,
-		payloadLength >= 2 && frame.bytes_[begin] == 0x01 //CC System
+		payloadLength >= 2 && frame.bytes_[begin] == ZWave::CC::System
 		? ZWave::systemCommandValToStr(frame.bytes_[begin + 1]).c_str()
 		: ""
 	);
@@ -233,10 +233,10 @@ int main(int argc, char *argv[])
 			trap_send(0, dummy, 1);
 			trap_send_flush(0);
 			// if ignore_eof option is used -> forward eof message but keep this module running
-			if (!ignore_eof){
-				cleanup();
-				return 1;
-			}
+			if (ignore_eof) { continue; }
+
+			cleanup();
+			return 1;
 		}
 
 		auto timestamp = ur_get(in_template, in_record, F_TIMESTAMP);

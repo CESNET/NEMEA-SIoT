@@ -8,14 +8,15 @@ This repository contains [Nemea system](https://github.com/CESNET/Nemea) modules
  * [lora-replay](lora-replay) -- detect replay attack in lora networks
  * [lora-distance](lora-distance) -- detect unexpected sensor location change
  * [wsn-anomaly](wsn-anomaly-testable) -- universal anomaly detector for wireless sensor networks
-
+ * [zwave-detector](zwave-detector) -- detect network scanning and attacks on routing
+ 
 To enable more advanced threat detection we create specialized collectors using dedicated HW interfaces to collect more detailed data. These modules provide collected data to NEMEA detectors. The modules and their functionality/purposes are:
  * [SIoTpot](SIoTpot) -- universal honeypot for IoT networks
  * [ble-adv-collector](ble-adv-collector) -- provide ble devices which are in proximity
  * [hci-collector](hci-collector) -- exports ble packet date from hci interface
  * [zwave-sdr-sniffer](zwave-sdr-sniffer) -- sniff and exports z-wave frames using RTL-SDR
  * [zwave-collector](zwave-collector) -- parse frames from zwave-sdr-sniffer and exports them
- * [zwave-detector](zwave-detector) -- detect network scanning and attacks on routing
+ * [zwave-stats-creator](zwave-stats-creator) -- create statistics of z-wave network (from sniffed frames)
 
 Also, there are [datasets](#iot-datasets) of IoT devices communication.
 

@@ -45,144 +45,144 @@ using namespace ZWave;
 std::string ZWave::commandClassValToStr(uint8_t commandClass)
 {
 	static const std::unordered_map<uint8_t, std::string> ccMap {
-		{	 0x00	,	"No Operation"	 },
-		{	 0x01	,	"System"	 },
+		{ 0x00, "No Operation" },
+		{ 0x01, "System" },
 
-		{	 0x20	,	"Basic"	 },
-		{	 0x21	,	"Controller Replication"	 },
-		{	 0x22	,	"Application Status"	 },
-		{	 0x23	,	"ZIP"	 },
-		{	 0x24	,	"Security Panel Mode"	 },
-		{	 0x25	,	"Switch Binary"	 },
-		{	 0x26	,	"Switch Multilevel"	 },
-		{	 0x27	,	"Switch All"	 },
-		{	 0x28	,	"Switch Toggle Binary"	 },
-		{	 0x29	,	"Switch Toggle Multilevel"	 },
-		{	 0x2A	,	"Chimney Fan"	 },
-		{	 0x2B	,	"Scene Activation"	 },
-		{	 0x2C	,	"Scene Actuator Conf"	 },
-		{	 0x2D	,	"Scene Controller Conf"	 },
-		{	 0x2E	,	"Security Panel Zone"	 },
-		{	 0x2F	,	"Security Panel Zone Sensor"	 },
+		{ 0x20, "Basic" },
+		{ 0x21, "Controller Replication" },
+		{ 0x22, "Application Status" },
+		{ 0x23, "ZIP" },
+		{ 0x24, "Security Panel Mode" },
+		{ 0x25, "Switch Binary" },
+		{ 0x26, "Switch Multilevel" },
+		{ 0x27, "Switch All" },
+		{ 0x28, "Switch Toggle Binary" },
+		{ 0x29, "Switch Toggle Multilevel" },
+		{ 0x2A, "Chimney Fan" },
+		{ 0x2B, "Scene Activation" },
+		{ 0x2C, "Scene Actuator Conf" },
+		{ 0x2D, "Scene Controller Conf" },
+		{ 0x2E, "Security Panel Zone" },
+		{ 0x2F, "Security Panel Zone Sensor" },
 
-		{	 0x30	,	"Sensor Binary"	 },
-		{	 0x31	,	"Sensor Multilevel" },
-		{	 0x32	,	"Meter"	 },
-		{	 0x33	,	"Color Control"	 },
-		{	 0x34	,	"Network Management Inclusion"	 },
-		{	 0x35	,	"Meter Pulse"	 },
-		{	 0x36	,	"Basic Tariff Info"	 },
-		{	 0x37	,	"HRV Status"	 },
-		{	 0x38	,	"Thermostat Heating"	 },
-		{	 0x39	,	"HRV Control"	 },
-		{	 0x3A	,	"DCP Config"	 },
-		{	 0x3B	,	"DCP Monitor"	 },
-		{	 0x3C	,	"Meter TBL Config"	 },
-		{	 0x3D	,	"Meter TBL Monitor"	 },
-		{	 0x3E	,	"Meter TBL Push"	 },
-		{	 0x3F	,	"Prepayment"	 },
+		{ 0x30, "Sensor Binary" },
+		{ 0x31, "Sensor Multilevel" },
+		{ 0x32, "Meter" },
+		{ 0x33, "Color Control" },
+		{ 0x34, "Network Management Inclusion" },
+		{ 0x35, "Meter Pulse" },
+		{ 0x36, "Basic Tariff Info" },
+		{ 0x37, "HRV Status" },
+		{ 0x38, "Thermostat Heating" },
+		{ 0x39, "HRV Control" },
+		{ 0x3A, "DCP Config" },
+		{ 0x3B, "DCP Monitor" },
+		{ 0x3C, "Meter TBL Config" },
+		{ 0x3D, "Meter TBL Monitor" },
+		{ 0x3E, "Meter TBL Push" },
+		{ 0x3F, "Prepayment" },
 
-		{	 0x40	,	"Thermostat Mode"	 },
-		{	 0x41	,	"Prepayment Encapsulation"	 },
-		{	 0x42	,	"Thermostat Operating State"	 },
-		{	 0x43	,	"Thermostat Setpoint"	 },
-		{	 0x44	,	"Thermostat Fan Mode"	 },
-		{	 0x45	,	"Thermostat Fan State"	 },
-		{	 0x46	,	"Climate Control Schedule"	 },
-		{	 0x47	,	"Thermostat Setback"	 },
-		{	 0x48	,	"Rate TBL Config"	 },
-		{	 0x49	,	"Rate TBL Monitor"	 },
-		{	 0x4A	,	"Tariff Config"	 },
-		{	 0x4B	,	"Tariff TBL Monitor"	 },
-		{	 0x4C	,	"Door Lock Logging"	 },
-		{	 0x4D	,	"Network Management Basic"	 },
-		{	 0x4E	,	"Schedule Entry Lock"	 },
-		{	 0x4F	,	"ZIP 6LOWPAN"	 },
+		{ 0x40, "Thermostat Mode" },
+		{ 0x41, "Prepayment Encapsulation" },
+		{ 0x42, "Thermostat Operating State" },
+		{ 0x43, "Thermostat Setpoint" },
+		{ 0x44, "Thermostat Fan Mode" },
+		{ 0x45, "Thermostat Fan State" },
+		{ 0x46, "Climate Control Schedule" },
+		{ 0x47, "Thermostat Setback" },
+		{ 0x48, "Rate TBL Config" },
+		{ 0x49, "Rate TBL Monitor" },
+		{ 0x4A, "Tariff Config" },
+		{ 0x4B, "Tariff TBL Monitor" },
+		{ 0x4C, "Door Lock Logging" },
+		{ 0x4D, "Network Management Basic" },
+		{ 0x4E, "Schedule Entry Lock" },
+		{ 0x4F, "ZIP 6LOWPAN" },
 
-		{	 0x50	,	"Basic Window Covering"	 },
-		{	 0x51	,	"MTP Window Covering"	 },
-		{	 0x52	,	"Network Management Proxy"	 },
-		{	 0x53	,	"Schedule"	 },
-		{	 0x54	,	"Network Management Primary"	 },
-		{	 0x55	,	"Transport Service"	 },
-		{	 0x56	,	"CRC16 Encap"	 },
-		{	 0x57	,	"Application Capability"	 },
-		{	 0x58	,	"ZIP ND"	 },
-		{	 0x59	,	"Association GRP Info"	 },
-		{	 0x5A	,	"Device Reset Locally"	 },
-		{	 0x5B	,	"Central Scene"	 },
-		{	 0x5C	,	"IP Association"	 },
-		{	 0x5D	,	"Antitheft"	 },
-		{	 0x5E	,	"ZWavePlus Info"	 },
-		{	 0x5F	,	"ZIP Gateway"	 },
+		{ 0x50, "Basic Window Covering" },
+		{ 0x51, "MTP Window Covering" },
+		{ 0x52, "Network Management Proxy" },
+		{ 0x53, "Schedule" },
+		{ 0x54, "Network Management Primary" },
+		{ 0x55, "Transport Service" },
+		{ 0x56, "CRC16 Encap" },
+		{ 0x57, "Application Capability" },
+		{ 0x58, "ZIP ND" },
+		{ 0x59, "Association GRP Info" },
+		{ 0x5A, "Device Reset Locally" },
+		{ 0x5B, "Central Scene" },
+		{ 0x5C, "IP Association" },
+		{ 0x5D, "Antitheft" },
+		{ 0x5E, "ZWavePlus Info" },
+		{ 0x5F, "ZIP Gateway" },
 
-		{	 0x60	,	"Multi Channel"	 },
-		{	 0x61	,	"ZIP Portal"	 },
-		{	 0x62	,	"Door Lock"	 },
-		{	 0x63	,	"User Code"	 },
-//		{	 0x64	,	""	 },
-		{	 0x65	,	"DMX"	 },
-		{	 0x66	,	"Barrier Operator"	 },
-		{	 0x67	,	"Network Management Install"	 },
-		{	 0x68	,	"ZIP Naming"	 },
-		{	 0x69	,	"Mailbox"	 },
-		{	 0x6A	,	"Window Covering"	 },
-		{	 0x6B	,	"Irrigation"	 },
-		{	 0x6C	,	"Supervision"	 },
-//		{	 0x6D	,	""	 },
-//		{	 0x6E	,	""	 },
-//		{	 0x6F	,	""	 },
+		{ 0x60, "Multi Channel" },
+		{ 0x61, "ZIP Portal" },
+		{ 0x62, "Door Lock" },
+		{ 0x63, "User Code" },
+//		{ 0x64, "" },
+		{ 0x65, "DMX" },
+		{ 0x66, "Barrier Operator" },
+		{ 0x67, "Network Management Install" },
+		{ 0x68, "ZIP Naming" },
+		{ 0x69, "Mailbox" },
+		{ 0x6A, "Window Covering" },
+		{ 0x6B, "Irrigation" },
+		{ 0x6C, "Supervision" },
+//		{ 0x6D, "" },
+//		{ 0x6E, "" },
+//		{ 0x6F, "" },
 
-		{	 0x70	,	"Configuration"	 },
-		{	 0x71	,	"Alarm"	 },
-		{	 0x72	,	"Manufacturer Specific"	 },
-		{	 0x73	,	"Power Level"	 },
-//		{	 0x74	,	""	 },
-		{	 0x75	,	"Protection"	 },
-		{	 0x76	,	"Lock"	 },
-		{	 0x77	,	"Node Naming"	 },
-//		{	 0x78	,	""	 },
-//		{	 0x79	,	""	 },
-		{	 0x7A	,	"Firmware Update MD"	 },
-		{	 0x7B	,	"Grouping Name"	 },
-		{	 0x7C	,	"Remote Association Activate"	 },
-		{	 0x7D	,	"Remote Association"	 },
-//		{	 0x7E	,	""	 },
-//		{	 0x7F	,	""	 },
+		{ 0x70, "Configuration" },
+		{ 0x71, "Alarm" },
+		{ 0x72, "Manufacturer Specific" },
+		{ 0x73, "Power Level" },
+//		{ 0x74, "" },
+		{ 0x75, "Protection" },
+		{ 0x76, "Lock" },
+		{ 0x77, "Node Naming" },
+//		{ 0x78, "" },
+//		{ 0x79, "" },
+		{ 0x7A, "Firmware Update MD" },
+		{ 0x7B, "Grouping Name" },
+		{ 0x7C, "Remote Association Activate" },
+		{ 0x7D, "Remote Association" },
+//		{ 0x7E, "" },
+//		{ 0x7F, "" },
 
-		{	 0x80	,	"Battery"	 },
-		{	 0x81	,	"Clock"	 },
-		{	 0x82	,	"Hail"	 },
-//		{	 0x83	,	""	 },
-		{	 0x84	,	"WakeUp"	 },
-		{	 0x85	,	"Association"	 },
-		{	 0x86	,	"Version"	 },
-		{	 0x87	,	"Indicator"	 },
-		{	 0x88	,	"Proprietary"	 },
-		{	 0x89	,	"Language"	 },
-		{	 0x8A	,	"Time"	 },
-		{	 0x8B	,	"Time Parameters"	 },
-		{	 0x8C	,	""	 },
-		{	 0x8D	,	""	 },
-		{	 0x8E	,	"Multi Channel Association"	 },
-		{	 0x8F	,	"Multi Command"	 },
+		{ 0x80, "Battery" },
+		{ 0x81, "Clock" },
+		{ 0x82, "Hail" },
+//		{ 0x83, "" },
+		{ 0x84, "WakeUp" },
+		{ 0x85, "Association" },
+		{ 0x86, "Version" },
+		{ 0x87, "Indicator" },
+		{ 0x88, "Proprietary" },
+		{ 0x89, "Language" },
+		{ 0x8A, "Time" },
+		{ 0x8B, "Time Parameters" },
+		{ 0x8C, "" },
+		{ 0x8D, "" },
+		{ 0x8E, "Multi Channel Association" },
+		{ 0x8F, "Multi Command" },
 
-		{	 0x90	,	"Energy Production"	 },
-		{	 0x91	,	"Manufacturer Proprietary"	 },
-		{	 0x92	,	"Screen MD"	 },
-		{	 0x93	,	"Screen Attributes"	 },
-		{	 0x94	,	"Simple AV Control"	 },
-		{	 0x95	,	"AV Content Directory MD"	 },
-		{	 0x96	,	"AV Renderer Status"	 },
-		{	 0x97	,	"AV Content Search MD"	 },
-		{	 0x98	,	"Security V1"	 },
-		{	 0x99	,	"AV Tagging MD"	 },
-		{	 0x9A	,	"IP Configuration"	 },
-		{	 0x9B	,	"Association Command Configuration"	 },
-		{	 0x9C	,	"Sensor Alarm"	 },
-		{	 0x9D	,	"Silence Alarm"	 },
-		{	 0x9E	,	"Sensor Configuration"	 },
-		{	 0x9F	,	"Security S2"	 },
+		{ 0x90, "Energy Production" },
+		{ 0x91, "Manufacturer Proprietary" },
+		{ 0x92, "Screen MD"	 },
+		{ 0x93, "Screen Attributes" },
+		{ 0x94, "Simple AV Control" },
+		{ 0x95, "AV Content Directory MD" },
+		{ 0x96, "AV Renderer Status" },
+		{ 0x97, "AV Content Search MD" },
+		{ 0x98, "Security V1" },
+		{ 0x99, "AV Tagging MD" },
+		{ 0x9A, "IP Configuration" },
+		{ 0x9B, "Association Command Configuration" },
+		{ 0x9C, "Sensor Alarm" },
+		{ 0x9D, "Silence Alarm" },
+		{ 0x9E, "Sensor Configuration" },
+		{ 0x9F, "Security S2" },
 	};
 
 	const auto &it = ccMap.find(commandClass);
@@ -195,18 +195,18 @@ std::string ZWave::commandClassValToStr(uint8_t commandClass)
 std::string ZWave::systemCommandValToStr(uint8_t systemCommand)
 {
 	static const std::unordered_map<uint8_t, std::string> systemCMap {
-		{	 0x01	,	"Node Info"	 },
-		{	 0x02	,	"Get supported CC"	 },
-		{	 0x03	,	"Assign Id"	 },//? Assign Node Id
-		{	 0x04	,	"Do NL Test"	 },
-		{	 0x05	,	"Get NL"	 },
-		{	 0x06	,	"Report NL"	 },
-		{	 0x07	,	"NL Test Done"	 },
-		{	 0x08	,	"Transfer Presentation"	 },//? Listen mode
-		{	 0x0C	,	"SR Cache Assignment"	 },
-		{	 0x14	,	"Backbone Cache Assignment"	 },
-		{	 0x15	,	"SR Request"	 },
-		{	 0x18	,	"NL Test"	 },
+		{ CCSystemCommand::NodeInfo,                "Node Info" },
+		{ CCSystemCommand::GetSupportedCC,          "Get supported CC" },
+		{ CCSystemCommand::AssignNodeId,            "Assign Id" },
+		{ CCSystemCommand::DoNLTest,                "Do NL Test" },
+		{ CCSystemCommand::GetNL,                   "Get NL" },
+		{ CCSystemCommand::ReportNL,                "Report NL" },
+		{ CCSystemCommand::NLTestDone,              "NL Test Done" },
+		{ CCSystemCommand::TransferPresentation,    "Transfer Presentation" },// Listen mode
+		{ CCSystemCommand::SRCacheAssignment,       "SR Cache Assignment" },
+		{ CCSystemCommand::BackboneCacheAssignment, "Backbone Cache Assignment" },
+		{ CCSystemCommand::SRRequest,               "SR Request" },
+		{ CCSystemCommand::NLTest,                  "NL Test" },
 	};
 
 	const auto &it = systemCMap.find(systemCommand);
@@ -256,7 +256,7 @@ void FrameWrapper::setTimestampNow()
 {
 	timeval tv = {};
 	::gettimeofday(&tv, nullptr);
-	timestamp_ = ur_time_from_sec_msec(tv.tv_sec, tv.tv_usec / 1000);
+	timestamp_ = ur_time_from_sec_usec(tv.tv_sec, tv.tv_usec);
 }
 
 bool FrameWrapper::isOK() const
@@ -402,7 +402,7 @@ bool FrameWrapper::isNetworkHeaderOK() const
 	if (header->failed_hop > 5)
 		return false;
 
-	return (header->hop_index == 0xF) || (header->hop_index >= 0 && header->hop_index < header->sr_len);
+	return (header->hop_index == 0xF) || (header->hop_index >= 0 && header->hop_index <= header->sr_len);
 };
 
 const Network_header *FrameWrapper::networkHeader() const
@@ -484,6 +484,89 @@ uint8_t FrameWrapper::failedHopId() const
 const uint8_t *FrameWrapper::networkHops() const
 {
 	return bytes_ + NETWORK_HOPS_POS;
+}
+
+std::string FrameWrapper::constructRouteString() const
+{
+	auto header = networkHeader();
+
+	std::stringstream ss;
+
+	ss << std::hex << setfill('0') << setw(2) << (int) src();
+	ss << "->";
+	for (uint8_t i = 0; i < header->sr_len; ++i)
+	{
+		ss << std::hex << setfill('0') << setw(2) << (int) *(networkHops() + i);
+		ss << "->";
+	}
+	ss << std::hex << setfill('0') << setw(2) << (int) dst();
+
+	return ss.str();
+}
+
+bool FrameWrapper::getCommandClassAndCommand(uint8_t &cc, uint8_t &command) const
+{
+	const uint8_t payload_begin = payloadPos();
+	const uint8_t payload_len = checksumPos() - payload_begin;
+
+	if (payload_len < 2) { return false; }
+
+	cc = bytes_[payload_begin];
+	command = bytes_[payload_begin + 1];
+
+	return true;
+}
+
+bool FrameWrapper::getNodeIdsFromNL(std::set<uint8_t> &nodes) const
+{
+	nodes.clear();
+
+	const uint8_t payload_begin = payloadPos();
+	const uint8_t payload_len = checksumPos() - payload_begin;
+
+	if (payload_len < 4) { return false; }
+
+	const uint8_t nl_bitfield_len = bytes_[payload_begin + 2];
+	const uint8_t exp_payload_len = (uint8_t) (3 + nl_bitfield_len);
+
+	if (payload_len < exp_payload_len) { return false; }
+
+	for (uint8_t i = 0; i < nl_bitfield_len; ++i)
+	{
+		const uint8_t byte = bytes_[payload_begin + 3 + i];
+		for (uint8_t j = 0; j < 8; ++j)
+		{
+			const uint8_t node_id = (uint8_t) (8 * i + j + 1);
+
+			const bool is_set = (bool)((byte >> j) & 0b00000001);
+
+			if (is_set) { nodes.insert(node_id); }
+		}
+	}
+
+	return true;
+}
+
+bool FrameWrapper::getHopsFromSRCacheEntry(std::vector<uint8_t> &hops) const
+{
+	hops.clear();
+
+	const uint8_t payload_begin = payloadPos();
+	const uint8_t payload_len = checksumPos() - payload_begin;
+
+	if (payload_len < 6) { return false; }
+
+	const uint8_t sr_len = (uint8_t) (bytes_[payload_begin + 3] & 0b00001111);
+	const uint8_t exp_payload_len = (uint8_t) (5 + sr_len);
+
+	if (payload_len < exp_payload_len) { return false; }
+
+	for (uint8_t i = 0; i < sr_len; ++i)
+	{
+		hops.push_back(bytes_[payload_begin + 4 + i]);
+	}
+
+	return true;
 }
 
 void FrameWrapper::print(bool parse) const

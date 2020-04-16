@@ -1,0 +1,5 @@
+{
+	"pre-shell"  : [],
+	"run-args"   : ["-t", "-n", "e1453473", "-s", "4"],
+	"post-shell" : []
+}

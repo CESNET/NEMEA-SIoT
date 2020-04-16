@@ -32,6 +32,9 @@
 
 #pragma once
 
+#include <set>
+#include <vector>
+
 #include <unirec/unirec.h>
 
 namespace ZWave {
@@ -43,6 +46,30 @@ enum Channel : uint8_t {
 	C1 = 1,
 	C2 = 2,
 	C3 = 3
+};
+
+enum CC : uint8_t {
+	System = 0x01,
+	Basic = 0x20,
+	Configuration = 0x70,
+	ManufacturerSpecific = 0x72,
+	Version = 0x86,
+	//...
+};
+
+enum CCSystemCommand : uint8_t {
+	NodeInfo = 0x01,
+	GetSupportedCC = 0x02,
+	AssignNodeId = 0x03,
+	DoNLTest = 0x04,
+	GetNL = 0x05,
+	ReportNL = 0x06,
+	NLTestDone = 0x07,
+	TransferPresentation = 0x08,
+	SRCacheAssignment = 0x0C,
+	BackboneCacheAssignment = 0x14,
+	SRRequest = 0x15,
+	NLTest = 0x18,
 };
 
 struct Transport_header {
@@ -154,6 +181,12 @@ public:
 	uint8_t dstHopId() const;
 	uint8_t failedHopId() const;
 	const uint8_t *networkHops() const;
+	std::string constructRouteString() const;
+
+	bool getCommandClassAndCommand(uint8_t &cc, uint8_t &command) const;
+
+	bool getNodeIdsFromNL(std::set<uint8_t> &nodes) const;
+	bool getHopsFromSRCacheEntry(std::vector<uint8_t> &hops) const;
 
 	void print(bool parse = false) const;
 
@@ -163,7 +196,7 @@ private:
 
 public:
 	const Transport_header *header_;
-	const uint8_t *bytes_;
+	const uint8_t *const bytes_;
 	const uint8_t size_;
 	const Channel channel_;
 
