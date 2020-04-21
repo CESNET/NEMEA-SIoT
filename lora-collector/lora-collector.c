@@ -471,7 +471,7 @@ TRAP_DEFAULT_SIGNAL_HANDLER(stop = 1)
  * Function trap finalization and print error.
  */
 void trap_fin(char *arg) {
-    fprintf(stderr, arg);
+    fputs(arg, stderr);
     TRAP_DEFAULT_FINALIZATION();
 }
 
