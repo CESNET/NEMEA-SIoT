@@ -7,7 +7,7 @@ This repository contains [Nemea system](https://github.com/CESNET/Nemea) modules
  * [lora-airtime](lora-airtime) -- detect unexpected frequency of lora messages
  * [lora-replay](lora-replay) -- detect replay attack in lora networks
  * [lora-distance](lora-distance) -- detect unexpected sensor location change
- * [wsn-anomaly](wsn-anomaly-testable) -- universal anomaly detector for wireless sensor networks
+ * [wsn-anomaly](wsn-anomaly) -- universal anomaly detector for wireless sensor networks
  * [zwave-detector](zwave-detector) -- detect network scanning and attacks on routing
  
 To enable more advanced threat detection we create specialized collectors using dedicated HW interfaces to collect more detailed data. These modules provide collected data to NEMEA detectors. The modules and their functionality/purposes are:
