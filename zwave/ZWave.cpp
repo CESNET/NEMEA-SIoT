@@ -368,7 +368,7 @@ std::string FrameWrapper::headerTypeStr() const
 
 uint8_t FrameWrapper::payloadPos() const
 {
-	if (!isSinglecast() && !isAck()) //TODO ble
+	if (!isSinglecast() && !isAck())
 		return LENGTH_POS;
 
 	if (!isRouted() || !isNetworkHeaderOK())
@@ -386,23 +386,30 @@ bool FrameWrapper::isNetworkHeaderOK() const
 {
 	uint8_t csPos = checksumPos();
 
-	if (NETWORK_HOPS_POS >= csPos)
-		return false;
+	if (network_header_already_checked_)
+		return network_header_ok_;
+
+	if (NETWORK_HOPS_POS >= csPos) {
+		network_header_already_checked_ = true;
+		network_header_ok_ = false;
+		return network_header_ok_;
+	}
 
 	auto header = networkHeader();
-	if (NETWORK_HOPS_POS + header->sr_len >= csPos)
-		return false;
+	if ((NETWORK_HOPS_POS + header->sr_len > csPos)
+		|| (header->sr_type != AppFrame && header->sr_type != RouteAck && header->sr_type != RouteNack)
+		|| (header->sr_len > 4)
+		|| (header->failed_hop > 5)
+		|| ((header->hop_index > header->sr_len) && (header->hop_index != 0xF)))
+	{
+		network_header_already_checked_ = true;
+		network_header_ok_ = false;
+		return network_header_ok_;
+	}
 
-	if (header->sr_type != AppFrame && header->sr_type != RouteAck && header->sr_type != RouteNack)
-		return false;
-
-	if (header->sr_len > 4)
-		return false;
-
-	if (header->failed_hop > 5)
-		return false;
-
-	return (header->hop_index == 0xF) || (header->hop_index >= 0 && header->hop_index <= header->sr_len);
+	network_header_already_checked_ = true;
+	network_header_ok_ = true;
+	return network_header_ok_;
 };
 
 const Network_header *FrameWrapper::networkHeader() const
