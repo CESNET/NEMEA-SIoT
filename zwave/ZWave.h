@@ -150,6 +150,7 @@ public:
 	void setTimestamp(ur_time_t timestamp);
 	void setTimestampNow();
 
+	// call this before other methods to know frame is valid
 	bool isOK() const;
 	bool sizeOK() const;
 	bool checkSumOK() const;
@@ -169,6 +170,9 @@ public:
 
 	std::string headerTypeStr() const;
 
+	// return payload position if everything is ok and payload is present
+	//        length position if frame is not singlecast or ack
+	//        networkHeaderPos if network header is of unknown format or invalid
 	uint8_t payloadPos() const;
 	uint8_t checksumPos() const;
 
@@ -202,6 +206,9 @@ public:
 
 private:
 	ur_time_t timestamp_;
+
+	mutable bool network_header_already_checked_ = false;
+	mutable bool network_header_ok_ = false;
 };
 
 } //end of namespace ZWave
