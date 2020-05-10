@@ -7,7 +7,7 @@ and export frames one by one (including corrupted frames for further processing)
 timestamp and channel (on which they were captured) using NEMEA output interface.
  
 The Sniffer uses 2 RTL-SDR dongles for receiving simultaneously on both Z-Wave
-EU frequencies 868.42 MHz and 869.85 MHz.
+EU frequencies 868.40 MHz and 869.85 MHz.
 Decoding the Z-Wave frames (ITU G.9959) is realized using rtl_zwave: https://github.com/andersesbensen/rtl-zwave.
 
 Installed rtl-sdr package is required.
@@ -16,7 +16,7 @@ Installed rtl-sdr package is required.
 
 ## Output Unirec Interface
 	time    TIMESTAMP
-	uint8   CHANNEL   - 1 (868.42MHz, 9.6kB/s), 2 (868.42MHz, 40kB/s) or 3 (869.85MHz, 100kB/s)
+	uint8   CHANNEL   - 1 (868.40MHz, 9.6kB/s), 2 (868.40MHz, 40kB/s) or 3 (869.85MHz, 100kB/s)
 	bytes   FRAME     - variable length frame
 
 ## Parameters
