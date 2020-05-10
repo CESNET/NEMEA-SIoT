@@ -126,12 +126,12 @@ int main(int argc, char *argv[])
 
 	int verbose = trap_get_verbose_level();
 
-	ZWaveRtlSdr rtlSdr868_42("868.42e6", "0", gain);
+	ZWaveRtlSdr rtlSdr868_40("868.40e6", "0", gain);
 	ZWaveRtlSdr rtlSdr869_85("869.85e6", "1", gain);
 
 	std::mutex mx;
 
-	auto callback868_42 = [&](uint8_t *data, uint8_t len, bool isManchesterEnc) {
+	auto callback868_40 = [&](uint8_t *data, uint8_t len, bool isManchesterEnc) {
 		std::lock_guard<std::mutex> lock(mx);
 
 		ZWave::FrameWrapper frame(data, len, isManchesterEnc ? ZWave::Channel::C1 : ZWave::Channel::C2);
@@ -154,7 +154,7 @@ int main(int argc, char *argv[])
 	};
 
 	std::thread t([&](){
-		rtlSdr868_42.run(callback868_42);
+		rtlSdr868_40.run(callback868_40);
 	});
 
 	rtlSdr869_85.run(callback869_85);
