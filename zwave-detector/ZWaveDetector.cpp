@@ -61,9 +61,9 @@ UR_FIELDS(
 #define IN_EVENTS_TEMPLATE "TIME, EVENT_TYPE, HOME_ID, NODE_ID"
 #define OUT_ALERTS_TEMPLATE "TIMESTAMP, INCIDENT_DEV_ADDR, ALERT_CODE, CAPTION"
 
-#define EVENT_NODE_ADDED 6
-#define EVENT_NODE_REMOVED 7
-#define EVENT_DRIVER_READY 18
+#define EVENT_NODE_ADDED 6.0
+#define EVENT_NODE_REMOVED 7.0
+#define EVENT_DRIVER_READY 18.0
 
 trap_module_info_t *module_info = NULL;
 
@@ -79,6 +79,45 @@ trap_module_info_t *module_info = NULL;
 
 std::atomic_bool g_stop = { false };
 TRAP_DEFAULT_SIGNAL_HANDLER(g_stop = true)
+
+#pragma GCC push_options
+#pragma GCC optimize ("O0")
+void receiveEvents(ur_template_t *in_events_template, ZWaveDetector &detector, std::atomic_bool &forward_eof, bool ignore_eof)
+{
+	while (!g_stop) {
+		const void *in_record;
+		uint16_t in_record_size;
+
+		int ret = TRAP_RECEIVE(1, in_record, in_record_size, in_events_template);
+		TRAP_DEFAULT_RECV_ERROR_HANDLING(ret, continue, break);
+
+		// EOF but do not close this module
+		// module will be closed through frames interface
+		if (in_record_size <= 1) {
+			forward_eof = true;
+
+			if (ignore_eof) { continue; }
+
+			break;
+		}
+
+		ur_time_t timestamp = ur_get(in_events_template, in_record, F_TIME);
+		double event_type = ur_get(in_events_template, in_record, F_EVENT_TYPE);
+		double node_id = ur_get(in_events_template, in_record, F_NODE_ID);
+
+		if (event_type == EVENT_DRIVER_READY) {
+			double home_id = ur_get(in_events_template, in_record, F_HOME_ID);
+			detector.init((uint32_t) home_id);
+		}
+		else if (event_type == EVENT_NODE_ADDED) {
+			detector.nodeAdded((uint8_t) node_id, timestamp);
+		}
+		else if (event_type == EVENT_NODE_REMOVED) {
+			detector.nodeRemoved((uint8_t) node_id, timestamp);
+		}
+	}
+}
+#pragma GCC pop_options
 
 int main(int argc, char *argv[])
 {
@@ -97,7 +136,7 @@ int main(int argc, char *argv[])
 	int pairing_time_window = 5; // in seconds
 	uint32_t home_id = 0;
 	std::atomic_bool forward_eof = { false };
-	int ignore_eof = 0; // Ignore EOF input parameter flag
+	bool ignore_eof = false; // Ignore EOF input parameter flag
 
 	while ((opt = getopt_long(argc, argv, module_getopt_string, long_options, NULL)) != -1) {
 		switch (opt) {
@@ -126,7 +165,7 @@ int main(int argc, char *argv[])
 			break;
 		}
 		case 'I':
-			ignore_eof = 1;
+			ignore_eof = true;
 			break;
 		default:
 			std::cerr << "Error: Invalid argument." << std::endl;
@@ -215,38 +254,7 @@ int main(int argc, char *argv[])
 			std::cout << "Events processing thread started." << std::endl;
 		}
 
-		while (!g_stop) {
-			const void *in_record;
-			uint16_t in_record_size;
-
-			int ret = TRAP_RECEIVE(1, in_record, in_record_size, in_events_template);
-			TRAP_DEFAULT_RECV_ERROR_HANDLING(ret, continue, break);
-
-			// EOF but do not close this module
-			// module will be closed through frames interface
-			if (in_record_size <= 1) {
-				forward_eof = true;
-
-				if (ignore_eof) { continue; }
-
-				break;
-			}
-
-			ur_time_t timestamp = ur_get(in_events_template, in_record, F_TIME);
-			double event_type = ur_get(in_events_template, in_record, F_EVENT_TYPE);
-			double node_id = ur_get(in_events_template, in_record, F_NODE_ID);
-
-			if (event_type == EVENT_DRIVER_READY) {
-				double home_id = ur_get(in_events_template, in_record, F_HOME_ID);
-				detector.init(home_id);
-			}
-			else if (event_type == EVENT_NODE_ADDED) {
-				detector.nodeAdded(node_id, timestamp);
-			}
-			else if (event_type == EVENT_NODE_REMOVED) {
-				detector.nodeRemoved(node_id, timestamp);
-			}
-		}
+		receiveEvents(in_events_template, detector, forward_eof, ignore_eof);
 
 		if (verbose) {
 			std::cout << "Events processing thread ended." << std::endl;
