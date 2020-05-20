@@ -749,7 +749,7 @@ void ZWaveDetector::reportMITM(const time_t &now, uint8_t node_id)
 
 void ZWaveDetector::run(const std::atomic_bool &stop, const std::atomic_bool &send_eof)
 {
-	while(!stop && !home_id_initialized_ && first_frame_received_)
+	while(!stop && !home_id_initialized_ && !first_frame_received_)
 	{
 		std::this_thread::sleep_for(std::chrono::milliseconds(50));
 	}
